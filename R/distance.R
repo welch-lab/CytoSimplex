@@ -64,10 +64,18 @@ calcDist <- function(
 
 cosineDist <- function(query, target) {
     if (inherits(query, "matrix")) cosine_dense(query, target)
-    else cosine_sparse(query, target) # TODO not implemented yet
+    else if (inherits(query, "dgCMatrix")) cosine_sparse(query, target) # TODO not implemented yet
+    else {
+        stop("Distance calculation not supported for matrix of class ",
+             class(query)[1])
+    }
 }
 
 euclideanDist <- function(query, target) {
     if (inherits(query, "matrix")) euclidean_dense(query, target)
-    else euclidean_sparse(query, target) # TODO not implemented yet
+    else if (inherits(query, "dgCMatrix")) euclidean_sparse(query, target) # TODO not implemented yet
+    else {
+        stop("Distance calculation not supported for matrix of class ",
+             class(query)[1])
+    }
 }

@@ -24,7 +24,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // euclidean_sparse
-arma::sp_mat euclidean_sparse(arma::sp_mat query, arma::sp_mat target);
+arma::mat euclidean_sparse(arma::sp_mat query, arma::sp_mat target);
 RcppExport SEXP _scPlotSimplex_euclidean_sparse(SEXP querySEXP, SEXP targetSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -32,17 +32,6 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< arma::sp_mat >::type query(querySEXP);
     Rcpp::traits::input_parameter< arma::sp_mat >::type target(targetSEXP);
     rcpp_result_gen = Rcpp::wrap(euclidean_sparse(query, target));
-    return rcpp_result_gen;
-END_RCPP
-}
-// euclideanColNorms
-NumericVector euclideanColNorms(arma::mat x);
-RcppExport SEXP _scPlotSimplex_euclideanColNorms(SEXP xSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type x(xSEXP);
-    rcpp_result_gen = Rcpp::wrap(euclideanColNorms(x));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -59,7 +48,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // cosine_sparse
-arma::sp_mat cosine_sparse(arma::sp_mat query, arma::sp_mat target);
+arma::mat cosine_sparse(arma::sp_mat query, arma::sp_mat target);
 RcppExport SEXP _scPlotSimplex_cosine_sparse(SEXP querySEXP, SEXP targetSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -74,7 +63,6 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_scPlotSimplex_euclidean_dense", (DL_FUNC) &_scPlotSimplex_euclidean_dense, 2},
     {"_scPlotSimplex_euclidean_sparse", (DL_FUNC) &_scPlotSimplex_euclidean_sparse, 2},
-    {"_scPlotSimplex_euclideanColNorms", (DL_FUNC) &_scPlotSimplex_euclideanColNorms, 1},
     {"_scPlotSimplex_cosine_dense", (DL_FUNC) &_scPlotSimplex_cosine_dense, 2},
     {"_scPlotSimplex_cosine_sparse", (DL_FUNC) &_scPlotSimplex_cosine_sparse, 2},
     {NULL, NULL, 0}

@@ -9,10 +9,6 @@ euclidean_sparse <- function(query, target) {
     .Call('_scPlotSimplex_euclidean_sparse', PACKAGE = 'scPlotSimplex', query, target)
 }
 
-euclideanColNorms <- function(x) {
-    .Call('_scPlotSimplex_euclideanColNorms', PACKAGE = 'scPlotSimplex', x)
-}
-
 cosine_dense <- function(query, target) {
     .Call('_scPlotSimplex_cosine_dense', PACKAGE = 'scPlotSimplex', query, target)
 }
