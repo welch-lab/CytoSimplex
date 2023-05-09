@@ -1,0 +1,25 @@
+Package: scPlotSimplex
+Type: Package
+Title: Create Simplex Plot to Visualize Cell Fate Similarity of Single Cells
+Version: 0.1.0
+Author: Jialin Liu [aut, cre],
+        Yichen Wang [aut, cre]
+Maintainer: Yichen Wang <wayichen@umich.edu>
+Description: More about what it does (maybe more than one line)
+    Use four spaces when indenting paragraphs within the Description.
+License: GPL-3 | file LICENSE
+Encoding: UTF-8
+LazyData: true
+Depends:
+    stats,
+    methods
+LinkingTo: Rcpp, RcppArmadillo
+Imports:
+    geometry,
+    ggplot2,
+    ggtern,
+    plot3D,
+    rlang,
+Suggests:
+    rliger2
+RoxygenNote: 7.2.3
