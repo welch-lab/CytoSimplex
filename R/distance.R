@@ -23,9 +23,9 @@ calcDist <- function(
     if (length(vertices) < 2 || length(vertices) > 4) {
         stop("Can only use 2 - 4 clusters.")
     }
+
     clusterSub <- clusterVar[clusterVar %in% vertices, drop = TRUE]
     Xsub <- X[, clusterVar %in% vertices, drop = FALSE]
-
     if (method %in% c("pearson", "spearman")) {
         distMat <- stats::cor(as.matrix(X), as.matrix(Xsub),
                               method = method) + 1
@@ -55,6 +55,7 @@ calcDist <- function(
     }
 
     distDF <- as.data.frame(distMat)
+    rownames(distDF) <- colnames(X)
     colnames(distDF) <- vertices
     distDF$Label <- clusterVar
     attributes(distDF)$method <- method

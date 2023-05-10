@@ -59,12 +59,24 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// rowMeans_sparse
+NumericVector rowMeans_sparse(arma::sp_mat x);
+RcppExport SEXP _scPlotSimplex_rowMeans_sparse(SEXP xSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::sp_mat >::type x(xSEXP);
+    rcpp_result_gen = Rcpp::wrap(rowMeans_sparse(x));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_scPlotSimplex_euclidean_dense", (DL_FUNC) &_scPlotSimplex_euclidean_dense, 2},
     {"_scPlotSimplex_euclidean_sparse", (DL_FUNC) &_scPlotSimplex_euclidean_sparse, 2},
     {"_scPlotSimplex_cosine_dense", (DL_FUNC) &_scPlotSimplex_cosine_dense, 2},
     {"_scPlotSimplex_cosine_sparse", (DL_FUNC) &_scPlotSimplex_cosine_sparse, 2},
+    {"_scPlotSimplex_rowMeans_sparse", (DL_FUNC) &_scPlotSimplex_rowMeans_sparse, 1},
     {NULL, NULL, 0}
 };
 

@@ -23,6 +23,7 @@ plotTernary <- function(object, ...) {
 }
 
 #' @rdname plotTernary
+#' @param veloMat Aggregated velocity matrix. Output of \code{aggrVeloGraph}.
 #' @param axisPortion Whether to show axis value by proportion, so that the
 #' coordinates of each dot sum up to 100. Default \code{TRUE}.
 #' @param dotSize,dotColor Dot aesthetics passed to
@@ -31,16 +32,25 @@ plotTernary <- function(object, ...) {
 #' Default \code{c("#EE0000FF", "#3B4992FF", "#008B45FF")} (red, blue and green)
 #' @param distMethod Method name used for calculating the dist.matrix object.
 #' @param title Title text of the plot. Default \code{NULL}.
+#' @param nGrid Number of grids along the bottom side of the equilateral
+#' triangle. Default \code{10}.
+#' @param radius Arrow length of unit velocity. Lower this when arrows point
+#' outside of the coordinate. Default \code{0.1}.
+#' @param arrowLinewidth Arrow aesthetics. Default \code{0.25}.
 #' @export
 #' @method plotTernary distMatrix
 plotTernary.distMatrix <- function(
         object,
+        veloMat = NULL,
         axisPortion = TRUE,
         dotSize = 0.6,
         dotColor = "grey60",
         labelColors = c("#EE0000FF", "#3B4992FF", "#008B45FF"),
         distMethod = attributes(object)$method,
         title = NULL,
+        nGrid = 10,
+        radius = 0.1,
+        arrowLinewidth = 0.25,
         ...
 ) {
     if (is.null(distMethod) && isFALSE(axisPortion)) {
@@ -55,9 +65,7 @@ plotTernary.distMatrix <- function(
     YLAB <- colnames(object)[2]
     ZLAB <- colnames(object)[3]
     colnames(object)[1:3] <- c("x", "y", "z")
-    x <- y <- z <- NULL
-    # NEVER REMOVE "ggplot2::", the imported namespace has problem with
-    # rlang ".data" pronoun
+    x <- y <- z <- xend <- yend <- zend <- NULL
     p <- ggtern(object, aes(x, y, z)) +
         geom_point(size = dotSize, stroke = 0.2, color = dotColor) +
         labs(x = XLAB, y = YLAB, z = ZLAB) +
@@ -72,6 +80,40 @@ plotTernary.distMatrix <- function(
             panel.grid.minor = element_line(colour = "grey80")
         )
 
+    if (!is.null(veloMat)) {
+        arrowCoords <- calcGridVelo(object, veloMat, nGrid, radius)
+        cn <- c("x", "y", "z", "xend", "yend", "zend")
+        lefts <- cbind(arrowCoords$grid, arrowCoords$left)
+        colnames(lefts) <- cn
+        tops <- cbind(arrowCoords$grid, arrowCoords$top)
+        colnames(tops) <- cn
+        rights <- cbind(arrowCoords$grid, arrowCoords$right)
+        colnames(rights) <- cn
+        p <- p + geom_segment(data = lefts,
+                              aes(xend = xend, yend = yend, zend = zend),
+                              linewidth = arrowLinewidth,
+                              arrow = grid::arrow(angle = 20,
+                                                  length = grid::unit(.1, "cm"),
+                                                  type = "closed"),
+                              color = labelColors[1],
+                              lineend = "round", linejoin = "round") +
+            geom_segment(data = tops,
+                         aes(xend = xend, yend = yend, zend = zend),
+                         linewidth = arrowLinewidth,
+                         arrow = grid::arrow(angle = 20,
+                                             length = grid::unit(.1, "cm"),
+                                             type = "closed"),
+                         color = labelColors[2],
+                         lineend = "round", linejoin = "round") +
+            geom_segment(data = rights,
+                         aes(xend = xend, yend = yend, zend = zend),
+                         linewidth = arrowLinewidth,
+                         arrow = grid::arrow(angle = 20,
+                                             length = grid::unit(.1, "cm"),
+                                             type = "closed"),
+                         color = labelColors[3],
+                         lineend = "round", linejoin = "round")
+    }
     # changing the axis legends
     if (isFALSE(axisPortion)) {
         if (distMethod %in% c("pearson", "spearman")) {
@@ -98,6 +140,9 @@ plotTernary.distMatrix <- function(
 #' @param method Distance calculation method. Default \code{"euclidean"}.
 #' Choose from \code{"euclidean"}, \code{"cosine"}, \code{"pearson"},
 #' \code{"spearman"}.
+#' @param veloGraph Cell x cell dgCMatrix object containing velocity
+#' information. Shows velocity grid-arrow layer when specified. Default
+#' \code{NULL} does not show velocity.
 #' @param normCluster Whether to normalize the distance matrix by clusters.
 #' See Details. Default \code{FALSE}.
 #' @param scale Whether to min-max scale the distance matrix by clusters.
@@ -114,6 +159,7 @@ plotTernary.default <- function(
         clusterVar,
         vertices,
         method = c("euclidean", "cosine", "pearson", "spearman"),
+        veloGraph = NULL,
         normCluster = FALSE,
         scale = TRUE,
         splitCluster = FALSE,
@@ -121,23 +167,45 @@ plotTernary.default <- function(
         ...
 ) {
     method <- match.arg(method)
-    if (length(unique(vertices)) != 3) {
-        stop("Must only specify 3 different vertices")
+    vertices <- unique(vertices)
+    if (length(vertices) < 3) {
+        stop("Must specify 3 different vertices.")
+    } else if (length(vertices) > 3) {
+        vertices <- vertices[seq(3)]
+        warning("More than 3 vertices specified for ternary plot. ",
+                "Using the first 3", immediate. = TRUE)
+    }
+    if (!all(vertices %in% clusterVar)) {
+        stop("Specified vertex clusters are not all found in the cluster ",
+             "variable")
     }
     distMat <- calcDist(object, clusterVar = clusterVar,
                         vertices = vertices,
                         method = method, normCluster = normCluster,
                         scale = scale)
-    if (isFALSE(splitCluster)) plotTernary(object = distMat, ...)
+
+    veloMat <- NULL
+    if (!is.null(veloGraph)) {
+        veloGraph <- veloGraph[rownames(distMat), rownames(distMat)]
+        veloMat <- aggrVeloGraph(veloGraph, clusterVar = clusterVar,
+                                 vertices = vertices)
+    }
+
+    if (isFALSE(splitCluster)) plotTernary(object = distMat,
+                                           veloMat = veloMat,
+                                           ...)
     else {
         if (isTRUE(clusterTitle)) {
             plotList <- lapply(levels(clusterVar), function(clust) {
-                plotTernary(distMat[distMat$Label == clust,], title = clust,
-                           ...)
+                plotTernary(distMat[clusterVar == clust,],
+                            veloMat = veloMat[clusterVar == clust,],
+                            title = clust, ...)
             })
         } else {
             plotList <- lapply(levels(clusterVar), function(clust) {
-                plotTernary(distMat[distMat$Label == clust,], ...)
+                plotTernary(distMat[distMat$Label == clust,],
+                            veloMat = veloMat[clusterVar == clust,],
+                            ...)
             })
         }
         names(plotList) <- levels(clusterVar)

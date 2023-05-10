@@ -11,12 +11,16 @@ plotTernary(object, ...)
 
 \method{plotTernary}{distMatrix}(
   object,
+  veloMat = NULL,
   axisPortion = TRUE,
   dotSize = 0.6,
   dotColor = "grey60",
   labelColors = c("#EE0000FF", "#3B4992FF", "#008B45FF"),
   distMethod = attributes(object)$method,
   title = NULL,
+  nGrid = 10,
+  radius = 0.1,
+  arrowLinewidth = 0.25,
   ...
 )
 
@@ -25,6 +29,7 @@ plotTernary(object, ...)
   clusterVar,
   vertices,
   method = c("euclidean", "cosine", "pearson", "spearman"),
+  veloGraph = NULL,
   normCluster = FALSE,
   scale = TRUE,
   splitCluster = FALSE,
@@ -39,6 +44,8 @@ plotTernary(object, ...)
 
 \item{...}{Arguments passed to other methods.}
 
+\item{veloMat}{Aggregated velocity matrix. Output of \code{aggrVeloGraph}.}
+
 \item{axisPortion}{Whether to show axis value by proportion, so that the
 coordinates of each dot sum up to 100. Default \code{TRUE}.}
 
@@ -52,6 +59,14 @@ Default \code{c("#EE0000FF", "#3B4992FF", "#008B45FF")} (red, blue and green)}
 
 \item{title}{Title text of the plot. Default \code{NULL}.}
 
+\item{nGrid}{Number of grids along the bottom side of the equilateral
+triangle. Default \code{10}.}
+
+\item{radius}{Arrow length of unit velocity. Lower this when arrows point
+outside of the coordinate. Default \code{0.1}.}
+
+\item{arrowLinewidth}{Arrow aesthetics. Default \code{0.25}.}
+
 \item{clusterVar}{A vector/factor assigning the cluster variable to each
 column of the matrix object. Or a character scalar selecting a cell metadata
 variable from container object.}
@@ -62,6 +77,10 @@ terminals.}
 \item{method}{Distance calculation method. Default \code{"euclidean"}.
 Choose from \code{"euclidean"}, \code{"cosine"}, \code{"pearson"},
 \code{"spearman"}.}
+
+\item{veloGraph}{Cell x cell dgCMatrix object containing velocity
+information. Shows velocity grid-arrow layer when specified. Default
+\code{NULL} does not show velocity.}
 
 \item{normCluster}{Whether to normalize the distance matrix by clusters.
 See Details. Default \code{FALSE}.}

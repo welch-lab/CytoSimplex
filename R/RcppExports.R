@@ -17,3 +17,7 @@ cosine_sparse <- function(query, target) {
     .Call('_scPlotSimplex_cosine_sparse', PACKAGE = 'scPlotSimplex', query, target)
 }
 
+rowMeans_sparse <- function(x) {
+    .Call('_scPlotSimplex_rowMeans_sparse', PACKAGE = 'scPlotSimplex', x)
+}
+

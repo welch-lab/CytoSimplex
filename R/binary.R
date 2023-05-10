@@ -124,8 +124,17 @@ plotBinary.default <- function(
         ...
 ) {
     method <- match.arg(method)
-    if (length(unique(vertices)) != 2) {
-        stop("Must only specify 2 different vertices")
+    vertices <- unique(vertices)
+    if (length(vertices) < 2) {
+        stop("Must specify 2 different vertices.")
+    } else if (length(vertices) > 2) {
+        vertices <- vertices[seq(2)]
+        warning("More than 2 vertices specified for binary plot. ",
+                "Using the first two.", immediate. = TRUE)
+    }
+    if (!all(vertices %in% clusterVar)) {
+        stop("Specified vertex clusters are not all found in the cluster ",
+             "variable")
     }
     distMat <- calcDist(object, clusterVar = clusterVar,
                         vertices = vertices,

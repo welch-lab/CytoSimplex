@@ -1,4 +1,14 @@
-#include "scPlotSimplex.h"
+#include <RcppArmadillo.h>
+#ifdef _OPENMP
+#include <omp.h>
+#endif
+
+using namespace Rcpp;
+using namespace arma;
+
+
+// Distance Calculation %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 
 //[[Rcpp::export]]
 arma::mat euclidean_dense(arma::mat& query, arma::mat& target) {
@@ -101,4 +111,17 @@ arma::mat cosine_sparse(arma::sp_mat query, arma::sp_mat target) {
         *it = acos(*it) * 180 / M_PI;
     }
     return output;
+}
+
+
+// Other Utilities %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+//[[Rcpp::export]]
+NumericVector rowMeans_sparse(arma::sp_mat x) {
+    NumericVector rm = (x.n_rows);
+    for(sp_mat::iterator it = x.begin(); it != x.end(); ++it) {
+        rm(it.col()) += *it;
+    }
+    rm = rm / x.n_cols;
+    return rm;
 }

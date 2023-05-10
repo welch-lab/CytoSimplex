@@ -5,8 +5,9 @@ Version: 0.1.0
 Author: Jialin Liu [aut, cre],
         Yichen Wang [aut, cre]
 Maintainer: Yichen Wang <wayichen@umich.edu>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
+Description: Create simplex plot to visualize the similarity between 
+    single-cells and selected clusters in a binary, ternary or quaternary space.
+    Velocity information can be added as an additional layer.
 License: GPL-3 | file LICENSE
 Encoding: UTF-8
 LazyData: true

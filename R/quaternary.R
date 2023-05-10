@@ -133,8 +133,17 @@ plotQuaternary.default <- function(
         ...
 ) {
     method <- match.arg(method)
-    if (length(unique(vertices)) != 4) {
-        stop("Must only specify 4 different vertices")
+    vertices <- unique(vertices)
+    if (length(vertices) < 4) {
+        stop("Must specify 4 different vertices.")
+    } else if (length(vertices) > 4) {
+        vertices <- vertices[seq(4)]
+        warning("More than 4 vertices specified for quaternary plot. ",
+                "Using the first 4.", immediate. = TRUE)
+    }
+    if (!all(vertices %in% clusterVar)) {
+        stop("Specified vertex clusters are not all found in the cluster ",
+             "variable")
     }
     distMat <- calcDist(object, clusterVar = clusterVar,
                         vertices = vertices,
