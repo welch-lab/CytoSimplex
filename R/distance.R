@@ -45,10 +45,10 @@ calcDist <- function(
     if (method %in% c("euclidean", "cosine")) distMat <- -log10(distMat)
 
     if (isTRUE(normCluster)) {
-        distMat <- apply(distMat, 2, function(x) x/sum(x, na.rm = TRUE))
+        distMat <- apply(distMat, 2, .normalize)
     }
 
-    distMat <- t(apply(distMat, 1, function(x) x/sum(x, na.rm = TRUE)))
+    distMat <- t(apply(distMat, 1, .normalize))
 
     if (isTRUE(scale)) {
         distMat <- apply(distMat, 2, .scaleMinMax)

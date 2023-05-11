@@ -50,8 +50,7 @@ plotQuaternary.distMatrix <- function(
              "where the first four are for vertices and the last for cluster ",
              "assignment.")
     }
-    distNorm <- t(apply(object[,seq(4)], 1,
-                               function(x) x / sum(x, na.rm = TRUE)))
+    distNorm <- t(apply(object[,seq(4)], 1, .normalize))
 
     # Compute tetrahedron coordinates according to
     # https://mathoverflow.net/a/184585

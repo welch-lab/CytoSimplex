@@ -14,20 +14,15 @@ aggrVeloGraph <- function(
     veloMat <- sapply(vertices, function(clust) {
         rowMeans_sparse(graph[, clusterVar == clust])
     })
-    if (isTRUE(normCluster)) {
-        veloMat = apply(veloMat, 2, function(x) {
-            x <- x + 1e-8
-            x / sum(x, na.rm = TRUE)
-        })
-    }
 
-    veloMat = t(apply(veloMat, 1, function(x) {
-        x <- x + 1e-8
-        x/sum(x, na.rm = TRUE)
-    }))
+    if (isTRUE(normCluster)) veloMat = apply(veloMat, 2, .normalize)
+
+    veloMat = t(apply(veloMat, 1, .normalize))
+
     if (isTRUE(scale)) {
         veloMat <- apply(veloMat, 2, .scaleMinMax)
     }
+
     rownames(veloMat) <- rownames(graph)
     colnames(veloMat) <- vertices
     return(veloMat)
@@ -91,6 +86,7 @@ calcGridVelo <- function(
     gridToKeep <- rowSums(gridVelo, na.rm = TRUE) > 0
     gridCentroidCoord <- gridCentroidCoord[gridToKeep, , drop = FALSE]
     gridVelo <- gridVelo[gridToKeep, , drop = FALSE]
+
     # message(nrow(veloMat), " cells and ", nrow(gridVelo), " grids")
     # Calculate arrow ending 2D coords
     leftEnds <- getArrowEndCoord(G = gridCentroidCoord, xv = 0, yv = 0,
@@ -125,6 +121,8 @@ getArrowEndCoord <- function(G, xv, yv, len) {
     vecGV <- V - G
     # Euclidean distance from G to V
     lenGV <- sqrt(rowSums(vecGV * vecGV))
+    # Limit arrow length to be no longer than lenGV
+    len[len > lenGV] <- lenGV[len > lenGV]
     # Directed vector pointing from G to A
     vecGA <- (vecGV / lenGV) * len
     return(G + vecGA)

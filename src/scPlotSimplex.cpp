@@ -120,7 +120,7 @@ arma::mat cosine_sparse(arma::sp_mat query, arma::sp_mat target) {
 NumericVector rowMeans_sparse(arma::sp_mat x) {
     NumericVector rm = (x.n_rows);
     for(sp_mat::iterator it = x.begin(); it != x.end(); ++it) {
-        rm(it.col()) += *it;
+        rm(it.row()) += *it;
     }
     rm = rm / x.n_cols;
     return rm;

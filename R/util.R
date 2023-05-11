@@ -6,6 +6,11 @@
     }
 }
 
+.normalize <- function(x) {
+    x <- x + 1e-8
+    x / sum(x, na.rm = TRUE)
+}
+
 .ligerPrepare <- function(
         object,
         clusterVar,

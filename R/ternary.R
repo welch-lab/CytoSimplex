@@ -66,9 +66,9 @@ plotTernary.distMatrix <- function(
     ZLAB <- colnames(object)[3]
     colnames(object)[1:3] <- c("x", "y", "z")
     x <- y <- z <- xend <- yend <- zend <- NULL
-    p <- ggtern(object, aes(x, y, z)) +
+    p <- ggtern(object, aes(x = x, y = y, z = z)) +
         geom_point(size = dotSize, stroke = 0.2, color = dotColor) +
-        labs(x = XLAB, y = YLAB, z = ZLAB) +
+        labs(title = title, x = XLAB, y = YLAB, z = ZLAB) +
         theme_custom(base_size = 11, base_family = "",
                      col.T = labelColors[2],
                      col.L = labelColors[1],
@@ -77,11 +77,13 @@ plotTernary.distMatrix <- function(
             tern.panel.background = element_rect(fill = "white"),
             tern.panel.mask.show = FALSE,
             tern.panel.grid.minor = element_line(colour = "grey80"),
-            panel.grid.minor = element_line(colour = "grey80")
+            panel.grid.minor = element_line(colour = "grey80"),
+            plot.title = element_text(hjust = 0.5, face = "bold")
         )
 
     if (!is.null(veloMat)) {
-        arrowCoords <- calcGridVelo(object, veloMat, nGrid, radius)
+        arrowCoords <- calcGridVelo(distMat = object, veloMat = veloMat,
+                                    nGrid = nGrid, radius = radius)
         cn <- c("x", "y", "z", "xend", "yend", "zend")
         lefts <- cbind(arrowCoords$grid, arrowCoords$left)
         colnames(lefts) <- cn
@@ -89,30 +91,30 @@ plotTernary.distMatrix <- function(
         colnames(tops) <- cn
         rights <- cbind(arrowCoords$grid, arrowCoords$right)
         colnames(rights) <- cn
-        p <- p + geom_segment(data = lefts,
-                              aes(xend = xend, yend = yend, zend = zend),
-                              linewidth = arrowLinewidth,
-                              arrow = grid::arrow(angle = 20,
-                                                  length = grid::unit(.1, "cm"),
-                                                  type = "closed"),
-                              color = labelColors[1],
-                              lineend = "round", linejoin = "round") +
-            geom_segment(data = tops,
-                         aes(xend = xend, yend = yend, zend = zend),
-                         linewidth = arrowLinewidth,
-                         arrow = grid::arrow(angle = 20,
-                                             length = grid::unit(.1, "cm"),
-                                             type = "closed"),
-                         color = labelColors[2],
-                         lineend = "round", linejoin = "round") +
-            geom_segment(data = rights,
-                         aes(xend = xend, yend = yend, zend = zend),
-                         linewidth = arrowLinewidth,
-                         arrow = grid::arrow(angle = 20,
-                                             length = grid::unit(.1, "cm"),
-                                             type = "closed"),
-                         color = labelColors[3],
-                         lineend = "round", linejoin = "round")
+        suppressWarnings({
+            p <- p +
+                geom_segment(data = lefts,
+                             aes(xend = xend, yend = yend, zend = zend),
+                             linewidth = arrowLinewidth,
+                             arrow = arrow(angle = 20, length = unit(.1, "cm"),
+                                           type = "closed"),
+                             color = labelColors[1],
+                             lineend = "round", linejoin = "round") +
+                geom_segment(data = tops,
+                             aes(xend = xend, yend = yend, zend = zend),
+                             linewidth = arrowLinewidth,
+                             arrow = arrow(angle = 20, length = unit(.1, "cm"),
+                                           type = "closed"),
+                             color = labelColors[2],
+                             lineend = "round", linejoin = "round") +
+                geom_segment(data = rights,
+                             aes(xend = xend, yend = yend, zend = zend),
+                             linewidth = arrowLinewidth,
+                             arrow = arrow(angle = 20, length = unit(.1, "cm"),
+                                           type = "closed"),
+                             color = labelColors[3],
+                             lineend = "round", linejoin = "round")
+        })
     }
     # changing the axis legends
     if (isFALSE(axisPortion)) {
