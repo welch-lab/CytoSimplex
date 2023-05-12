@@ -18,7 +18,6 @@ LinkingTo: Rcpp, RcppArmadillo
 Imports:
     geometry,
     ggplot2,
-    ggtern,
     plot3D,
     rlang,
 Suggests:

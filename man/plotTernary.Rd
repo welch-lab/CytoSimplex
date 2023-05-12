@@ -11,16 +11,23 @@ plotTernary(object, ...)
 
 \method{plotTernary}{distMatrix}(
   object,
+  title = NULL,
   veloMat = NULL,
-  axisPortion = TRUE,
+  nGrid = 10,
+  radius = 0.1,
   dotSize = 0.6,
   dotColor = "grey60",
   labelColors = c("#EE0000FF", "#3B4992FF", "#008B45FF"),
-  distMethod = attributes(object)$method,
-  title = NULL,
-  nGrid = 10,
-  radius = 0.1,
+  vertexLabelSize = 5,
+  vertexLabelDrift = 0.03,
+  axisBreak = 5,
+  axisTextSize = 4,
+  axisTextDrift = 0.02,
+  gridLineAlpha = 0.6,
   arrowLinewidth = 0.25,
+  titleSize = 14,
+  equilateral = TRUE,
+  margin = 0.1,
   ...
 )
 
@@ -44,20 +51,9 @@ plotTernary(object, ...)
 
 \item{...}{Arguments passed to other methods.}
 
-\item{veloMat}{Aggregated velocity matrix. Output of \code{aggrVeloGraph}.}
-
-\item{axisPortion}{Whether to show axis value by proportion, so that the
-coordinates of each dot sum up to 100. Default \code{TRUE}.}
-
-\item{dotSize, dotColor}{Dot aesthetics passed to
-\code{\link[ggplot2]{geom_point}}. Default \code{0.6} and \code{"grey60"}.}
-
-\item{labelColors}{Colors of the axis lines and vertex labels.
-Default \code{c("#EE0000FF", "#3B4992FF", "#008B45FF")} (red, blue and green)}
-
-\item{distMethod}{Method name used for calculating the dist.matrix object.}
-
 \item{title}{Title text of the plot. Default \code{NULL}.}
+
+\item{veloMat}{Aggregated velocity matrix. Output of \code{aggrVeloGraph}.}
 
 \item{nGrid}{Number of grids along the bottom side of the equilateral
 triangle. Default \code{10}.}
@@ -65,7 +61,35 @@ triangle. Default \code{10}.}
 \item{radius}{Arrow length of unit velocity. Lower this when arrows point
 outside of the coordinate. Default \code{0.1}.}
 
+\item{dotSize, dotColor}{Dot aesthetics passed to
+\code{\link[ggplot2]{geom_point}}. Default \code{0.6} and \code{"grey60"}.}
+
+\item{labelColors}{Colors of the axis lines and vertex labels.
+Default \code{c("#EE0000FF", "#3B4992FF", "#008B45FF")} (red, blue and green)}
+
+\item{vertexLabelSize, vertexLabelDrift}{Adjustment on the three vertex text
+labels. Drift means the distance that the labels should be moved against the
+center of the plot. Default size \code{5}, drifted distance \code{0.03}.}
+
+\item{axisBreak}{Number of breaks to be labeled along axis. Default
+\code{5}.}
+
+\item{axisTextSize, axisTextDrift}{Similar to the vertex adjustment applied
+to the text label along the axis breaks. Default size \code{4}, drifted
+distance \code{0.02}.}
+
+\item{gridLineAlpha}{Transparency of background grid lines. Default
+\code{0.6}.}
+
 \item{arrowLinewidth}{Arrow aesthetics. Default \code{0.25}.}
+
+\item{titleSize}{Size of title text. Default \code{14}.}
+
+\item{equilateral}{Logical, whether to always display the triangle as
+equilateral. Default \code{TRUE}.}
+
+\item{margin}{Margin allowed around of the triangle plotting region when
+\code{equilateral = TRUE}}
 
 \item{clusterVar}{A vector/factor assigning the cluster variable to each
 column of the matrix object. Or a character scalar selecting a cell metadata

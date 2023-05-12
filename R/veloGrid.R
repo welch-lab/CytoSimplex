@@ -64,7 +64,9 @@ calcGridVelo <- function(
     # Convert the cell similarity matrix from ternary into 2D space
     distMat <- distMat[,seq(3)]
     colnames(distMat) <- c("x", "y", "z")
-    cellCoord <- tlr2xy(distMat, coord_tern())
+    cellCoord <- as.data.frame(geometry::bary2cart(as.matrix(triangle),
+                                            as.matrix(distMat)))
+    # cellCoord <- geometry::bary2cart()tlr2xy(distMat, coord_tern())
 
     # Aggregate velocity by grid, comparing cell 2D coordinate
     gridVelo <- matrix(0, nrow = nrow(gridCentroidCoord), ncol = 3,
@@ -97,11 +99,16 @@ calcGridVelo <- function(
                                  len = gridVelo[,3] * radius)
 
     return(list(
-        grid = tlr2xy(gridCentroidCoord, coord_tern(), inverse = TRUE),
-        left = tlr2xy(leftEnds, coord_tern(), inverse = TRUE),
-        top = tlr2xy(topEnds, coord_tern(), inverse = TRUE),
-        right = tlr2xy(rightEnds, coord_tern(), inverse = TRUE)
+        left = cbind(gridCentroidCoord, leftEnds),
+        top = cbind(gridCentroidCoord, topEnds),
+        right = cbind(gridCentroidCoord, rightEnds)
     ))
+    # return(list(
+    #     grid = tlr2xy(gridCentroidCoord, coord_tern(), inverse = TRUE),
+    #     left = tlr2xy(leftEnds, coord_tern(), inverse = TRUE),
+    #     top = tlr2xy(topEnds, coord_tern(), inverse = TRUE),
+    #     right = tlr2xy(rightEnds, coord_tern(), inverse = TRUE)
+    # ))
 }
 
 # G - coordinate of grid centroid, N x 2 matrix, G[,1] x of each centroid,
@@ -125,5 +132,7 @@ getArrowEndCoord <- function(G, xv, yv, len) {
     len[len > lenGV] <- lenGV[len > lenGV]
     # Directed vector pointing from G to A
     vecGA <- (vecGV / lenGV) * len
-    return(G + vecGA)
+    A <- G + vecGA
+    colnames(A) <- c("xend", "yend")
+    return(A)
 }

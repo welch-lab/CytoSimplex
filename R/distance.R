@@ -54,6 +54,8 @@ calcDist <- function(
         distMat <- apply(distMat, 2, .scaleMinMax)
     }
 
+    distMat <- t(apply(distMat, 1, .normalize))
+
     distDF <- as.data.frame(distMat)
     rownames(distDF) <- colnames(X)
     colnames(distDF) <- vertices

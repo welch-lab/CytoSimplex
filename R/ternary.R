@@ -23,114 +23,157 @@ plotTernary <- function(object, ...) {
 }
 
 #' @rdname plotTernary
-#' @param veloMat Aggregated velocity matrix. Output of \code{aggrVeloGraph}.
-#' @param axisPortion Whether to show axis value by proportion, so that the
-#' coordinates of each dot sum up to 100. Default \code{TRUE}.
-#' @param dotSize,dotColor Dot aesthetics passed to
-#' \code{\link[ggplot2]{geom_point}}. Default \code{0.6} and \code{"grey60"}.
-#' @param labelColors Colors of the axis lines and vertex labels.
-#' Default \code{c("#EE0000FF", "#3B4992FF", "#008B45FF")} (red, blue and green)
-#' @param distMethod Method name used for calculating the dist.matrix object.
 #' @param title Title text of the plot. Default \code{NULL}.
+#' @param veloMat Aggregated velocity matrix. Output of \code{aggrVeloGraph}.
 #' @param nGrid Number of grids along the bottom side of the equilateral
 #' triangle. Default \code{10}.
 #' @param radius Arrow length of unit velocity. Lower this when arrows point
 #' outside of the coordinate. Default \code{0.1}.
+#' @param dotSize,dotColor Dot aesthetics passed to
+#' \code{\link[ggplot2]{geom_point}}. Default \code{0.6} and \code{"grey60"}.
+#' @param labelColors Colors of the axis lines and vertex labels.
+#' Default \code{c("#EE0000FF", "#3B4992FF", "#008B45FF")} (red, blue and green)
+#' @param vertexLabelSize,vertexLabelDrift Adjustment on the three vertex text
+#' labels. Drift means the distance that the labels should be moved against the
+#' center of the plot. Default size \code{5}, drifted distance \code{0.03}.
+#' @param axisBreak Number of breaks to be labeled along axis. Default
+#' \code{5}.
+#' @param axisTextSize,axisTextDrift Similar to the vertex adjustment applied
+#' to the text label along the axis breaks. Default size \code{4}, drifted
+#' distance \code{0.02}.
+#' @param gridLineAlpha Transparency of background grid lines. Default
+#' \code{0.6}.
 #' @param arrowLinewidth Arrow aesthetics. Default \code{0.25}.
+#' @param titleSize Size of title text. Default \code{14}.
+#' @param equilateral Logical, whether to always display the triangle as
+#' equilateral. Default \code{TRUE}.
+#' @param margin Margin allowed around of the triangle plotting region when
+#' \code{equilateral = TRUE}
 #' @export
 #' @method plotTernary distMatrix
 plotTernary.distMatrix <- function(
         object,
+        title = NULL,
         veloMat = NULL,
-        axisPortion = TRUE,
+        nGrid = 10,
+        radius = 0.1,
         dotSize = 0.6,
         dotColor = "grey60",
         labelColors = c("#EE0000FF", "#3B4992FF", "#008B45FF"),
-        distMethod = attributes(object)$method,
-        title = NULL,
-        nGrid = 10,
-        radius = 0.1,
+        vertexLabelSize = 5,
+        vertexLabelDrift = 0.03,
+        axisBreak = 5,
+        axisTextSize = 4,
+        axisTextDrift = 0.02,
+        gridLineAlpha = 0.6,
         arrowLinewidth = 0.25,
+        titleSize = 14,
+        equilateral = TRUE,
+        margin = 0.1,
         ...
 ) {
-    if (is.null(distMethod) && isFALSE(axisPortion)) {
-        stop("Cannot identify distance method for visualizing axis.")
+
+    # Convert barycentric coordinates (4D) to cartesian coordinates (3D)
+    df <- as.data.frame(geometry::bary2cart(as.matrix(triangle),
+                                            as.matrix(object[,1:3])))
+    ternCoord <- ggplot(as.data.frame(df), aes(x = .data$x, y = .data$y)) +
+        annotate("segment", x = triangle$x[1], xend = triangle$x[2],
+                          y = triangle$y[1], yend = triangle$y[2],
+                          colour = labelColors[1]) +
+        annotate("segment", x = triangle$x[2], xend = triangle$x[3],
+                          y = triangle$y[2], yend = triangle$y[3],
+                          colour = labelColors[2]) +
+        annotate("segment", x = triangle$x[3], xend = triangle$x[1],
+                          y = triangle$y[3], yend = triangle$y[1],
+                          colour = labelColors[3]) +
+        annotate("text", x = -0.01 - vertexLabelDrift,
+                 y = 0.01 - vertexLabelDrift, label = colnames(object)[1],
+                 colour = labelColors[1], size = vertexLabelSize) +
+        annotate("text", x = 0.5, y = 3^0.5/2 + vertexLabelDrift,
+                 label = colnames(object)[2], colour = labelColors[2],
+                 size = vertexLabelSize) +
+        annotate("text", x = 1.01 + vertexLabelDrift,
+                 y = 0.01 - vertexLabelDrift, label = colnames(object)[3],
+                 colour = labelColors[3], size = vertexLabelSize) +
+        labs(title = title) +
+        theme_void() +
+        theme(plot.title = element_text(face = "bold", size = titleSize,
+                                        hjust = 0.5))
+
+    vecTLBreak <- c(triangle$x[1] - triangle$x[2],
+                    triangle$y[1] - triangle$y[2]) / axisBreak
+    vecRTBreak <- c(triangle$x[2] - triangle$x[3],
+                    triangle$y[2] - triangle$y[3]) / axisBreak
+    vecLRBreak <- c(triangle$x[3] - triangle$x[1],
+                    triangle$y[3] - triangle$y[1]) / axisBreak
+    for (i in seq(axisBreak - 1)) {
+        perc <- round(100 / axisBreak * i, digits = 1)
+        ternCoord <- ternCoord +
+            # Adding axis break number label
+            annotate("text", label = perc,
+                     x = triangle$x[2] + vecTLBreak[1]*i - axisTextDrift,
+                     y = triangle$y[2] + vecTLBreak[2]*i + axisTextDrift,
+                     color = labelColors[1], size = axisTextSize) +
+            # Adding grid line
+            annotate("segment", x = triangle$x[2] + vecTLBreak[1]*i,
+                     xend = triangle$x[3] - vecLRBreak[1]*i,
+                     y = triangle$y[2] + vecTLBreak[2]*i,
+                     yend = triangle$y[3] - vecLRBreak[2]*i,
+                     linetype = 4, color = labelColors[1],
+                     alpha = gridLineAlpha) +
+
+            annotate("text", label = perc,
+                     x = triangle$x[3] + vecRTBreak[1]*i + axisTextDrift,
+                     y = triangle$y[3] + vecRTBreak[2]*i + axisTextDrift,
+                     color = labelColors[2], size = axisTextSize) +
+            annotate("segment", x = triangle$x[3] + vecRTBreak[1]*i,
+                     xend = triangle$x[1] - vecTLBreak[1]*i,
+                     y = triangle$y[3] + vecRTBreak[2]*i,
+                     yend = triangle$y[1] - vecTLBreak[2]*i,
+                     linetype = 4, color = labelColors[2],
+                     alpha = gridLineAlpha) +
+
+            annotate("text", label = perc,
+                     x = triangle$x[1] + vecLRBreak[1]*i,
+                     y = triangle$y[1] + vecLRBreak[2]*i - axisTextDrift,
+                     color = labelColors[3], size = axisTextSize) +
+            annotate("segment", x = triangle$x[1] + vecLRBreak[1]*i,
+                     xend = triangle$x[2] - vecRTBreak[1]*i,
+                     y = triangle$y[1] + vecLRBreak[2]*i,
+                     yend = triangle$y[2] - vecRTBreak[2]*i,
+                     linetype = 4, color = labelColors[3],
+                     alpha = gridLineAlpha)
+
     }
-    if (ncol(object) != 4) {
-        stop("`distMatrix` object must have four columns for ternary plot, ",
-             "where the first three are for vertices and the last for cluster ",
-             "assignment.")
-    }
-    XLAB <- colnames(object)[1]
-    YLAB <- colnames(object)[2]
-    ZLAB <- colnames(object)[3]
-    colnames(object)[1:3] <- c("x", "y", "z")
-    x <- y <- z <- xend <- yend <- zend <- NULL
-    p <- ggtern(object, aes(x = x, y = y, z = z)) +
-        geom_point(size = dotSize, stroke = 0.2, color = dotColor) +
-        labs(title = title, x = XLAB, y = YLAB, z = ZLAB) +
-        theme_custom(base_size = 11, base_family = "",
-                     col.T = labelColors[2],
-                     col.L = labelColors[1],
-                     col.R = labelColors[3]) +
-        theme(
-            tern.panel.background = element_rect(fill = "white"),
-            tern.panel.mask.show = FALSE,
-            tern.panel.grid.minor = element_line(colour = "grey80"),
-            panel.grid.minor = element_line(colour = "grey80"),
-            plot.title = element_text(hjust = 0.5, face = "bold")
-        )
+    p <- ternCoord + geom_point(color = dotColor, size = dotSize)
 
     if (!is.null(veloMat)) {
         arrowCoords <- calcGridVelo(distMat = object, veloMat = veloMat,
                                     nGrid = nGrid, radius = radius)
-        cn <- c("x", "y", "z", "xend", "yend", "zend")
-        lefts <- cbind(arrowCoords$grid, arrowCoords$left)
-        colnames(lefts) <- cn
-        tops <- cbind(arrowCoords$grid, arrowCoords$top)
-        colnames(tops) <- cn
-        rights <- cbind(arrowCoords$grid, arrowCoords$right)
-        colnames(rights) <- cn
-        suppressWarnings({
-            p <- p +
-                geom_segment(data = lefts,
-                             aes(xend = xend, yend = yend, zend = zend),
-                             linewidth = arrowLinewidth,
-                             arrow = arrow(angle = 20, length = unit(.1, "cm"),
-                                           type = "closed"),
-                             color = labelColors[1],
-                             lineend = "round", linejoin = "round") +
-                geom_segment(data = tops,
-                             aes(xend = xend, yend = yend, zend = zend),
-                             linewidth = arrowLinewidth,
-                             arrow = arrow(angle = 20, length = unit(.1, "cm"),
-                                           type = "closed"),
-                             color = labelColors[2],
-                             lineend = "round", linejoin = "round") +
-                geom_segment(data = rights,
-                             aes(xend = xend, yend = yend, zend = zend),
-                             linewidth = arrowLinewidth,
-                             arrow = arrow(angle = 20, length = unit(.1, "cm"),
-                                           type = "closed"),
-                             color = labelColors[3],
-                             lineend = "round", linejoin = "round")
-        })
-    }
-    # changing the axis legends
-    if (isFALSE(axisPortion)) {
-        if (distMethod %in% c("pearson", "spearman")) {
-            breaks <- seq(0, 2, by = 0.2)
-        } else {
-            breaks <- seq(0, 1, by = 0.1)
-        }
         p <- p +
-            scale_L_continuous(breaks = breaks, labels = breaks) +
-            scale_T_continuous(breaks = breaks, labels = breaks) +
-            scale_R_continuous(breaks = breaks, labels = breaks)
-    } else {
-        p <- p + custom_percent("Percent")
+            annotate("segment", x = arrowCoords$left$x, y = arrowCoords$left$y,
+                     xend = arrowCoords$left$xend, yend = arrowCoords$left$yend,
+                     color = labelColors[1],
+                     arrow = arrow(angle = 20, length = unit(.1, "cm"),
+                                   type = "closed")) +
+            annotate("segment", x = arrowCoords$top$x, y = arrowCoords$top$y,
+                     xend = arrowCoords$top$xend, yend = arrowCoords$top$yend,
+                     color = labelColors[2],
+                     arrow = arrow(angle = 20, length = unit(.1, "cm"),
+                                   type = "closed")) +
+            annotate("segment", x = arrowCoords$right$x, y = arrowCoords$right$y,
+                     xend = arrowCoords$right$xend, yend = arrowCoords$right$yend,
+                     color = labelColors[3],
+                     arrow = arrow(angle = 20, length = unit(.1, "cm"),
+                                   type = "closed"))
     }
-
+    if (isTRUE(equilateral)) {
+        suppressMessages(
+            p <- p +
+                coord_fixed(xlim = c(0 - margin, 1 + margin),
+                            ylim = c(0 - margin, 3^0.5/2 + margin))
+        )
+    }
     return(p)
 }
 
@@ -233,4 +276,3 @@ plotTernary.liger <- function(
     values <- .ligerPrepare(object, clusterVar, features, useDatasets)
     plotTernary(values[[1]], clusterVar = values[[2]], ...)
 }
-
