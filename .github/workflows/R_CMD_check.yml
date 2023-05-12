@@ -39,6 +39,12 @@ jobs:
           http-user-agent: ${{ matrix.config.http-user-agent }}
           use-public-rspm: true
 
+      - name: Install library on Linux
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get install libhdf5-dev
+          sudo apt-get install libglpk-dev
+    
       - name: Install dependencies
         run: |
           Sys.setenv(GITHUB_PAT = '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')
