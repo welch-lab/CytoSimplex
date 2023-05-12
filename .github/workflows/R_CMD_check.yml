@@ -41,13 +41,13 @@ jobs:
 
       - name: Install dependencies
         run: |
-          install.packages(c("remotes", "rcmdcheck", "devtools"))
+          install.packages(c("remotes", "rcmdcheck"))
           remotes::install_deps(dependencies = TRUE)
         shell: Rscript {0}
         
       - name: Install GitHub Dependencies
         run: |
-          devtools::install_github("mvfki/liger@newObj")
+          remotes::install_github("mvfki/liger@newObj")
         shell: Rscript {0}
 
       - name: Check
