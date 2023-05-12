@@ -47,7 +47,6 @@ jobs:
         
       - name: Install GitHub Dependencies
         run: |
-          devtools::install_github("nicholasehamilton/ggtern")
           devtools::install_github("mvfki/liger@newObj")
         shell: Rscript {0}
 
