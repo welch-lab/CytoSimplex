@@ -74,9 +74,9 @@ plotTernary.distMatrix <- function(
 ) {
 
     # Convert barycentric coordinates (4D) to cartesian coordinates (3D)
-    df <- as.data.frame(geometry::bary2cart(as.matrix(triangle),
-                                            as.matrix(object[,1:3])))
-    ternCoord <- ggplot(as.data.frame(df), aes(x = .data$x, y = .data$y)) +
+    df <- as.data.frame(as.matrix(object[,1:3]) %*% triangle)
+    triangle <- as.data.frame(triangle)
+    ternCoord <- ggplot(df, aes(x = .data$x, y = .data$y)) +
         annotate("segment", x = triangle$x[1], xend = triangle$x[2],
                           y = triangle$y[1], yend = triangle$y[2],
                           colour = labelColors[1]) +

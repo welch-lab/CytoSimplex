@@ -64,9 +64,7 @@ calcGridVelo <- function(
     # Convert the cell similarity matrix from ternary into 2D space
     distMat <- distMat[,seq(3)]
     colnames(distMat) <- c("x", "y", "z")
-    cellCoord <- as.data.frame(geometry::bary2cart(as.matrix(triangle),
-                                            as.matrix(distMat)))
-    # cellCoord <- geometry::bary2cart()tlr2xy(distMat, coord_tern())
+    cellCoord <- as.data.frame(as.matrix(distMat) %*% triangle)
 
     # Aggregate velocity by grid, comparing cell 2D coordinate
     gridVelo <- matrix(0, nrow = nrow(gridCentroidCoord), ncol = 3,

@@ -57,7 +57,7 @@ plotQuaternary.distMatrix <- function(
     tetra <- qr.Q(qr(matrix(1, nrow = 4)), complete = TRUE)[,-1]
 
     # Convert barycentric coordinates (4D) to cartesian coordinates (3D)
-    df3D <- geometry::bary2cart(tetra, distNorm)
+    df3D <- distNorm %*% tetra
 
     # Plot data
     grDevices::pdf(nullfile())

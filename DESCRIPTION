@@ -16,7 +16,6 @@ Depends:
     methods
 LinkingTo: Rcpp, RcppArmadillo
 Imports:
-    geometry,
     ggplot2,
     plot3D,
     rlang,

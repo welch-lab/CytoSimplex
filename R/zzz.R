@@ -5,5 +5,5 @@
 #' @useDynLib scPlotSimplex
 NULL
 
-triangle <- data.frame(x = c(0, 0.5, 1),
-                       y = c(0, 3^0.5/2, 0))
+triangle <- as.matrix(data.frame(x = c(0, 0.5, 1),
+                                 y = c(0, 3^0.5/2, 0)))
