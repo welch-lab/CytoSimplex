@@ -41,15 +41,12 @@ jobs:
 
       - name: Install dependencies
         run: |
+          Sys.setenv(GITHUB_PAT = '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')
           install.packages(c("remotes", "rcmdcheck"))
           remotes::install_deps(dependencies = TRUE)
-        shell: Rscript {0}
-        
-      - name: Install GitHub Dependencies
-        run: |
           remotes::install_github("mvfki/liger@newObj")
         shell: Rscript {0}
-
+        
       - name: Check
         run: rcmdcheck::rcmdcheck(args = "--no-manual", error_on = "error")
         shell: Rscript {0}
