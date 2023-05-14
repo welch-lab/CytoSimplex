@@ -17,8 +17,11 @@ Depends:
 LinkingTo: Rcpp, RcppArmadillo
 Imports:
     ggplot2,
+    Matrix,
     plot3D,
     rlang,
 Suggests:
-    rliger2
+    rliger2,
+    testthat (>= 3.0.0)
 RoxygenNote: 7.2.3
+Config/testthat/edition: 3

@@ -2,6 +2,7 @@
 #' @import ggplot2
 #' @importFrom plot3D lines3D scatter3D text3D getplist
 #' @importFrom methods show setMethod setOldClass
+#' @importFrom Matrix t colSums rowMeans
 #' @useDynLib scPlotSimplex
 NULL
 

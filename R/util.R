@@ -11,6 +11,17 @@
     x / sum(x, na.rm = TRUE)
 }
 
+colNormalize <- function(x) {
+    if (inherits(x, "dgCMatrix")) {
+        x@x <- x@x / rep.int(colSums(x), diff(x@p))
+    } else if (is.matrix(x)) {
+        x <- x / colSums(x)
+    } else {
+        stop("Input matrix of class ", class(x)[1], " is not yet supported.")
+    }
+    return(x)
+}
+
 .ligerPrepare <- function(
         object,
         clusterVar,

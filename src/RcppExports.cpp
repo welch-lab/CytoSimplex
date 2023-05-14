@@ -59,14 +59,132 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// rowMeans_sparse
-NumericVector rowMeans_sparse(arma::sp_mat x);
-RcppExport SEXP _scPlotSimplex_rowMeans_sparse(SEXP xSEXP) {
+// rankMatrix_dense
+Rcpp::List rankMatrix_dense(arma::mat& X);
+RcppExport SEXP _scPlotSimplex_rankMatrix_dense(SEXP XSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::sp_mat >::type x(xSEXP);
-    rcpp_result_gen = Rcpp::wrap(rowMeans_sparse(x));
+    Rcpp::traits::input_parameter< arma::mat& >::type X(XSEXP);
+    rcpp_result_gen = Rcpp::wrap(rankMatrix_dense(X));
+    return rcpp_result_gen;
+END_RCPP
+}
+// cpp_rank_matrix_dgc
+std::vector<std::list<float> > cpp_rank_matrix_dgc(arma::vec& x, const arma::vec& p, int nrow, int ncol);
+RcppExport SEXP _scPlotSimplex_cpp_rank_matrix_dgc(SEXP xSEXP, SEXP pSEXP, SEXP nrowSEXP, SEXP ncolSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::vec& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type p(pSEXP);
+    Rcpp::traits::input_parameter< int >::type nrow(nrowSEXP);
+    Rcpp::traits::input_parameter< int >::type ncol(ncolSEXP);
+    rcpp_result_gen = Rcpp::wrap(cpp_rank_matrix_dgc(x, p, nrow, ncol));
+    return rcpp_result_gen;
+END_RCPP
+}
+// rowAggregateSum_dense
+arma::mat rowAggregateSum_dense(const arma::mat& X, const arma::uvec& groups, unsigned ngroups);
+RcppExport SEXP _scPlotSimplex_rowAggregateSum_dense(SEXP XSEXP, SEXP groupsSEXP, SEXP ngroupsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< const arma::uvec& >::type groups(groupsSEXP);
+    Rcpp::traits::input_parameter< unsigned >::type ngroups(ngroupsSEXP);
+    rcpp_result_gen = Rcpp::wrap(rowAggregateSum_dense(X, groups, ngroups));
+    return rcpp_result_gen;
+END_RCPP
+}
+// rowAggregateSum_sparse
+arma::mat rowAggregateSum_sparse(arma::sp_mat& X, const arma::uvec& groups, unsigned ngroups);
+RcppExport SEXP _scPlotSimplex_rowAggregateSum_sparse(SEXP XSEXP, SEXP groupsSEXP, SEXP ngroupsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::sp_mat& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< const arma::uvec& >::type groups(groupsSEXP);
+    Rcpp::traits::input_parameter< unsigned >::type ngroups(ngroupsSEXP);
+    rcpp_result_gen = Rcpp::wrap(rowAggregateSum_sparse(X, groups, ngroups));
+    return rcpp_result_gen;
+END_RCPP
+}
+// colAggregateSum_dense
+arma::mat colAggregateSum_dense(const arma::mat& X, const arma::uvec& groups, unsigned ngroups);
+RcppExport SEXP _scPlotSimplex_colAggregateSum_dense(SEXP XSEXP, SEXP groupsSEXP, SEXP ngroupsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< const arma::uvec& >::type groups(groupsSEXP);
+    Rcpp::traits::input_parameter< unsigned >::type ngroups(ngroupsSEXP);
+    rcpp_result_gen = Rcpp::wrap(colAggregateSum_dense(X, groups, ngroups));
+    return rcpp_result_gen;
+END_RCPP
+}
+// colAggregateSum_sparse
+arma::mat colAggregateSum_sparse(arma::sp_mat& X, const arma::uvec& groups, unsigned ngroups);
+RcppExport SEXP _scPlotSimplex_colAggregateSum_sparse(SEXP XSEXP, SEXP groupsSEXP, SEXP ngroupsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::sp_mat& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< const arma::uvec& >::type groups(groupsSEXP);
+    Rcpp::traits::input_parameter< unsigned >::type ngroups(ngroupsSEXP);
+    rcpp_result_gen = Rcpp::wrap(colAggregateSum_sparse(X, groups, ngroups));
+    return rcpp_result_gen;
+END_RCPP
+}
+// colNNZAggr_dense
+arma::mat colNNZAggr_dense(const arma::mat& X, const arma::uvec& groups, unsigned ngroups);
+RcppExport SEXP _scPlotSimplex_colNNZAggr_dense(SEXP XSEXP, SEXP groupsSEXP, SEXP ngroupsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< const arma::uvec& >::type groups(groupsSEXP);
+    Rcpp::traits::input_parameter< unsigned >::type ngroups(ngroupsSEXP);
+    rcpp_result_gen = Rcpp::wrap(colNNZAggr_dense(X, groups, ngroups));
+    return rcpp_result_gen;
+END_RCPP
+}
+// colNNZAggr_sparse
+arma::mat colNNZAggr_sparse(arma::sp_mat& X, const arma::uvec& groups, unsigned ngroups);
+RcppExport SEXP _scPlotSimplex_colNNZAggr_sparse(SEXP XSEXP, SEXP groupsSEXP, SEXP ngroupsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::sp_mat& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< const arma::uvec& >::type groups(groupsSEXP);
+    Rcpp::traits::input_parameter< unsigned >::type ngroups(ngroupsSEXP);
+    rcpp_result_gen = Rcpp::wrap(colNNZAggr_sparse(X, groups, ngroups));
+    return rcpp_result_gen;
+END_RCPP
+}
+// rowNNZAggr_dense
+arma::mat rowNNZAggr_dense(const arma::mat& X, const arma::uvec& groups, unsigned ngroups);
+RcppExport SEXP _scPlotSimplex_rowNNZAggr_dense(SEXP XSEXP, SEXP groupsSEXP, SEXP ngroupsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< const arma::uvec& >::type groups(groupsSEXP);
+    Rcpp::traits::input_parameter< unsigned >::type ngroups(ngroupsSEXP);
+    rcpp_result_gen = Rcpp::wrap(rowNNZAggr_dense(X, groups, ngroups));
+    return rcpp_result_gen;
+END_RCPP
+}
+// rowNNZAggr_sparse
+arma::mat rowNNZAggr_sparse(arma::sp_mat& X, const arma::uvec& groups, unsigned ngroups);
+RcppExport SEXP _scPlotSimplex_rowNNZAggr_sparse(SEXP XSEXP, SEXP groupsSEXP, SEXP ngroupsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::sp_mat& >::type X(XSEXP);
+    Rcpp::traits::input_parameter< const arma::uvec& >::type groups(groupsSEXP);
+    Rcpp::traits::input_parameter< unsigned >::type ngroups(ngroupsSEXP);
+    rcpp_result_gen = Rcpp::wrap(rowNNZAggr_sparse(X, groups, ngroups));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -76,7 +194,16 @@ static const R_CallMethodDef CallEntries[] = {
     {"_scPlotSimplex_euclidean_sparse", (DL_FUNC) &_scPlotSimplex_euclidean_sparse, 2},
     {"_scPlotSimplex_cosine_dense", (DL_FUNC) &_scPlotSimplex_cosine_dense, 2},
     {"_scPlotSimplex_cosine_sparse", (DL_FUNC) &_scPlotSimplex_cosine_sparse, 2},
-    {"_scPlotSimplex_rowMeans_sparse", (DL_FUNC) &_scPlotSimplex_rowMeans_sparse, 1},
+    {"_scPlotSimplex_rankMatrix_dense", (DL_FUNC) &_scPlotSimplex_rankMatrix_dense, 1},
+    {"_scPlotSimplex_cpp_rank_matrix_dgc", (DL_FUNC) &_scPlotSimplex_cpp_rank_matrix_dgc, 4},
+    {"_scPlotSimplex_rowAggregateSum_dense", (DL_FUNC) &_scPlotSimplex_rowAggregateSum_dense, 3},
+    {"_scPlotSimplex_rowAggregateSum_sparse", (DL_FUNC) &_scPlotSimplex_rowAggregateSum_sparse, 3},
+    {"_scPlotSimplex_colAggregateSum_dense", (DL_FUNC) &_scPlotSimplex_colAggregateSum_dense, 3},
+    {"_scPlotSimplex_colAggregateSum_sparse", (DL_FUNC) &_scPlotSimplex_colAggregateSum_sparse, 3},
+    {"_scPlotSimplex_colNNZAggr_dense", (DL_FUNC) &_scPlotSimplex_colNNZAggr_dense, 3},
+    {"_scPlotSimplex_colNNZAggr_sparse", (DL_FUNC) &_scPlotSimplex_colNNZAggr_sparse, 3},
+    {"_scPlotSimplex_rowNNZAggr_dense", (DL_FUNC) &_scPlotSimplex_rowNNZAggr_dense, 3},
+    {"_scPlotSimplex_rowNNZAggr_sparse", (DL_FUNC) &_scPlotSimplex_rowNNZAggr_sparse, 3},
     {NULL, NULL, 0}
 };
 

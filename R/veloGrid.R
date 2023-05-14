@@ -12,7 +12,7 @@ aggrVeloGraph <- function(
         stop("nrow(graph) must equal to ncol(graph)")
     }
     veloMat <- sapply(vertices, function(clust) {
-        rowMeans_sparse(graph[, clusterVar == clust])
+        rowMeans(graph[, clusterVar == clust])
     })
 
     if (isTRUE(normCluster)) veloMat = apply(veloMat, 2, .normalize)

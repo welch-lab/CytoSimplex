@@ -2,14 +2,14 @@
 % Please edit documentation in R/binary.R
 \name{plotBinary}
 \alias{plotBinary}
-\alias{plotBinary.distMatrix}
+\alias{plotBinary.simMat}
 \alias{plotBinary.default}
 \alias{plotBinary.liger}
 \title{Create binary plots}
 \usage{
 plotBinary(object, ...)
 
-\method{plotBinary}{distMatrix}(
+\method{plotBinary}{simMat}(
   object,
   axisPortion = TRUE,
   dotSize = 0.6,
@@ -26,10 +26,12 @@ plotBinary(object, ...)
   clusterVar,
   vertices,
   method = c("euclidean", "cosine", "pearson", "spearman"),
-  normCluster = FALSE,
+  force = FALSE,
+  sigma = 4,
   scale = TRUE,
   splitCluster = FALSE,
   clusterTitle = TRUE,
+  dotColor = "grey60",
   ...
 )
 
@@ -66,8 +68,14 @@ terminals.}
 Choose from \code{"euclidean"}, \code{"cosine"}, \code{"pearson"},
 \code{"spearman"}.}
 
-\item{normCluster}{Whether to normalize the distance matrix by clusters.
-See Details. Default \code{FALSE}.}
+\item{force}{Whether to force calculate the distance when more then 500
+features are detected, which is generally not recommended. Default
+\code{FALSE}.}
+
+\item{sigma}{Gaussian kernel parameter that controls the effect of variance.
+Only effective when using a distance metric (i.e. \code{method} is
+\code{"euclidian"} or \code{"cosine"}). Larger value tighten the dot
+spreading on figure. Default \code{4}.}
 
 \item{scale}{Whether to min-max scale the distance matrix by clusters.
 Default \code{TRUE}.}

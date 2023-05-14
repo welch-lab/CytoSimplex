@@ -50,8 +50,8 @@ plotTernary <- function(object, ...) {
 #' @param margin Margin allowed around of the triangle plotting region when
 #' \code{equilateral = TRUE}
 #' @export
-#' @method plotTernary distMatrix
-plotTernary.distMatrix <- function(
+#' @method plotTernary simMat
+plotTernary.simMat <- function(
         object,
         title = NULL,
         veloMat = NULL,
@@ -188,8 +188,13 @@ plotTernary.distMatrix <- function(
 #' @param veloGraph Cell x cell dgCMatrix object containing velocity
 #' information. Shows velocity grid-arrow layer when specified. Default
 #' \code{NULL} does not show velocity.
-#' @param normCluster Whether to normalize the distance matrix by clusters.
-#' See Details. Default \code{FALSE}.
+#' @param force Whether to force calculate the distance when more then 500
+#' features are detected, which is generally not recommended. Default
+#' \code{FALSE}.
+#' @param sigma Gaussian kernel parameter that controls the effect of variance.
+#' Only effective when using a distance metric (i.e. \code{method} is
+#' \code{"euclidian"} or \code{"cosine"}). Larger value tighten the dot
+#' spreading on figure. Default \code{4}.
 #' @param scale Whether to min-max scale the distance matrix by clusters.
 #' Default \code{TRUE}.
 #' @param splitCluster Logical, whether to return a list of plots where each
@@ -205,10 +210,12 @@ plotTernary.default <- function(
         vertices,
         method = c("euclidean", "cosine", "pearson", "spearman"),
         veloGraph = NULL,
-        normCluster = FALSE,
+        force = FALSE,
+        sigma = 4,
         scale = TRUE,
         splitCluster = FALSE,
         clusterTitle = TRUE,
+        dotColor = "grey60",
         ...
 ) {
     method <- match.arg(method)
@@ -224,10 +231,14 @@ plotTernary.default <- function(
         stop("Specified vertex clusters are not all found in the cluster ",
              "variable")
     }
-    distMat <- calcDist(object, clusterVar = clusterVar,
-                        vertices = vertices,
-                        method = method, normCluster = normCluster,
-                        scale = scale)
+    if (length(dotColor) == 1) dotColor <- rep(dotColor, ncol(object))
+    if (length(dotColor) != ncol(object)) {
+        stop("`dotColor` need to be either 1 scalar or match the number of ",
+             "samples in `object`.")
+    }
+    distMat <- calcDist2(object, clusterVar = clusterVar,
+                         vertices = vertices, method = method,
+                         scale = scale, force = force, sigma = sigma)
 
     veloMat <- NULL
     if (!is.null(veloGraph)) {
@@ -238,18 +249,21 @@ plotTernary.default <- function(
 
     if (isFALSE(splitCluster)) plotTernary(object = distMat,
                                            veloMat = veloMat,
+                                           dotColor = dotColor,
                                            ...)
     else {
         if (isTRUE(clusterTitle)) {
             plotList <- lapply(levels(clusterVar), function(clust) {
                 plotTernary(distMat[clusterVar == clust,],
                             veloMat = veloMat[clusterVar == clust,],
+                            dotColor = dotColor[clusterVar == clust],
                             title = clust, ...)
             })
         } else {
             plotList <- lapply(levels(clusterVar), function(clust) {
                 plotTernary(distMat[distMat$Label == clust,],
                             veloMat = veloMat[clusterVar == clust,],
+                            dotColor = dotColor[clusterVar == clust],
                             ...)
             })
         }

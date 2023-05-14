@@ -17,7 +17,43 @@ cosine_sparse <- function(query, target) {
     .Call('_scPlotSimplex_cosine_sparse', PACKAGE = 'scPlotSimplex', query, target)
 }
 
-rowMeans_sparse <- function(x) {
-    .Call('_scPlotSimplex_rowMeans_sparse', PACKAGE = 'scPlotSimplex', x)
+rankMatrix_dense <- function(X) {
+    .Call('_scPlotSimplex_rankMatrix_dense', PACKAGE = 'scPlotSimplex', X)
+}
+
+cpp_rank_matrix_dgc <- function(x, p, nrow, ncol) {
+    .Call('_scPlotSimplex_cpp_rank_matrix_dgc', PACKAGE = 'scPlotSimplex', x, p, nrow, ncol)
+}
+
+rowAggregateSum_dense <- function(X, groups, ngroups) {
+    .Call('_scPlotSimplex_rowAggregateSum_dense', PACKAGE = 'scPlotSimplex', X, groups, ngroups)
+}
+
+rowAggregateSum_sparse <- function(X, groups, ngroups) {
+    .Call('_scPlotSimplex_rowAggregateSum_sparse', PACKAGE = 'scPlotSimplex', X, groups, ngroups)
+}
+
+colAggregateSum_dense <- function(X, groups, ngroups) {
+    .Call('_scPlotSimplex_colAggregateSum_dense', PACKAGE = 'scPlotSimplex', X, groups, ngroups)
+}
+
+colAggregateSum_sparse <- function(X, groups, ngroups) {
+    .Call('_scPlotSimplex_colAggregateSum_sparse', PACKAGE = 'scPlotSimplex', X, groups, ngroups)
+}
+
+colNNZAggr_dense <- function(X, groups, ngroups) {
+    .Call('_scPlotSimplex_colNNZAggr_dense', PACKAGE = 'scPlotSimplex', X, groups, ngroups)
+}
+
+colNNZAggr_sparse <- function(X, groups, ngroups) {
+    .Call('_scPlotSimplex_colNNZAggr_sparse', PACKAGE = 'scPlotSimplex', X, groups, ngroups)
+}
+
+rowNNZAggr_dense <- function(X, groups, ngroups) {
+    .Call('_scPlotSimplex_rowNNZAggr_dense', PACKAGE = 'scPlotSimplex', X, groups, ngroups)
+}
+
+rowNNZAggr_sparse <- function(X, groups, ngroups) {
+    .Call('_scPlotSimplex_rowNNZAggr_sparse', PACKAGE = 'scPlotSimplex', X, groups, ngroups)
 }
 

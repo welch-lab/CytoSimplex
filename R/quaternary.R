@@ -29,8 +29,8 @@ plotQuaternary <- function(object, ...) {
 #' \code{theta} gives the azimuthal direction and \code{phi} the colatitude.
 #' Default \code{-40} and \code{-10}.
 #' @export
-#' @method plotQuaternary distMatrix
-plotQuaternary.distMatrix <- function(
+#' @method plotQuaternary simMat
+plotQuaternary.simMat <- function(
         object,
         axisPortion = TRUE,
         dotSize = 0.6,
@@ -109,8 +109,13 @@ print.plist <- function(x, ...) {
 #' @param method Distance calculation method. Default \code{"euclidean"}.
 #' Choose from \code{"euclidean"}, \code{"cosine"}, \code{"pearson"},
 #' \code{"spearman"}.
-#' @param normCluster Whether to normalize the distance matrix by clusters.
-#' See Details. Default \code{FALSE}.
+#' @param force Whether to force calculate the distance when more then 500
+#' features are detected, which is generally not recommended. Default
+#' \code{FALSE}.
+#' @param sigma Gaussian kernel parameter that controls the effect of variance.
+#' Only effective when using a distance metric (i.e. \code{method} is
+#' \code{"euclidian"} or \code{"cosine"}). Larger value tighten the dot
+#' spreading on figure. Default \code{4}.
 #' @param scale Whether to min-max scale the distance matrix by clusters.
 #' Default \code{TRUE}.
 #' @param splitCluster Logical, whether to return a list of plots where each
@@ -125,10 +130,12 @@ plotQuaternary.default <- function(
         clusterVar,
         vertices,
         method = c("euclidean", "cosine", "pearson", "spearman"),
-        normCluster = FALSE,
+        force = FALSE,
+        sigma = 4,
         scale = TRUE,
         splitCluster = FALSE,
         clusterTitle = TRUE,
+        dotColor = "grey60",
         ...
 ) {
     method <- match.arg(method)
@@ -144,20 +151,26 @@ plotQuaternary.default <- function(
         stop("Specified vertex clusters are not all found in the cluster ",
              "variable")
     }
-    distMat <- calcDist(object, clusterVar = clusterVar,
-                        vertices = vertices,
-                        method = method, normCluster = normCluster,
-                        scale = scale)
-    if (isFALSE(splitCluster)) plotQuaternary(object = distMat, ...)
+    if (length(dotColor) == 1) dotColor <- rep(dotColor, ncol(object))
+    if (length(dotColor) != ncol(object)) {
+        stop("`dotColor` need to be either 1 scalar or match the number of ",
+             "samples in `object`.")
+    }
+    distMat <- calcDist2(object, clusterVar = clusterVar,
+                         vertices = vertices, method = method,
+                         scale = scale, force = force, sigma = sigma)
+    if (isFALSE(splitCluster)) plotQuaternary(object = distMat,
+                                              dotColor = dotColor, ...)
     else {
         if (isTRUE(clusterTitle)) {
             plotList <- lapply(levels(clusterVar), function(clust) {
                 plotQuaternary(distMat[distMat$Label == clust,], title = clust,
-                           ...)
+                               dotColor = dotColor[clusterVar == clust], ...)
             })
         } else {
             plotList <- lapply(levels(clusterVar), function(clust) {
-                plotQuaternary(distMat[distMat$Label == clust,], ...)
+                plotQuaternary(distMat[distMat$Label == clust,],
+                               dotColor = dotColor[clusterVar == clust], ...)
             })
         }
         names(plotList) <- levels(clusterVar)
