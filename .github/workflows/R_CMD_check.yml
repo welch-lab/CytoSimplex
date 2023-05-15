@@ -61,8 +61,16 @@ jobs:
         shell: Rscript {0}
 
       - name: Check
+        if: runner.os != 'Linux'
         run: rcmdcheck::rcmdcheck(args = "--no-manual", error_on = "warning")
         shell: Rscript {0}
+
+      - name: Check on Linux
+        if: runner.os == 'Linux'
+        run: |
+          export DISPLAY=:99
+          sudo Xvfb -ac :99 -screen 0 1280x1024x24 > /dev/null 2>&1 &
+          Rscript -e 'rcmdcheck::rcmdcheck(args = "--no-manual", error_on = "warning")'
 
       - name: Run codecov
         run: |
