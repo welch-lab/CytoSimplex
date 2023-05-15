@@ -20,8 +20,6 @@ plotBinary <- function(object, ...) {
 }
 
 #' @rdname plotBinary
-#' @param axisPortion Whether to show axis value by proportion, so that the
-#' coordinates of each dot sum up to 100. Default \code{TRUE}.
 #' @param dotSize,dotColor Dot aesthetics passed to
 #' \code{\link[ggplot2]{geom_point}}. Default \code{0.6} and \code{"grey60"}.
 #' @param densLinewidth Density plot line aesthetic. Default \code{0.8}.
@@ -33,7 +31,6 @@ plotBinary <- function(object, ...) {
 #' @method plotBinary simMat
 plotBinary.simMat <- function(
         object,
-        axisPortion = TRUE,
         dotSize = 0.6,
         dotColor = "grey60",
         densLinewidth = 0.8,
@@ -42,23 +39,18 @@ plotBinary.simMat <- function(
         title = NULL,
         ...
 ) {
-    if (is.null(distMethod) && isFALSE(axisPortion)) {
-        stop("Cannot identify distance method for visualizing axis.")
-    }
     if (ncol(object) != 3) {
-        stop("`distMatrix` object must have three columns for binary plot, ",
+        stop("`simMat` object must have three columns for binary plot, ",
              "where the first two are for vertices and the last for cluster ",
              "assignment.")
     }
     topLAB <- colnames(object)[1]
     bottomLAB <- colnames(object)[2]
     object$Y <- stats::runif(nrow(object))
-    sumProp <- 1
-    if (isTRUE(axisPortion)) {
-        object[,1] <- 100 * object[,1]
-        object[,2] <- 100 * object[,2]
-        sumProp <- 100
-    }
+
+    object[,1] <- 100 * object[,1]
+    object[,2] <- 100 * object[,2]
+    sumProp <- 100
 
     # top <- bottom <- NULL
     # NEVER REMOVE "ggplot2::", the imported namespace has problem with

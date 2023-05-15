@@ -11,6 +11,18 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
+// colNormalize_dense
+arma::mat colNormalize_dense(arma::mat x, arma::vec colsums);
+RcppExport SEXP _scPlotSimplex_colNormalize_dense(SEXP xSEXP, SEXP colsumsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::mat >::type x(xSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type colsums(colsumsSEXP);
+    rcpp_result_gen = Rcpp::wrap(colNormalize_dense(x, colsums));
+    return rcpp_result_gen;
+END_RCPP
+}
 // euclidean_dense
 arma::mat euclidean_dense(arma::mat& query, arma::mat& target);
 RcppExport SEXP _scPlotSimplex_euclidean_dense(SEXP querySEXP, SEXP targetSEXP) {
@@ -190,6 +202,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_scPlotSimplex_colNormalize_dense", (DL_FUNC) &_scPlotSimplex_colNormalize_dense, 2},
     {"_scPlotSimplex_euclidean_dense", (DL_FUNC) &_scPlotSimplex_euclidean_dense, 2},
     {"_scPlotSimplex_euclidean_sparse", (DL_FUNC) &_scPlotSimplex_euclidean_sparse, 2},
     {"_scPlotSimplex_cosine_dense", (DL_FUNC) &_scPlotSimplex_cosine_dense, 2},

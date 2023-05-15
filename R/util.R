@@ -22,9 +22,9 @@
 #' rnaNorm <- colNormalize(rnaRaw)
 colNormalize <- function(x, scaleFactor = NULL, log = FALSE) {
     if (inherits(x, "dgCMatrix")) {
-        x@x <- x@x / rep.int(colSums(x), diff(x@p))
+        x@x <- x@x / rep.int(Matrix::colSums(x), diff(x@p))
     } else if (is.matrix(x)) {
-        x <- x / colSums(x)
+        x <- colNormalize_dense(x, base::colSums(x))
     } else {
         stop("Input matrix of class ", class(x)[1], " is not yet supported.")
     }

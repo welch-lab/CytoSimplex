@@ -8,6 +8,16 @@ using namespace std;
 using namespace Rcpp;
 using namespace arma;
 
+// Utilities %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+//[[Rcpp::export]]
+arma::mat colNormalize_dense(arma::mat x, arma::vec colsums) {
+    arma::mat output=zeros<mat>(x.n_rows, x.n_cols);
+    for (unsigned int c=0; c<x.n_cols; c++) {
+        output.col(c)=x.col(c)/colsums(c);
+    }
+    return output;
+}
 
 // Distance Calculation %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

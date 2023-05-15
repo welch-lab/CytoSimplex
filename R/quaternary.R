@@ -20,8 +20,6 @@ plotQuaternary <- function(object, ...) {
 }
 
 #' @rdname plotQuaternary
-#' @param axisPortion Whether to show axis value by proportion, so that the
-#' coordinates of each dot sum up to 100. Default \code{TRUE}.
 #' @param dotSize,dotColor Dot aesthetics. Default \code{0.6} and
 #' \code{"grey60"}.
 #' @param labelColors Colors of the vertex labels. Default
@@ -36,7 +34,6 @@ plotQuaternary <- function(object, ...) {
 #' @method plotQuaternary simMat
 plotQuaternary.simMat <- function(
         object,
-        axisPortion = TRUE,
         dotSize = 0.6,
         dotColor = "grey60",
         labelColors = c("#3B4992FF", "#EE0000FF", "#008B45FF", "#631879FF"),
@@ -46,11 +43,8 @@ plotQuaternary.simMat <- function(
         phi = -10,
         ...
 ) {
-    if (is.null(distMethod) && isFALSE(axisPortion)) {
-        stop("Cannot identify distance method for visualizing axis.")
-    }
     if (ncol(object) != 5) {
-        stop("`distMatrix` object must have five columns for quaternary plot, ",
+        stop("`simMat` object must have five columns for quaternary plot, ",
              "where the first four are for vertices and the last for cluster ",
              "assignment.")
     }

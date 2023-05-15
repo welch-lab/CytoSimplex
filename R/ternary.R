@@ -76,7 +76,11 @@ plotTernary.simMat <- function(
         margin = 0.1,
         ...
 ) {
-
+    if (ncol(object) != 4) {
+        stop("`simMat` object must have four columns for ternary plot, ",
+             "where the first three are for vertices and the last for cluster ",
+             "assignment.")
+    }
     # Convert barycentric coordinates (4D) to cartesian coordinates (3D)
     df <- as.data.frame(as.matrix(object[,1:3]) %*% triangle)
     triangle <- as.data.frame(triangle)
@@ -246,6 +250,11 @@ plotTernary.default <- function(
 
     veloMat <- NULL
     if (!is.null(veloGraph)) {
+        if (ncol(veloGraph) != nrow(veloGraph) ||
+            !all(rownames(distMat) %in% rownames(veloGraph))) {
+            stop("`veloGraph must be of shape N x N and has dimnames covering ",
+                 "all cells in `object`.")
+        }
         veloGraph <- veloGraph[rownames(distMat), rownames(distMat)]
         veloMat <- aggrVeloGraph(veloGraph, clusterVar = clusterVar,
                                  vertices = vertices)

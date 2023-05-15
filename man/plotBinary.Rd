@@ -11,7 +11,6 @@ plotBinary(object, ...)
 
 \method{plotBinary}{simMat}(
   object,
-  axisPortion = TRUE,
   dotSize = 0.6,
   dotColor = "grey60",
   densLinewidth = 0.8,
@@ -41,9 +40,6 @@ plotBinary(object, ...)
 \item{object}{An object}
 
 \item{...}{Arguments passed to other methods.}
-
-\item{axisPortion}{Whether to show axis value by proportion, so that the
-coordinates of each dot sum up to 100. Default \code{TRUE}.}
 
 \item{dotSize, dotColor}{Dot aesthetics passed to
 \code{\link[ggplot2]{geom_point}}. Default \code{0.6} and \code{"grey60"}.}

@@ -6,9 +6,6 @@ aggrVeloGraph <- function(
     if (!inherits(graph, "dgCMatrix")) {
         graph <- methods::as(graph, "CsparseMatrix")
     }
-    if (nrow(graph) != ncol(graph)) {
-        stop("nrow(graph) must equal to ncol(graph)")
-    }
     veloMat <- sapply(vertices, function(clust) {
         rowMeans(graph[, clusterVar == clust])
     })
@@ -34,10 +31,6 @@ calcGridVelo <- function(
         nGrid = 10,
         radius = 0.1
 ) {
-    if (nrow(distMat) != nrow(veloMat) ||
-        !identical(rownames(distMat), rownames(veloMat))) {
-        stop("Cell identifiers not identical between distance and velocity.")
-    }
     win <- 1/nGrid
     seg <- win/2
 

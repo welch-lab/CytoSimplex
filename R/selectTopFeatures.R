@@ -45,18 +45,18 @@ selectTopFeatures <- function(
     if (!is.factor(clusterVar)) clusterVar <- factor(clusterVar)
     else clusterVar <- droplevels(clusterVar)
 
-    clusterVar <- clusterVar[!is.na(clusterVar)]
+    clusters <- clusterVar[!is.na(clusterVar)]
     x <- x[, !is.na(clusterVar)]
 
-    groupSize <- as.numeric(table(clusterVar))
+    groupSize <- as.numeric(table(clusters))
     if (length(groupSize[groupSize > 0]) < 2) {
-        stop('Must have at least 2 non-empty groups defined.')
+        stop("Must have at least 2 non-empty groups defined.")
     }
 
     # Preprocessing as needed
     if (isTRUE(normalize)) x <- colNormalize(x)
 
-    statsTable <- wilcoxauc(x, clusterVar)
+    statsTable <- wilcoxauc(x, clusters)
 
     if (isTRUE(returnStats)) return(statsTable)
 

@@ -11,7 +11,6 @@ plotQuaternary(object, ...)
 
 \method{plotQuaternary}{simMat}(
   object,
-  axisPortion = TRUE,
   dotSize = 0.6,
   dotColor = "grey60",
   labelColors = c("#3B4992FF", "#EE0000FF", "#008B45FF", "#631879FF"),
@@ -42,9 +41,6 @@ plotQuaternary(object, ...)
 \item{object}{An object}
 
 \item{...}{Arguments passed to other methods.}
-
-\item{axisPortion}{Whether to show axis value by proportion, so that the
-coordinates of each dot sum up to 100. Default \code{TRUE}.}
 
 \item{dotSize, dotColor}{Dot aesthetics. Default \code{0.6} and
 \code{"grey60"}.}
