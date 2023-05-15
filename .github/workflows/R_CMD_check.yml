@@ -39,16 +39,19 @@ jobs:
           http-user-agent: ${{ matrix.config.http-user-agent }}
           use-public-rspm: true
 
+      - name: Set up pandoc
+        uses: r-lib/actions/setup-pandoc@v2
+
       - name: Install HDF5 library on Linux
         if: runner.os == 'Linux'
         run: |
           sudo apt-get install libhdf5-dev
           sudo apt-get install libglpk-dev
-    
+
       - name: Install XQuartz on macOS
         if: runner.os == 'macOS'
         run: brew install xquartz --cask
-      
+
       - name: Install dependencies
         run: |
           Sys.setenv(GITHUB_PAT = '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')
@@ -56,7 +59,7 @@ jobs:
           remotes::install_deps(dependencies = TRUE)
           remotes::install_github("mvfki/liger@newObj")
         shell: Rscript {0}
-        
+
       - name: Check
         run: rcmdcheck::rcmdcheck(args = "--no-manual", error_on = "error")
         shell: Rscript {0}
