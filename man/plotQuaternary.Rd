@@ -4,7 +4,6 @@
 \alias{plotQuaternary}
 \alias{plotQuaternary.simMat}
 \alias{plotQuaternary.default}
-\alias{plotQuaternary.liger}
 \title{Create quaternary plots}
 \usage{
 plotQuaternary(object, ...)
@@ -34,8 +33,6 @@ plotQuaternary(object, ...)
   dotColor = "grey60",
   ...
 )
-
-\method{plotQuaternary}{liger}(object, clusterVar, features = NULL, useDatasets = NULL, ...)
 }
 \arguments{
 \item{object}{An object}
@@ -85,13 +82,6 @@ contains cells belonging to only one cluster. Default \code{FALSE}.}
 
 \item{clusterTitle}{If \code{splitCluster = TRUE}, whether to title each
 subplot by the name of each cluster. Default \code{TRUE}.}
-
-\item{features}{For container object methods. Valid row subsetting index that
-selects features. Default \code{NULL}.}
-
-\item{useDatasets}{For liger method, select datasets where the distance
-calculation should only be limited within this range. Default \code{NULL}
-uses all datasets.}
 }
 \value{
 For distMatrix method, a plist (plot3D package product) object. For

@@ -176,21 +176,21 @@ plotQuaternary.default <- function(
     }
 }
 
-#' @rdname plotQuaternary
-#' @param useDatasets For liger method, select datasets where the distance
-#' calculation should only be limited within this range. Default \code{NULL}
-#' uses all datasets.
-#' @param features For container object methods. Valid row subsetting index that
-#' selects features. Default \code{NULL}.
-#' @export
-#' @method plotQuaternary liger
-plotQuaternary.liger <- function(
-        object,
-        clusterVar,
-        features = NULL,
-        useDatasets = NULL,
-        ...
-) {
-    values <- .ligerPrepare(object, clusterVar, features, useDatasets)
-    plotQuaternary(values[[1]], clusterVar = values[[2]], ...)
-}
+#' #' @rdname plotQuaternary
+#' #' @param useDatasets For liger method, select datasets where the distance
+#' #' calculation should only be limited within this range. Default \code{NULL}
+#' #' uses all datasets.
+#' #' @param features For container object methods. Valid row subsetting index that
+#' #' selects features. Default \code{NULL}.
+#' #' @export
+#' #' @method plotQuaternary liger
+#' plotQuaternary.liger <- function(
+#'         object,
+#'         clusterVar,
+#'         features = NULL,
+#'         useDatasets = NULL,
+#'         ...
+#' ) {
+#'     values <- .ligerPrepare(object, clusterVar, features, useDatasets)
+#'     plotQuaternary(values[[1]], clusterVar = values[[2]], ...)
+#' }

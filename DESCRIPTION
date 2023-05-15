@@ -25,7 +25,6 @@ Imports:
 Suggests:
     knitr,
     patchwork,
-    rliger2,
     rmarkdown,
     testthat (>= 3.0.0)
 RoxygenNote: 7.2.3

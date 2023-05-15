@@ -4,7 +4,6 @@
 \alias{plotBinary}
 \alias{plotBinary.simMat}
 \alias{plotBinary.default}
-\alias{plotBinary.liger}
 \title{Create binary plots}
 \usage{
 plotBinary(object, ...)
@@ -33,8 +32,6 @@ plotBinary(object, ...)
   dotColor = "grey60",
   ...
 )
-
-\method{plotBinary}{liger}(object, clusterVar, features = NULL, useDatasets = NULL, ...)
 }
 \arguments{
 \item{object}{An object}
@@ -81,13 +78,6 @@ contains cells belonging to only one cluster. Default \code{FALSE}.}
 
 \item{clusterTitle}{If \code{splitCluster = TRUE}, whether to title each
 subplot by the name of each cluster. Default \code{TRUE}.}
-
-\item{features}{For container object methods. Valid row subsetting index that
-selects features. Default \code{NULL}.}
-
-\item{useDatasets}{For liger method, select datasets where the distance
-calculation should only be limited within this range. Default \code{NULL}
-uses all datasets.}
 }
 \value{
 For distMatrix method, a ggplot object. For other methods, a ggplot
