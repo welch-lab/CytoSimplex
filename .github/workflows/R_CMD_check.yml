@@ -55,7 +55,7 @@ jobs:
       - name: Install dependencies
         run: |
           Sys.setenv(GITHUB_PAT = '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')
-          install.packages(c("remotes", "rcmdcheck"))
+          install.packages(c("remotes", "rcmdcheck", "covr"))
           remotes::install_deps(dependencies = TRUE)
           remotes::install_github("mvfki/liger@newObj")
         shell: Rscript {0}
