@@ -1,0 +1,130 @@
+---
+title: "Simplex Analysis of Single-Cell Data"
+author: "Yichen Wang, Jialin Liu"
+date: "2023-05-14"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{scPlotSimplex}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.align = 'center')
+```
+
+## Introduction
+
+This package use simplex method to assist exploration in the similarity between single cells between selected cell clusters. We denote a number (2-4) of selected clusters as vertices. We calculate the similarity between each single cell and the avarage point of each vertex. By normalizing the similarity between each single cell and all specified vertices to a unit sum, we can derive a simplex coordinate for each single cell. Visualization method for binary, ternary and quaternary simplex coordinates are developed.
+
+## Example Data
+
+In this vignette, we use data from <a href="https://www.nature.com/articles/s41467-023-38034-2" target="_blank">Matsushita and Liu, *Nat. Comm.* 2023</a>. The application of this method was originally used in this publicaiton as well. From the processed and annotated scRNA-seq data, we took the subset of 50 cells per major cell type from the raw count matrix and cell type annotation. These are embedded within this package.
+
+```{R loadExampleData}
+library(scPlotSimplex)
+data("rnaRaw")
+print(paste0("Class of `rnaRaw`: ", class(rnaRaw), ", dimension of `rnaRaw`: ", nrow(rnaRaw), " genes x ", ncol(rnaRaw), " cells"))
+
+data("rnaCluster")
+print(table(rnaCluster))
+```
+
+## Select top features (Optional)
+
+Technically, any forms of feature-by-observation matrix is acceptable for the method we developed, and users are encouraged to explore the usability of our method with other types of data, even not biological. However, single-cell transcriptomics data, as provided, usually is of high dimensionality and contains technical and biological noise. Meanwhile, distance calculation tends to be computationally expensive with such high dimensionality. With testing different approaches of reducing the dimensionality and noise, we recommend that users select a number of top differentially expressed genes (DEGs) for each cluster that a vertex represents. 
+
+We implemented a fast Wilcoxon rank-sum test method which can be invoked with function `selectTopFeatures()`. Here, we will choose the top DEGs for Osteoblast cells (`"OS"`), Reticular cells (`"RE"`) and Chondrocytes (`"CH"`), as also shown in the previously mentioned publication. The number of top DEGs for each cluster is set to 30 (`nTop = 30`), thus 90 unique genes are expected to be returned. Alternatively, users can set `returnStats = TRUE` to obtain a table of full Wilcoxon rank-sum test statistics, including the result for all clusters instead of selected vertices.
+
+```{R selectTopGenes}
+vertices <- c("OS", "RE", "CH")
+geneSelect <- selectTopFeatures(rnaRaw, clusterVar = rnaCluster, vertices = vertices,
+                             nTop = 30, normalize = TRUE)
+head(geneSelect)
+
+stats <- selectTopFeatures(rnaRaw, clusterVar = rnaCluster, vertices = vertices,
+                        nTop = 30, normalize = TRUE, returnStats = TRUE)
+head(stats)
+```
+
+## Simplex visualization
+
+We provide three core functions, as demonstrated below.
+
+1. `plotBinary()` - Shows sample similarity in binary simplex -- two-ended line. In practice, we jittered the y-axis of the plot in order to clearly show where the dots are. The closer a dot, a cell, is to one end (left or right vertex), the more similar the cell is to the cell cluster that vertex represents. A histogram density line is added as another layer to show the distribution of cells across the horizontal simplex.
+
+```{R plotBinary, fig.width = 5, fig.height = 3}
+vertices <- c("OS", "RE")
+rnaLognorm <- colNormalize(rnaRaw, scaleFactor = 1e4, log = TRUE)
+binFeatures <- selectTopFeatures(rnaLognorm, clusterVar = rnaCluster, 
+                              vertices = vertices, nTop = 30,
+                              normalize = FALSE)
+plotBinary(rnaLognorm[binFeatures, ], rnaCluster, vertices[1:2])
+```
+
+2. `plotTernary()` - Shows sample similarity in ternary simplex -- equilateral triangle. The closer a dot, a cell, is to one angle (left, top or right vertex), the more similar the cell is to the cell cluster that vertex represents. 
+
+```{R plotTernary, fig.height = 4, fig.width = 4}
+vertices <- c("OS", "RE", "CH")
+ternFeatures <- selectTopFeatures(rnaLognorm, clusterVar = rnaCluster, 
+                               vertices = vertices, nTop = 30,
+                               normalize = FALSE)
+plotTernary(rnaLognorm[ternFeatures, ], rnaCluster, vertices)
+```
+
+>The previous two functions mainly depends of `ggplot2`, which is widely used to create figures in R. The binary simplex is plotted normally in ggplot 2D coordinates, while the ternary simplex added as "segments" in the 3D coordinates instead of implementing a ternary coordinate system. Users wishing to add customized alteration should pay attention to this.
+
+3. `plotQuaternary()` - Shows sample similarity in quaternary simplex -- tetrahedron. The 3D visualization denpends on package `plot3D`. For quaternary simplex, we need one more cluster as a vertex. Here, we add the cells in osteoblast-reticular transition state (`"ORT"`) into the vertex list.
+
+```{R plotQuaternary, fig.height = 4, fig.width = 4}
+vertices <- c("OS", "RE", "CH", "ORT")
+quatFeature <- selectTopFeatures(rnaLognorm, clusterVar = rnaCluster, 
+                              vertices = vertices, nTop = 30,
+                              normalize = FALSE)
+plotQuaternary(rnaLognorm[quatFeature, ], rnaCluster, vertices)
+```
+
+## Advanced usage
+
+Please see full argument documentation with `?plotBinary`, `?plotTernary` and `?plotQuaternary`. Here, we demonstrate some examples that would be useful.
+
+### Explore with each cluster
+
+An argument `splitCluster` is supported for all three plotting functions. By setting `splitCluster = TRUE`, A list of plots will be returned, with each containing only dots (cells) belonging to one cluster in the annotation specified. 
+
+```{R splitCluster, fig.width = 7, fig.height = 7}
+library(patchwork)
+vertices <- c("OS", "RE", "CH")
+ternList <- plotTernary(rnaLognorm[ternFeatures, ], rnaCluster, vertices, splitCluster = TRUE)
+print(names(ternList))
+(ternList$Stem + ternList$RE) / (ternList$ORT + ternList$OS)
+```
+
+As can be seen in the subplots, osteoblast-chondrocyte transitional (OCT) stem cells (`"Stem"`) sit closer to osteoblast vertex while do not tend to be extremely close to any vertex as observed in the "OS" and "RE" clusters; reticular cells (`"RE"`) and osteoblast cells (`"OS"`) are gathered towards their corresponding vertices; osteoblast-reticular transitional cells (`"ORT"`) distribute across the vertices for the two cell types. These patterns match with the conclusion in the publication.
+
+### Adding velocity info layer
+
+RNA velocity is a quantitative measurement of cellular transitions from single-cell transcriptomics experiments and reveals transient cellular dynamics among a heterogeneous cell population (<a href="https://www.pnas.org/doi/10.1073/pnas.2105859118" target="_blank">Qiao, PNAS 2021</a>). We implemented a velocity visualization strategy that applies to ternary simplex plot only. The velocity information input format must be an N x N graph (sparse matrix, where N denotes number of cells). We have included a graph that matches with the cells in the example dataset in this package. This graph is a subset of the output from <a href="https://github.com/welch-lab/VeloVAE" target="_black">Python module `veloVAE`</a>, as part of the processed data from the publication mentioned at the start. 
+
+```{R loadVelo}
+data("rnaVelo")
+print(paste0("Class of `rnaVelo`: ", class(rnaVelo), ", dimension of `rnaRaw`: ", nrow(rnaVelo), " x ", ncol(rnaRaw)))
+```
+
+We create a number of square grids in the 2D plain of the ternary simplex, and aggregate the cells fall into each grid with taking the mean of velocity towards each of the three vertices. Finally, we draw an arrow from the grid center pointing to each vertex with the length of the aggregated mean velocity. 
+
+```{R ternVelo, fig.width = 4, fig.height = 4}
+plotTernary(rnaLognorm[ternFeatures, ], rnaCluster, vertices, 
+            veloGraph = rnaVelo)
+```
+
+Similarly, the velocity layer can also be splitted.
+
+```{R ternVeloSplit, fig.width = 7, fig.height = 7}
+veloSplit <- plotTernary(rnaLognorm[ternFeatures, ], rnaCluster, vertices, 
+                         veloGraph = rnaVelo, splitCluster = TRUE)
+(veloSplit$Stem + veloSplit$RE) / (veloSplit$ORT + veloSplit$OS)
+```
+
+As shown in the subplots, the OCT stem cells has the transition potential towards all three cell types; reticular and osteablast cells are differentiating towards their corresponding cell types; while the ORT cells have the transition potential towards both osteoblast and reticular cell types.
+

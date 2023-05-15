@@ -17,7 +17,7 @@ plotTernary(object, ...)
   radius = 0.1,
   dotSize = 0.6,
   dotColor = "grey60",
-  labelColors = c("#EE0000FF", "#3B4992FF", "#008B45FF"),
+  labelColors = c("#3B4992FF", "#EE0000FF", "#008B45FF"),
   vertexLabelSize = 5,
   vertexLabelDrift = 0.03,
   axisBreak = 5,
@@ -67,7 +67,7 @@ outside of the coordinate. Default \code{0.1}.}
 \code{\link[ggplot2]{geom_point}}. Default \code{0.6} and \code{"grey60"}.}
 
 \item{labelColors}{Colors of the axis lines and vertex labels.
-Default \code{c("#EE0000FF", "#3B4992FF", "#008B45FF")} (red, blue and green)}
+Default \code{c("#3B4992FF", "#EE0000FF", "#008B45FF")} (blue, red and green)}
 
 \item{vertexLabelSize, vertexLabelDrift}{Adjustment on the three vertex text
 labels. Drift means the distance that the labels should be moved against the
@@ -151,4 +151,9 @@ matrix/dgCMatrix method. Therefore, the arguments inherits as the flow
 described above.
 
 \bold{The calculation of similarity matrix} - TODO
+}
+\examples{
+rnaLog <- colNormalize(rnaRaw, 1e4, TRUE)
+gene <- selectTopFeatures(rnaRaw, rnaCluster, c("RE", "OS", "CH"))
+plotTernary(rnaLog[gene, ], rnaCluster, c("RE", "OS", "CH"))
 }

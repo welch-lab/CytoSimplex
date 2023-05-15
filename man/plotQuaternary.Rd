@@ -108,3 +108,8 @@ console.
 Create quaternary plots that show similarity between single cells and
 selected terminals in a tetrahedron space.
 }
+\examples{
+rnaLog <- colNormalize(rnaRaw, 1e4, TRUE)
+gene <- selectTopFeatures(rnaRaw, rnaCluster, c("RE", "OS", "CH", "ORT"))
+plotQuaternary(rnaLog[gene, ], rnaCluster, c("RE", "OS", "CH", "ORT"))
+}

@@ -18,6 +18,10 @@
 #' @return For distMatrix method, a ggplot object. For other methods, a ggplot
 #' object when \code{splitCluster = FALSE}, or a list of ggplot objects when
 #' \code{splitCluster = TRUE}.
+#' @examples
+#' rnaLog <- colNormalize(rnaRaw, 1e4, TRUE)
+#' gene <- selectTopFeatures(rnaRaw, rnaCluster, c("RE", "OS", "CH"))
+#' plotTernary(rnaLog[gene, ], rnaCluster, c("RE", "OS", "CH"))
 plotTernary <- function(object, ...) {
     UseMethod('plotTernary', object)
 }
@@ -32,7 +36,7 @@ plotTernary <- function(object, ...) {
 #' @param dotSize,dotColor Dot aesthetics passed to
 #' \code{\link[ggplot2]{geom_point}}. Default \code{0.6} and \code{"grey60"}.
 #' @param labelColors Colors of the axis lines and vertex labels.
-#' Default \code{c("#EE0000FF", "#3B4992FF", "#008B45FF")} (red, blue and green)
+#' Default \code{c("#3B4992FF", "#EE0000FF", "#008B45FF")} (blue, red and green)
 #' @param vertexLabelSize,vertexLabelDrift Adjustment on the three vertex text
 #' labels. Drift means the distance that the labels should be moved against the
 #' center of the plot. Default size \code{5}, drifted distance \code{0.03}.
@@ -59,7 +63,7 @@ plotTernary.simMat <- function(
         radius = 0.1,
         dotSize = 0.6,
         dotColor = "grey60",
-        labelColors = c("#EE0000FF", "#3B4992FF", "#008B45FF"),
+        labelColors = c("#3B4992FF", "#EE0000FF", "#008B45FF"),
         vertexLabelSize = 5,
         vertexLabelDrift = 0.03,
         axisBreak = 5,

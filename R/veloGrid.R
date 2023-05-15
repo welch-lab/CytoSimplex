@@ -1,9 +1,7 @@
 aggrVeloGraph <- function(
         graph,
         clusterVar,
-        vertices,
-        normCluster = FALSE,
-        scale = FALSE
+        vertices
 ) {
     if (!inherits(graph, "dgCMatrix")) {
         graph <- methods::as(graph, "CsparseMatrix")
@@ -15,13 +13,7 @@ aggrVeloGraph <- function(
         rowMeans(graph[, clusterVar == clust])
     })
 
-    if (isTRUE(normCluster)) veloMat = apply(veloMat, 2, .normalize)
-
     veloMat = t(apply(veloMat, 1, .normalize))
-
-    if (isTRUE(scale)) {
-        veloMat <- apply(veloMat, 2, .scaleMinMax)
-    }
 
     rownames(veloMat) <- rownames(graph)
     colnames(veloMat) <- vertices

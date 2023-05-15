@@ -11,6 +11,10 @@
 #' @return For distMatrix method, a ggplot object. For other methods, a ggplot
 #' object when \code{splitCluster = FALSE}, or a list of ggplot objects when
 #' \code{splitCluster = TRUE}.
+#' @examples
+#' rnaLog <- colNormalize(rnaRaw, 1e4, TRUE)
+#' gene <- selectTopFeatures(rnaRaw, rnaCluster, c("RE", "OS"))
+#' plotBinary(rnaLog[gene, ], rnaCluster, c("RE", "OS"))
 plotBinary <- function(object, ...) {
     UseMethod('plotBinary', object)
 }

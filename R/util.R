@@ -11,7 +11,16 @@
     x / sum(x, na.rm = TRUE)
 }
 
-colNormalize <- function(x) {
+#' Normalize each column of the input matrix by the column sum
+#' @param x Feature by observation matrix.
+#' @param scaleFactor Multiplier on normalized data. Default \code{NULL}.
+#' @param log Logical. Whether to take log1p transformation after scaling.
+#' Default \code{FALSE}
+#' @return Normalized matrix of the same size
+#' @export
+#' @examples
+#' rnaNorm <- colNormalize(rnaRaw)
+colNormalize <- function(x, scaleFactor = NULL, log = FALSE) {
     if (inherits(x, "dgCMatrix")) {
         x@x <- x@x / rep.int(colSums(x), diff(x@p))
     } else if (is.matrix(x)) {
@@ -19,6 +28,8 @@ colNormalize <- function(x) {
     } else {
         stop("Input matrix of class ", class(x)[1], " is not yet supported.")
     }
+    if (!is.null(scaleFactor)) x <- x * scaleFactor
+    if (isTRUE(log)) x <- log1p(x)
     return(x)
 }
 

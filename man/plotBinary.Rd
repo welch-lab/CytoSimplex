@@ -104,3 +104,8 @@ selected terminals in a 2D space. The two vertices are placed at the left and
 right of a 2D plot where x-axis shows the similarity. Y-axis is jittered for
 clear view. A density curve is added for indicating the distribution.
 }
+\examples{
+rnaLog <- colNormalize(rnaRaw, 1e4, TRUE)
+gene <- selectTopFeatures(rnaRaw, rnaCluster, c("RE", "OS"))
+plotBinary(rnaLog[gene, ], rnaCluster, c("RE", "OS"))
+}

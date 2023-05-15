@@ -11,6 +11,10 @@
 #' plist objects when \code{splitCluster = TRUE}. A plist object can be viewed
 #' with \code{print()}, \code{show()} or a direct run of the object variable in
 #' console.
+#' @examples
+#' rnaLog <- colNormalize(rnaRaw, 1e4, TRUE)
+#' gene <- selectTopFeatures(rnaRaw, rnaCluster, c("RE", "OS", "CH", "ORT"))
+#' plotQuaternary(rnaLog[gene, ], rnaCluster, c("RE", "OS", "CH", "ORT"))
 plotQuaternary <- function(object, ...) {
     UseMethod('plotQuaternary', object)
 }
@@ -66,6 +70,7 @@ plotQuaternary.simMat <- function(
               ylim = range(tetra[,2]),
               zlim = range(tetra[,3]), alpha = 0.8,
               col = dotColor, cex = dotSize/2, pch = 16, d = 3,
+              colkey = list(plot = FALSE),
               box = FALSE, theta = theta, phi = phi, plot = FALSE)
     lines3D(tetra[c(1,2,3,4,1,3,1,2,4),1],
             tetra[c(1,2,3,4,1,3,1,2,4),2],
@@ -94,8 +99,7 @@ setMethod("show", "plist", function(object) {
 #' @method print plist
 #' @export
 print.plist <- function(x, ...) {
-    graphics::plot.new()
-    graphics::par(mar = c(0, 0, 0, 0), oma = c(0, 0, 0, 0),
+    graphics::par(mar = c(1, 0, 1, 0), oma = c(0, 0, 0, 0),
                   mgp = c(0, 0, 0), xpd = NA)
     plot(x, ...)
 }

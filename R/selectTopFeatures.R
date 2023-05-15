@@ -7,22 +7,15 @@
 #' presence in group (\code{avgExpr}), log fold-change (\code{logFC}), AUC
 #' (\code{auc}), percentage in group (\code{pct_in}) and percentage out of group
 #' (\code{pct_out}) will be calculated.
-#'
-#' For single-cell gene expression data, usually, log-transformed normalized
-#' gene expression value is used for wilcoxon test. While users might have
-#' various forms of matrices, fast preprocessing options are provided. Users are
-#' recommended to know how the input matrix has been processed, and tweak the
-#' options as needed.
 #' @param x Dense or sparse matrix, observation per column.
 #' @param clusterVar Grouping labels. Length must match with \code{ncol(x)}
 #' @param vertices Vector of cluster names that will be used for plotting.
 #' @param nTop Number of top differentially presented features per cluster.
 #' Default \code{30}.
-#' @param normalize,scaleFactor,log Input data preprocessing options. When all
-#' specified, they happens in the order of normalization, multiplying scale
-#' factor and finally log transformation. Default combination, \code{FALSE},
-#' \code{NULL} and \code{FALSE}, respectively, expects a log-transformed
-#' normalized input.
+#' @param normalize Logical. Whether to normalize matrix by column sum (i.e.
+#' library size). Default \code{TRUE} when \code{x} is raw count matrix. Users
+#' using already log-transformed normalized input should turn this to
+#' \code{FALSE} as normalizing when then change the feature ranking.
 #' @param padjThresh Threshold on adjusted p-value to identify significant
 #' features. Default \code{0.01}.
 #' @param returnStats Logical. Whether to return the whole statistics table
@@ -31,14 +24,14 @@
 #' @return When \code{returnStats = FALSE} (default), a character vector of
 #' \code{length(unique(vertices))*nTop} feature names. When \code{returnStats =
 #' TRUE}, a data.frame of wilcoxon rank sum test statistics.
-selectTopGenes <- function(
+#' @examples
+#' selectTopFeatures(rnaRaw, rnaCluster, "RE")
+selectTopFeatures <- function(
         x,
         clusterVar,
         vertices,
         nTop = 30,
-        normalize = FALSE,
-        scaleFactor = NULL,
-        log = FALSE,
+        normalize = TRUE,
         padjThresh = 0.01,
         returnStats = FALSE
 ) {
@@ -62,8 +55,6 @@ selectTopGenes <- function(
 
     # Preprocessing as needed
     if (isTRUE(normalize)) x <- colNormalize(x)
-    if (!is.null(scaleFactor)) x <- x * scaleFactor
-    if (isTRUE(log)) x <- log1p(x)
 
     statsTable <- wilcoxauc(x, clusterVar)
 
@@ -79,10 +70,11 @@ selectTopGenes <- function(
     statsTable <- statsTable[!duplicated(statsTable$feature),]
     # Take the top N features per group, ordered by logFC
     statsTable <- split(statsTable, droplevels(statsTable$group))
-    unlist(lapply(statsTable, function(tab) {
+    selected <- unlist(lapply(statsTable, function(tab) {
         tab <- tab[order(tab$logFC, decreasing = TRUE)[seq_len(nTop)],]
         tab$feature
     }), use.names = FALSE)
+    selected[!is.na(selected)]
 }
 
 # By default, all group-against-rest tests are conducted all together.
