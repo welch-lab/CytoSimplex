@@ -51,4 +51,10 @@ test_that("Test quaternary GIF", {
                        gifPath = "test.gif", tmpDir = "testGif/")
     expect_true(dir.exists("testGif"))
     expect_true(file.exists("test.gif"))
+
+    writeQuaternaryGIF(rnaLog[gene,], clusterVar = rnaCluster,
+                       vertices = grouping, useCluster = "Stem",
+                       gifPath = "test2.gif", tmpDir = "testGif2/")
+    expect_true(dir.exists("testGif2"))
+    expect_true(file.exists("test2.gif"))
 })

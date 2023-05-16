@@ -27,7 +27,10 @@ test_that("Test wilcoxon - sparse", {
     expect_error(selectTopFeatures(rnaRaw, rep("a", ncol(rnaRaw)),
                                    vertices = vertices),
                  "Specified vertex clusters are not all found in the cluster")
-
+    expect_error(selectTopFeatures(rnaRaw, rnaCluster,
+                                   vertices = list(a = c("OS", "RE"),
+                                                   b = c("OS", "CH"))),
+                 "Overlap found between elements in list")
     gene <- selectTopFeatures(rnaRaw, rnaCluster, vertices)
     expect_equal(length(gene), 60)
 

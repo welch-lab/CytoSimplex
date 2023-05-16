@@ -9,6 +9,8 @@ gene <- selectTopFeatures(rnaRaw, rnaCluster, vertices)
 rnaLog <- colNormalize(rnaRaw, scaleFactor = 1e4, log = TRUE)
 
 test_that("Test binary - sparse", {
+    expect_error(plotBinary(rnaLog[gene,], rnaCluster[1:100], c("CH", "ORT")),
+                 "Length of `clusterVar` must match")
     expect_error(plotBinary(rnaLog[gene,], rnaCluster, "hi"),
                  "Must specify 2 different vertices.")
     expect_error(plotBinary(rnaLog[gene,], rnaCluster, c("hi", "hey")),
