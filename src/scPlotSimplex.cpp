@@ -299,19 +299,19 @@ arma::mat colNNZAggr_sparse(arma::sp_mat& X,
     }
     return res;
 }
-
-// [[Rcpp::export]]
-arma::mat rowNNZAggr_dense(const arma::mat& X,
-                           const arma::uvec& groups,
-                           unsigned ngroups) {
-    arma::mat res = arma::zeros<arma::mat>(ngroups, X.n_cols);
-    for (unsigned c = 0; c < X.n_cols; c++) {
-        for (unsigned r = 0; r < X.n_rows; r++) {
-            if (X(r, c) != 0) res(groups[r], c)++;
-        }
-    }
-    return res;
-}
+//
+// // [[Rcpp::export]]
+// arma::mat rowNNZAggr_dense(const arma::mat& X,
+//                            const arma::uvec& groups,
+//                            unsigned ngroups) {
+//     arma::mat res = arma::zeros<arma::mat>(ngroups, X.n_cols);
+//     for (unsigned c = 0; c < X.n_cols; c++) {
+//         for (unsigned r = 0; r < X.n_rows; r++) {
+//             if (X(r, c) != 0) res(groups[r], c)++;
+//         }
+//     }
+//     return res;
+// }
 
 // [[Rcpp::export]]
 arma::mat rowNNZAggr_sparse(arma::sp_mat& X,

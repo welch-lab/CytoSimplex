@@ -18,10 +18,10 @@ test_that("Test quaternary - sparse", {
                              dotColor = c("a", "b")),
                  "`dotColor` need to be either 1")
     expect_warning(plotQuaternary(rnaLog[gene,], rnaCluster, c(vertices, "Stem")),
-                   "More than 4 vertices specified for quaternary plot. ")
+                   "4 vertices are expected while 5 are specified.")
 
 
-    p <- plotQuaternary(rnaLog[gene,], rnaCluster, vertices, veloGraph = rnaVelo)
+    p <- plotQuaternary(rnaLog[gene,], rnaCluster, vertices)
     expect_s3_class(p, "plist")
 
     pl <- plotQuaternary(rnaLog[gene,], rnaCluster, vertices, splitCluster = TRUE)
@@ -39,4 +39,16 @@ test_that("Test quaternary - dense", {
     rnaLogSub <- as.matrix(rnaLog[gene,])
     p <- plotQuaternary(rnaLogSub, rnaCluster, vertices)
     expect_s3_class(p, "plist")
+})
+
+test_that("Test quaternary GIF", {
+    grouping <- list(A = c("ORT"),
+                     B = c("RE", "OS"),
+                     C = "CH",
+                     D = "Stem")
+    writeQuaternaryGIF(rnaLog[gene,], clusterVar = rnaCluster,
+                       vertices = grouping,
+                       gifPath = "test.gif", tmpDir = "testGif/")
+    expect_true(dir.exists("testGif"))
+    expect_true(file.exists("test.gif"))
 })

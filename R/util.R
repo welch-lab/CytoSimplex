@@ -11,26 +11,64 @@
     x / sum(x, na.rm = TRUE)
 }
 
-#' Normalize each column of the input matrix by the column sum
-#' @param x Feature by observation matrix.
-#' @param scaleFactor Multiplier on normalized data. Default \code{NULL}.
-#' @param log Logical. Whether to take log1p transformation after scaling.
-#' Default \code{FALSE}
-#' @return Normalized matrix of the same size
-#' @export
-#' @examples
-#' rnaNorm <- colNormalize(rnaRaw)
-colNormalize <- function(x, scaleFactor = NULL, log = FALSE) {
-    if (inherits(x, "dgCMatrix")) {
-        x@x <- x@x / rep.int(Matrix::colSums(x), diff(x@p))
-    } else if (is.matrix(x)) {
-        x <- colNormalize_dense(x, base::colSums(x))
-    } else {
-        stop("Input matrix of class ", class(x)[1], " is not yet supported.")
+.checkVertex <- function(
+        object,
+        clusterVar,
+        vertices,
+        n
+) {
+    if (!is.null(n)) {
+        if (length(vertices) < n) {
+            stop("Must specify ", n, " different vertices.")
+        }
+        if (length(vertices) > n) {
+            warning(n, " vertices are expected while ", length(vertices),
+                    " are specified. Using the first ", n, '.')
+            vertices <- vertices[seq_len(n)]
+        }
     }
-    if (!is.null(scaleFactor)) x <- x * scaleFactor
-    if (isTRUE(log)) x <- log1p(x)
-    return(x)
+
+    if (length(clusterVar) != ncol(object)) {
+        stop("Length of `clusterVar` must match `ncol(object)`.")
+    }
+
+    allVClust <- vertices
+    if (is.list(vertices)) {
+        allVClust <- unlist(vertices)
+        if (length(allVClust) != length(unique(allVClust))) {
+            stop("Overlap found between elements in list vertex specification.")
+        }
+    }
+    if (!all(allVClust %in% clusterVar)) {
+        stop("Specified vertex clusters are not all found in the cluster ",
+             "variable")
+    }
+
+    if (is.list(vertices)) {
+        clusterVar <- as.character(clusterVar)
+        for (v in names(vertices)) {
+            clusterVar[clusterVar %in% vertices[[v]]] <- v
+        }
+        return(list(factor(clusterVar), names(vertices)))
+    } else {
+        return(list(clusterVar, vertices))
+    }
+}
+
+.getSeuratData <- function(
+        object,
+        features = NULL,
+        assay = NULL,
+        slot = "data"
+) {
+    if (!requireNamespace("Seurat", quietly = TRUE)) {
+        stop("Please install package 'Seurat' before interacting with a ",
+             "Seurat object.\ninstall.packages(\"Seurat\")")
+    }
+    mat <- Seurat::GetAssayData(object, slot = slot, assay = assay)
+    if (!is.null(features)) mat <- mat[features,]
+
+    return(list(mat, Seurat::Idents(object)))
 }
 
 # .ligerPrepare <- function(

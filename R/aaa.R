@@ -9,3 +9,8 @@ NULL
 
 triangle <- as.matrix(data.frame(x = c(0, 0.5, 1),
                                  y = c(0, 3^0.5/2, 0)))
+sqrt3 <- sqrt(3)
+sqrt6 <- sqrt(6)
+tetra <- as.matrix(data.frame(x = c(-1/sqrt3, 2*sqrt3/3, -1/sqrt3, 0),
+                              y = c(-1, 0, 1, 0),
+                              z = c(0, 0, 0, 2*(6^0.5)/3)))

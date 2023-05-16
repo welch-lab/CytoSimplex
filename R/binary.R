@@ -39,11 +39,6 @@ plotBinary.simMat <- function(
         title = NULL,
         ...
 ) {
-    if (ncol(object) != 3) {
-        stop("`simMat` object must have three columns for binary plot, ",
-             "where the first two are for vertices and the last for cluster ",
-             "assignment.")
-    }
     topLAB <- colnames(object)[1]
     bottomLAB <- colnames(object)[2]
     object$Y <- stats::runif(nrow(object))
@@ -103,7 +98,7 @@ plotBinary.simMat <- function(
 #' @param sigma Gaussian kernel parameter that controls the effect of variance.
 #' Only effective when using a distance metric (i.e. \code{method} is
 #' \code{"euclidian"} or \code{"cosine"}). Larger value tighten the dot
-#' spreading on figure. Default \code{4}.
+#' spreading on figure. Default \code{100}.
 #' @param scale Whether to min-max scale the distance matrix by clusters.
 #' Default \code{TRUE}.
 #' @param splitCluster Logical, whether to return a list of plots where each
@@ -119,7 +114,7 @@ plotBinary.default <- function(
         vertices,
         method = c("euclidean", "cosine", "pearson", "spearman"),
         force = FALSE,
-        sigma = 4,
+        sigma = 100,
         scale = TRUE,
         splitCluster = FALSE,
         clusterTitle = TRUE,
@@ -127,24 +122,15 @@ plotBinary.default <- function(
         ...
 ) {
     method <- match.arg(method)
-    vertices <- unique(vertices)
-    if (length(vertices) < 2) {
-        stop("Must specify 2 different vertices.")
-    } else if (length(vertices) > 2) {
-        vertices <- vertices[seq(2)]
-        warning("More than 2 vertices specified for binary plot. ",
-                "Using the first two.", immediate. = TRUE)
-    }
-    if (!all(vertices %in% clusterVar)) {
-        stop("Specified vertex clusters are not all found in the cluster ",
-             "variable")
-    }
+    vcheck <- .checkVertex(object, clusterVar, vertices, n = 2)
+    vertClust <- vcheck[[1]]
+    vertices <- vcheck[[2]]
     if (length(dotColor) == 1) dotColor <- rep(dotColor, ncol(object))
     if (length(dotColor) != ncol(object)) {
         stop("`dotColor` need to be either 1 scalar or match the number of ",
              "samples in `object`.")
     }
-    distMat <- calcDist2(object, clusterVar = clusterVar,
+    distMat <- calcDist2(object, clusterVar = vertClust,
                          vertices = vertices, method = method,
                          scale = scale, force = force, sigma = sigma)
     if (isFALSE(splitCluster)) plotBinary(object = distMat,
@@ -153,19 +139,51 @@ plotBinary.default <- function(
     else {
         if (isTRUE(clusterTitle)) {
             plotList <- lapply(levels(clusterVar), function(clust) {
-                plotBinary(distMat[distMat$Label == clust,], title = clust,
+                plotBinary(distMat[clusterVar == clust,], title = clust,
                            dotColor = dotColor[clusterVar == clust],
                            ...)
             })
         } else {
             plotList <- lapply(levels(clusterVar), function(clust) {
-                plotBinary(distMat[distMat$Label == clust,],
+                plotBinary(distMat[clusterVar == clust,],
                            dotColor = dotColor[clusterVar == clust], ...)
             })
         }
         names(plotList) <- levels(clusterVar)
         return(plotList)
     }
+}
+
+#' @param features For container object methods. Valid row subsetting index that
+#' selects features. Default \code{NULL} uses all available features.
+#' @param slot For Seurat method, choose from \code{"data"},
+#' \code{"scale.data"} or \code{"counts"}. Default \code{"data"}.
+#' @param assay For Seurat method, the specific assay to get data from. Default
+#' \code{NULL} to the default assay.
+#' @rdname plotBinary
+#' @export
+#' @method plotBinary Seurat
+#' @examples
+#'
+#' # Seurat example
+#' if (FALSE) {
+#'     library(Seurat)
+#'     srt <- CreateSeuratObject(rnaRaw)
+#'     Idents(srt) <- rnaCluster
+#'     geneSel <- selectTopFeatures(rnaRaw, rnaCluster, vertices = c("OS", "RE"))
+#'     srt <- NormalizeData(srt)
+#'     plotBinary(srt, features = geneSel, vertices = c("OS", "RE"))
+#' }
+plotBinary.Seurat <- function(
+        object,
+        features = NULL,
+        slot = "data",
+        assay = NULL,
+        ...
+) {
+    values <- .getSeuratData(object, features = features,
+                             slot = slot, assay = assay)
+    plotBinary(values[[1]], values[[2]], ...)
 }
 
 #' #' @rdname plotBinary
@@ -186,4 +204,5 @@ plotBinary.default <- function(
 #'     values <- .ligerPrepare(object, clusterVar, features, useDatasets)
 #'     plotBinary(values[[1]], clusterVar = values[[2]], ...)
 #' }
+
 

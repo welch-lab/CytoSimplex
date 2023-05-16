@@ -1,3 +1,25 @@
+#' Normalize each column of the input matrix by the column sum
+#' @param x Feature by observation matrix.
+#' @param scaleFactor Multiplier on normalized data. Default \code{NULL}.
+#' @param log Logical. Whether to take log1p transformation after scaling.
+#' Default \code{FALSE}
+#' @return Normalized matrix of the same size
+#' @export
+#' @examples
+#' rnaNorm <- colNormalize(rnaRaw)
+colNormalize <- function(x, scaleFactor = NULL, log = FALSE) {
+    if (inherits(x, "dgCMatrix")) {
+        x@x <- x@x / rep.int(Matrix::colSums(x), diff(x@p))
+    } else if (is.matrix(x)) {
+        x <- colNormalize_dense(x, base::colSums(x))
+    } else {
+        stop("Input matrix of class ", class(x)[1], " is not yet supported.")
+    }
+    if (!is.null(scaleFactor)) x <- x * scaleFactor
+    if (isTRUE(log)) x <- log1p(x)
+    return(x)
+}
+
 #' Pick top differentially presented features for similarity calculation
 #' @description
 #' Performs wilcoxon rank sum test on input matrix. Comparisons are formed by
@@ -47,6 +69,10 @@ selectTopFeatures <- function(
 
     clusters <- clusterVar[!is.na(clusterVar)]
     x <- x[, !is.na(clusterVar)]
+
+    vcheck <- .checkVertex(x, clusters, vertices, n = NULL)
+    clusters <- vcheck[[1]]
+    vertices <- vcheck[[2]]
 
     groupSize <- as.numeric(table(clusters))
     if (length(groupSize[groupSize > 0]) < 2) {
@@ -133,7 +159,8 @@ computeUstat <- function(Xr, cols, n1n2, groupSize) {
     grs <- rowAggregateSum(Xr, cols)
 
     if (inherits(Xr, 'dgCMatrix')) {
-        gnz <- (groupSize - rowNNZAggr(Xr, cols))
+        nnz <- rowNNZAggr_sparse(Xr, as.integer(cols) - 1, length(unique(cols)))
+        gnz <- groupSize - nnz
         zero.ranks <- (nrow(Xr) - diff(Xr@p) + 1) / 2
         ustat <- t((t(gnz) * zero.ranks)) + grs - groupSize *
             (groupSize + 1) / 2
@@ -192,13 +219,5 @@ colNNZAggr <- function(x, var) {
         colNNZAggr_sparse(x, as.integer(var) - 1, length(unique(var)))
     } else {
         colNNZAggr_dense(x, as.integer(var) - 1, length(unique(var)))
-    }
-}
-
-rowNNZAggr <- function(x, var) {
-    if (inherits(x, "dgCMatrix")) {
-        rowNNZAggr_sparse(x, as.integer(var) - 1, length(unique(var)))
-    } else {
-        rowNNZAggr_dense(x, as.integer(var) - 1, length(unique(var)))
     }
 }

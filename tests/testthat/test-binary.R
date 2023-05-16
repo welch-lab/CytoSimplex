@@ -20,7 +20,7 @@ test_that("Test binary - sparse", {
                  "Detected more than 500")
 
     expect_warning(plotBinary(rnaLog[gene,], rnaCluster, c(vertices, "CH")),
-                   "More than 2 vertices specified for binary plot. ")
+                   "2 vertices are expected while 3 are specified")
 
 
     p <- plotBinary(rnaLog[gene,], rnaCluster, vertices)

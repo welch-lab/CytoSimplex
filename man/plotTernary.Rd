@@ -4,6 +4,7 @@
 \alias{plotTernary}
 \alias{plotTernary.simMat}
 \alias{plotTernary.default}
+\alias{plotTernary.Seurat}
 \title{Create ternary plots}
 \usage{
 plotTernary(object, ...)
@@ -37,13 +38,15 @@ plotTernary(object, ...)
   method = c("euclidean", "cosine", "pearson", "spearman"),
   veloGraph = NULL,
   force = FALSE,
-  sigma = 4,
+  sigma = 100,
   scale = TRUE,
   splitCluster = FALSE,
   clusterTitle = TRUE,
   dotColor = "grey60",
   ...
 )
+
+\method{plotTernary}{Seurat}(object, features = NULL, slot = "data", assay = NULL, ...)
 }
 \arguments{
 \item{object}{An object}
@@ -112,7 +115,7 @@ features are detected, which is generally not recommended. Default
 \item{sigma}{Gaussian kernel parameter that controls the effect of variance.
 Only effective when using a distance metric (i.e. \code{method} is
 \code{"euclidian"} or \code{"cosine"}). Larger value tighten the dot
-spreading on figure. Default \code{4}.}
+spreading on figure. Default \code{100}.}
 
 \item{scale}{Whether to min-max scale the distance matrix by clusters.
 Default \code{TRUE}.}
@@ -122,6 +125,15 @@ contains cells belonging to only one cluster. Default \code{FALSE}.}
 
 \item{clusterTitle}{If \code{splitCluster = TRUE}, whether to title each
 subplot by the name of each cluster. Default \code{TRUE}.}
+
+\item{features}{For container object methods. Valid row subsetting index that
+selects features. Default \code{NULL} uses all available features.}
+
+\item{slot}{For Seurat method, choose from \code{"data"},
+\code{"scale.data"} or \code{"counts"}. Default \code{"data"}.}
+
+\item{assay}{For Seurat method, the specific assay to get data from. Default
+\code{NULL} to the default assay.}
 }
 \value{
 For distMatrix method, a ggplot object. For other methods, a ggplot
@@ -146,4 +158,15 @@ described above.
 rnaLog <- colNormalize(rnaRaw, 1e4, TRUE)
 gene <- selectTopFeatures(rnaRaw, rnaCluster, c("RE", "OS", "CH"))
 plotTernary(rnaLog[gene, ], rnaCluster, c("RE", "OS", "CH"))
+
+# Seurat example
+if (FALSE) {
+    library(Seurat)
+    srt <- CreateSeuratObject(rnaRaw)
+    Idents(srt) <- rnaCluster
+    geneSel <- selectTopFeatures(rnaRaw, rnaCluster,
+                                 vertices = c("OS", "RE", "CH"))
+    srt <- NormalizeData(srt)
+    plotTernary(srt, features = geneSel, vertices = c("OS", "RE", "CH"))
+}
 }

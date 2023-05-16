@@ -21,7 +21,7 @@ test_that("Test ternary - sparse", {
                              veloGraph = rnaVelo[1:10,]),
                  "`veloGraph must be of shape N x N and has dimnames covering ")
     expect_warning(plotTernary(rnaLog[gene,], rnaCluster, c(vertices, "ORT")),
-                   "More than 3 vertices specified for ternary plot. ")
+                   "3 vertices are expected while 4 are specified")
 
 
     p <- plotTernary(rnaLog[gene,], rnaCluster, vertices, veloGraph = rnaVelo)

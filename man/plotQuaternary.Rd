@@ -4,7 +4,8 @@
 \alias{plotQuaternary}
 \alias{plotQuaternary.simMat}
 \alias{plotQuaternary.default}
-\title{Create quaternary plots}
+\alias{plotQuaternary.Seurat}
+\title{Create quaternary simplex plots}
 \usage{
 plotQuaternary(object, ...)
 
@@ -15,8 +16,8 @@ plotQuaternary(object, ...)
   labelColors = c("#3B4992FF", "#EE0000FF", "#008B45FF", "#631879FF"),
   distMethod = attributes(object)$method,
   title = NULL,
-  theta = -40,
-  phi = -10,
+  theta = 0,
+  phi = 0,
   ...
 )
 
@@ -26,13 +27,15 @@ plotQuaternary(object, ...)
   vertices,
   method = c("euclidean", "cosine", "pearson", "spearman"),
   force = FALSE,
-  sigma = 4,
+  sigma = 100,
   scale = TRUE,
   splitCluster = FALSE,
   clusterTitle = TRUE,
   dotColor = "grey60",
   ...
 )
+
+\method{plotQuaternary}{Seurat}(object, features = NULL, slot = "data", assay = NULL, ...)
 }
 \arguments{
 \item{object}{An object}
@@ -72,7 +75,7 @@ features are detected, which is generally not recommended. Default
 \item{sigma}{Gaussian kernel parameter that controls the effect of variance.
 Only effective when using a distance metric (i.e. \code{method} is
 \code{"euclidian"} or \code{"cosine"}). Larger value tighten the dot
-spreading on figure. Default \code{4}.}
+spreading on figure. Default \code{100}.}
 
 \item{scale}{Whether to min-max scale the distance matrix by clusters.
 Default \code{TRUE}.}
@@ -82,9 +85,18 @@ contains cells belonging to only one cluster. Default \code{FALSE}.}
 
 \item{clusterTitle}{If \code{splitCluster = TRUE}, whether to title each
 subplot by the name of each cluster. Default \code{TRUE}.}
+
+\item{features}{For container object methods. Valid row subsetting index that
+selects features. Default \code{NULL} uses all available features.}
+
+\item{slot}{For Seurat method, choose from \code{"data"},
+\code{"scale.data"} or \code{"counts"}. Default \code{"data"}.}
+
+\item{assay}{For Seurat method, the specific assay to get data from. Default
+\code{NULL} to the default assay.}
 }
 \value{
-For distMatrix method, a plist (plot3D package product) object. For
+For simMat method, a plist (plot3D package product) object. For
 other methods, a plist object when \code{splitCluster = FALSE}, or a list of
 plist objects when \code{splitCluster = TRUE}. A plist object can be viewed
 with \code{print()}, \code{show()} or a direct run of the object variable in
@@ -93,9 +105,24 @@ console.
 \description{
 Create quaternary plots that show similarity between single cells and
 selected terminals in a tetrahedron space.
+
+A dynamic rotating view in a GIF image file can be created with
+\code{\link{writeQuaternaryGIF}}. Package \code{magick} must be installed in
+advance.
 }
 \examples{
 rnaLog <- colNormalize(rnaRaw, 1e4, TRUE)
 gene <- selectTopFeatures(rnaRaw, rnaCluster, c("RE", "OS", "CH", "ORT"))
 plotQuaternary(rnaLog[gene, ], rnaCluster, c("RE", "OS", "CH", "ORT"))
+
+# Seurat example
+if (FALSE) {
+    library(Seurat)
+    srt <- CreateSeuratObject(rnaRaw)
+    Idents(srt) <- rnaCluster
+    geneSel <- selectTopFeatures(rnaRaw, rnaCluster,
+                                 vertices = c("OS", "RE", "CH", "ORT"))
+    srt <- NormalizeData(srt)
+    plotQuaternary(srt, features = geneSel, vertices = c("OS", "RE", "CH", "ORT"))
+}
 }

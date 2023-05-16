@@ -76,11 +76,6 @@ plotTernary.simMat <- function(
         margin = 0.1,
         ...
 ) {
-    if (ncol(object) != 4) {
-        stop("`simMat` object must have four columns for ternary plot, ",
-             "where the first three are for vertices and the last for cluster ",
-             "assignment.")
-    }
     # Convert barycentric coordinates (4D) to cartesian coordinates (3D)
     df <- as.data.frame(as.matrix(object[,1:3]) %*% triangle)
     triangle <- as.data.frame(triangle)
@@ -202,7 +197,7 @@ plotTernary.simMat <- function(
 #' @param sigma Gaussian kernel parameter that controls the effect of variance.
 #' Only effective when using a distance metric (i.e. \code{method} is
 #' \code{"euclidian"} or \code{"cosine"}). Larger value tighten the dot
-#' spreading on figure. Default \code{4}.
+#' spreading on figure. Default \code{100}.
 #' @param scale Whether to min-max scale the distance matrix by clusters.
 #' Default \code{TRUE}.
 #' @param splitCluster Logical, whether to return a list of plots where each
@@ -219,7 +214,7 @@ plotTernary.default <- function(
         method = c("euclidean", "cosine", "pearson", "spearman"),
         veloGraph = NULL,
         force = FALSE,
-        sigma = 4,
+        sigma = 100,
         scale = TRUE,
         splitCluster = FALSE,
         clusterTitle = TRUE,
@@ -227,24 +222,15 @@ plotTernary.default <- function(
         ...
 ) {
     method <- match.arg(method)
-    vertices <- unique(vertices)
-    if (length(vertices) < 3) {
-        stop("Must specify 3 different vertices.")
-    } else if (length(vertices) > 3) {
-        vertices <- vertices[seq(3)]
-        warning("More than 3 vertices specified for ternary plot. ",
-                "Using the first 3", immediate. = TRUE)
-    }
-    if (!all(vertices %in% clusterVar)) {
-        stop("Specified vertex clusters are not all found in the cluster ",
-             "variable")
-    }
+    vcheck <- .checkVertex(object, clusterVar, vertices, n = 3)
+    vertClust <- vcheck[[1]]
+    vertices <- vcheck[[2]]
     if (length(dotColor) == 1) dotColor <- rep(dotColor, ncol(object))
     if (length(dotColor) != ncol(object)) {
         stop("`dotColor` need to be either 1 scalar or match the number of ",
              "samples in `object`.")
     }
-    distMat <- calcDist2(object, clusterVar = clusterVar,
+    distMat <- calcDist2(object, clusterVar = vertClust,
                          vertices = vertices, method = method,
                          scale = scale, force = force, sigma = sigma)
 
@@ -256,7 +242,7 @@ plotTernary.default <- function(
                  "all cells in `object`.")
         }
         veloGraph <- veloGraph[rownames(distMat), rownames(distMat)]
-        veloMat <- aggrVeloGraph(veloGraph, clusterVar = clusterVar,
+        veloMat <- aggrVeloGraph(veloGraph, clusterVar = vertClust,
                                  vertices = vertices)
     }
 
@@ -274,7 +260,7 @@ plotTernary.default <- function(
             })
         } else {
             plotList <- lapply(levels(clusterVar), function(clust) {
-                plotTernary(distMat[distMat$Label == clust,],
+                plotTernary(distMat[clusterVar == clust,],
                             veloMat = veloMat[clusterVar == clust,],
                             dotColor = dotColor[clusterVar == clust],
                             ...)
@@ -283,6 +269,39 @@ plotTernary.default <- function(
         names(plotList) <- levels(clusterVar)
         return(plotList)
     }
+}
+
+#' @param features For container object methods. Valid row subsetting index that
+#' selects features. Default \code{NULL} uses all available features.
+#' @param slot For Seurat method, choose from \code{"data"},
+#' \code{"scale.data"} or \code{"counts"}. Default \code{"data"}.
+#' @param assay For Seurat method, the specific assay to get data from. Default
+#' \code{NULL} to the default assay.
+#' @rdname plotTernary
+#' @export
+#' @method plotTernary Seurat
+#' @examples
+#'
+#' # Seurat example
+#' if (FALSE) {
+#'     library(Seurat)
+#'     srt <- CreateSeuratObject(rnaRaw)
+#'     Idents(srt) <- rnaCluster
+#'     geneSel <- selectTopFeatures(rnaRaw, rnaCluster,
+#'                                  vertices = c("OS", "RE", "CH"))
+#'     srt <- NormalizeData(srt)
+#'     plotTernary(srt, features = geneSel, vertices = c("OS", "RE", "CH"))
+#' }
+plotTernary.Seurat <- function(
+        object,
+        features = NULL,
+        slot = "data",
+        assay = NULL,
+        ...
+) {
+    values <- .getSeuratData(object, features = features,
+                             slot = slot, assay = assay)
+    plotTernary(values[[1]], values[[2]], ...)
 }
 
 #' #' @rdname plotTernary

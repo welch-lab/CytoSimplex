@@ -1,12 +1,16 @@
-#' Create quaternary plots
+#' Create quaternary simplex plots
 #' @description
 #' Create quaternary plots that show similarity between single cells and
 #' selected terminals in a tetrahedron space.
+#'
+#' A dynamic rotating view in a GIF image file can be created with
+#' \code{\link{writeQuaternaryGIF}}. Package \code{magick} must be installed in
+#' advance.
 #' @param object An object
 #' @param ... Arguments passed to other methods.
 #' @rdname plotQuaternary
 #' @export plotQuaternary
-#' @return For distMatrix method, a plist (plot3D package product) object. For
+#' @return For simMat method, a plist (plot3D package product) object. For
 #' other methods, a plist object when \code{splitCluster = FALSE}, or a list of
 #' plist objects when \code{splitCluster = TRUE}. A plist object can be viewed
 #' with \code{print()}, \code{show()} or a direct run of the object variable in
@@ -39,27 +43,16 @@ plotQuaternary.simMat <- function(
         labelColors = c("#3B4992FF", "#EE0000FF", "#008B45FF", "#631879FF"),
         distMethod = attributes(object)$method,
         title = NULL,
-        theta = -40,
-        phi = -10,
+        theta = 0,
+        phi = 0,
         ...
 ) {
-    if (ncol(object) != 5) {
-        stop("`simMat` object must have five columns for quaternary plot, ",
-             "where the first four are for vertices and the last for cluster ",
-             "assignment.")
-    }
-    distNorm <- t(apply(object[,seq(4)], 1, .normalize))
-
-    # Compute tetrahedron coordinates according to
-    # https://mathoverflow.net/a/184585
-    tetra <- qr.Q(qr(matrix(1, nrow = 4)), complete = TRUE)[,-1]
-
     # Convert barycentric coordinates (4D) to cartesian coordinates (3D)
-    df3D <- distNorm %*% tetra
+    df3D <- as.matrix(object) %*% tetra
 
     # Plot data
     grDevices::pdf(nullfile())
-    scatter3D(df3D[,1], df3D[,2], df3D[,3],
+    scatter3D(df3D[,1], df3D[,2], df3D[,3], main = title,
               xlim = range(tetra[,1]),
               ylim = range(tetra[,2]),
               zlim = range(tetra[,3]), alpha = 0.8,
@@ -113,7 +106,7 @@ print.plist <- function(x, ...) {
 #' @param sigma Gaussian kernel parameter that controls the effect of variance.
 #' Only effective when using a distance metric (i.e. \code{method} is
 #' \code{"euclidian"} or \code{"cosine"}). Larger value tighten the dot
-#' spreading on figure. Default \code{4}.
+#' spreading on figure. Default \code{100}.
 #' @param scale Whether to min-max scale the distance matrix by clusters.
 #' Default \code{TRUE}.
 #' @param splitCluster Logical, whether to return a list of plots where each
@@ -129,7 +122,7 @@ plotQuaternary.default <- function(
         vertices,
         method = c("euclidean", "cosine", "pearson", "spearman"),
         force = FALSE,
-        sigma = 4,
+        sigma = 100,
         scale = TRUE,
         splitCluster = FALSE,
         clusterTitle = TRUE,
@@ -137,37 +130,31 @@ plotQuaternary.default <- function(
         ...
 ) {
     method <- match.arg(method)
-    vertices <- unique(vertices)
-    if (length(vertices) < 4) {
-        stop("Must specify 4 different vertices.")
-    } else if (length(vertices) > 4) {
-        vertices <- vertices[seq(4)]
-        warning("More than 4 vertices specified for quaternary plot. ",
-                "Using the first 4.", immediate. = TRUE)
-    }
-    if (!all(vertices %in% clusterVar)) {
-        stop("Specified vertex clusters are not all found in the cluster ",
-             "variable")
-    }
+    vcheck <- .checkVertex(object, clusterVar, vertices, n = 4)
+    vertClust <- vcheck[[1]]
+    vertices <- vcheck[[2]]
     if (length(dotColor) == 1) dotColor <- rep(dotColor, ncol(object))
     if (length(dotColor) != ncol(object)) {
         stop("`dotColor` need to be either 1 scalar or match the number of ",
              "samples in `object`.")
     }
-    distMat <- calcDist2(object, clusterVar = clusterVar,
+    distMat <- calcDist2(object, clusterVar = vertClust,
                          vertices = vertices, method = method,
                          scale = scale, force = force, sigma = sigma)
+    # distMat <- calcDist(object, clusterVar = vertClust,
+    #                     vertices = vertices, method = method,
+    #                     scale = scale, force = force)
     if (isFALSE(splitCluster)) plotQuaternary(object = distMat,
                                               dotColor = dotColor, ...)
     else {
         if (isTRUE(clusterTitle)) {
             plotList <- lapply(levels(clusterVar), function(clust) {
-                plotQuaternary(distMat[distMat$Label == clust,], title = clust,
+                plotQuaternary(distMat[clusterVar == clust,], title = clust,
                                dotColor = dotColor[clusterVar == clust], ...)
             })
         } else {
             plotList <- lapply(levels(clusterVar), function(clust) {
-                plotQuaternary(distMat[distMat$Label == clust,],
+                plotQuaternary(distMat[clusterVar == clust,],
                                dotColor = dotColor[clusterVar == clust], ...)
             })
         }
@@ -176,21 +163,122 @@ plotQuaternary.default <- function(
     }
 }
 
-#' #' @rdname plotQuaternary
-#' #' @param useDatasets For liger method, select datasets where the distance
-#' #' calculation should only be limited within this range. Default \code{NULL}
-#' #' uses all datasets.
-#' #' @param features For container object methods. Valid row subsetting index that
-#' #' selects features. Default \code{NULL}.
-#' #' @export
-#' #' @method plotQuaternary liger
-#' plotQuaternary.liger <- function(
-#'         object,
-#'         clusterVar,
-#'         features = NULL,
-#'         useDatasets = NULL,
-#'         ...
-#' ) {
-#'     values <- .ligerPrepare(object, clusterVar, features, useDatasets)
-#'     plotQuaternary(values[[1]], clusterVar = values[[2]], ...)
+#' @param features For container object methods. Valid row subsetting index that
+#' selects features. Default \code{NULL} uses all available features.
+#' @param slot For Seurat method, choose from \code{"data"},
+#' \code{"scale.data"} or \code{"counts"}. Default \code{"data"}.
+#' @param assay For Seurat method, the specific assay to get data from. Default
+#' \code{NULL} to the default assay.
+#' @rdname plotQuaternary
+#' @export
+#' @method plotQuaternary Seurat
+#' @examples
+#'
+#' # Seurat example
+#' if (FALSE) {
+#'     library(Seurat)
+#'     srt <- CreateSeuratObject(rnaRaw)
+#'     Idents(srt) <- rnaCluster
+#'     geneSel <- selectTopFeatures(rnaRaw, rnaCluster,
+#'                                  vertices = c("OS", "RE", "CH", "ORT"))
+#'     srt <- NormalizeData(srt)
+#'     plotQuaternary(srt, features = geneSel, vertices = c("OS", "RE", "CH", "ORT"))
 #' }
+plotQuaternary.Seurat <- function(
+        object,
+        features = NULL,
+        slot = "data",
+        assay = NULL,
+        ...
+) {
+    values <- .getSeuratData(object, features = features,
+                             slot = slot, assay = assay)
+    plotQuaternary(values[[1]], values[[2]], ...)
+}
+
+# #' @rdname plotQuaternary
+# #' @param useDatasets For liger method, select datasets where the distance
+# #' calculation should only be limited within this range. Default \code{NULL}
+# #' uses all datasets.
+# #' @param features For container object methods. Valid row subsetting index that
+# #' selects features. Default \code{NULL}.
+# #' @export
+# #' @method plotQuaternary liger
+# plotQuaternary.liger <- function(
+#         object,
+#         clusterVar,
+#         features = NULL,
+#         useDatasets = NULL,
+#         ...
+# ) {
+#     values <- .ligerPrepare(object, clusterVar, features, useDatasets)
+#     plotQuaternary(values[[1]], clusterVar = values[[2]], ...)
+# }
+
+#' Create GIF image for dynamic rotating view of 3D quaternary simplex plot
+#' @param object Input object that \code{\link{plotQuaternary}} accepts.
+#' @param ... All other arguments needed for \code{\link{plotQuaternary}},
+#' except \code{theta} which controls the rotation.
+#' @param useCluster One cluster that exists in \code{clusterVar}, if users
+#' need to view the plot for specific group. Default \code{NULL} plot all cells.
+#' @param gifPath Output GIF image file path. Default \code{"quaternary.gif"}
+#' @param tmpDir A temprorary directory to store all PNG files for all
+#' perspectives created. Default \code{file.path(getwd(),
+#' "quaternary_gif_tmp/")}.
+#' @param fps Number of frame per second. Default \code{10}.
+#' @param degreePerFrame Number of degree that the tetrahedron is rotated per
+#' frame. Default \code{10}.
+#' @return No object is returned. The \code{tmpDir} folder will be created with
+#' \code{360 / degreePerFrame} PNG image files in it. A GIF image file will be
+#' created at \code{gifPath}.
+#' @export
+#' @examples
+#' rnaLog <- colNormalize(rnaRaw, 1e4, TRUE)
+#' gene <- selectTopFeatures(rnaRaw, rnaCluster, c("RE", "OS", "CH", "ORT"))
+#' writeQuaternaryGIF(rnaLog[gene, ], rnaCluster, c("RE", "OS", "CH", "ORT"))
+writeQuaternaryGIF <- function(
+        object,
+        ...,
+        useCluster = NULL,
+        gifPath = "quaternary.gif",
+        tmpDir = file.path(getwd(), "quaternary_gif_tmp/"),
+        fps = 10,
+        degreePerFrame = 10
+) {
+    if (!requireNamespace("magick", quietly = TRUE)) {
+        stop("Package 'magick' must be installed for creating GIF figure.\n",
+             "See https://cran.r-project.org/web/packages/magick/vignettes/",
+             "intro.html#Installing_magick for detail.")
+    }
+    allImgPath <- c()
+    if (!dir.exists(tmpDir)) dir.create(tmpDir)
+
+    message("Generating quanternary simplex plots...")
+    allTheta <- seq(0, 360, degreePerFrame)
+    pb <- utils::txtProgressBar(1, length(allTheta), style = 3)
+    for (i in seq_along(allTheta)) {
+        theta <- allTheta[i]
+        filename <- paste0("quaternary_theta", theta, ".png")
+        filename <- file.path(tmpDir, filename)
+        allImgPath <- c(allImgPath, filename)
+        if (is.null(useCluster)) {
+            p <- plotQuaternary(object, ..., theta = theta)
+        } else {
+            pl <- plotQuaternary(object, ..., splitCluster = TRUE,
+                                 theta = theta)
+            p <- pl[[useCluster]]
+        }
+
+        grDevices::png(filename)
+        print(p)
+        grDevices::dev.off()
+        utils::setTxtProgressBar(pb, value = i)
+    }
+    cat("\n")
+    imgList <- lapply(allImgPath, magick::image_read)
+    imgJoined <- magick::image_join(imgList)
+    imgAnimated <- magick::image_animate(imgJoined, fps = fps)
+    message("Generate the GIF: ", gifPath)
+    magick::image_write(image = imgAnimated,
+                        path = gifPath)
+}

@@ -174,19 +174,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// rowNNZAggr_dense
-arma::mat rowNNZAggr_dense(const arma::mat& X, const arma::uvec& groups, unsigned ngroups);
-RcppExport SEXP _scPlotSimplex_rowNNZAggr_dense(SEXP XSEXP, SEXP groupsSEXP, SEXP ngroupsSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::mat& >::type X(XSEXP);
-    Rcpp::traits::input_parameter< const arma::uvec& >::type groups(groupsSEXP);
-    Rcpp::traits::input_parameter< unsigned >::type ngroups(ngroupsSEXP);
-    rcpp_result_gen = Rcpp::wrap(rowNNZAggr_dense(X, groups, ngroups));
-    return rcpp_result_gen;
-END_RCPP
-}
 // rowNNZAggr_sparse
 arma::mat rowNNZAggr_sparse(arma::sp_mat& X, const arma::uvec& groups, unsigned ngroups);
 RcppExport SEXP _scPlotSimplex_rowNNZAggr_sparse(SEXP XSEXP, SEXP groupsSEXP, SEXP ngroupsSEXP) {
@@ -215,7 +202,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_scPlotSimplex_colAggregateSum_sparse", (DL_FUNC) &_scPlotSimplex_colAggregateSum_sparse, 3},
     {"_scPlotSimplex_colNNZAggr_dense", (DL_FUNC) &_scPlotSimplex_colNNZAggr_dense, 3},
     {"_scPlotSimplex_colNNZAggr_sparse", (DL_FUNC) &_scPlotSimplex_colNNZAggr_sparse, 3},
-    {"_scPlotSimplex_rowNNZAggr_dense", (DL_FUNC) &_scPlotSimplex_rowNNZAggr_dense, 3},
     {"_scPlotSimplex_rowNNZAggr_sparse", (DL_FUNC) &_scPlotSimplex_rowNNZAggr_sparse, 3},
     {NULL, NULL, 0}
 };

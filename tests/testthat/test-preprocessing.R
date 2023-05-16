@@ -22,9 +22,11 @@ test_that("Test preprocessing - dense", {
 })
 
 test_that("Test wilcoxon - sparse", {
-    expect_error(selectTopFeatures(rnaRaw, "hello"), "number of columns of x")
-    expect_error(selectTopFeatures(rnaRaw, rep("a", ncol(rnaRaw))),
-                 "Must have at least 2")
+    expect_error(selectTopFeatures(rnaRaw, "hello", vertices = vertices),
+                 "number of columns of x does not match length")
+    expect_error(selectTopFeatures(rnaRaw, rep("a", ncol(rnaRaw)),
+                                   vertices = vertices),
+                 "Specified vertex clusters are not all found in the cluster")
 
     gene <- selectTopFeatures(rnaRaw, rnaCluster, vertices)
     expect_equal(length(gene), 60)

@@ -1,7 +1,7 @@
 ---
 title: "Simplex Analysis of Single-Cell Data"
 author: "Yichen Wang, Jialin Liu"
-date: "2023-05-14"
+date: "2023-05-15"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{scPlotSimplex}
@@ -51,7 +51,9 @@ head(stats)
 
 We provide three core functions, as demonstrated below.
 
-1. `plotBinary()` - Shows sample similarity in binary simplex -- two-ended line. In practice, we jittered the y-axis of the plot in order to clearly show where the dots are. The closer a dot, a cell, is to one end (left or right vertex), the more similar the cell is to the cell cluster that vertex represents. A histogram density line is added as another layer to show the distribution of cells across the horizontal simplex.
+#### `plotBinary()`
+
+Shows sample similarity in binary simplex -- two-ended line. In practice, we jittered the y-axis of the plot in order to clearly show where the dots are. The closer a dot, a cell, is to one end (left or right vertex), the more similar the cell is to the cell cluster that vertex represents. A histogram density line is added as another layer to show the distribution of cells across the horizontal simplex.
 
 ```{R plotBinary, fig.width = 5, fig.height = 3}
 vertices <- c("OS", "RE")
@@ -62,7 +64,9 @@ binFeatures <- selectTopFeatures(rnaLognorm, clusterVar = rnaCluster,
 plotBinary(rnaLognorm[binFeatures, ], rnaCluster, vertices[1:2])
 ```
 
-2. `plotTernary()` - Shows sample similarity in ternary simplex -- equilateral triangle. The closer a dot, a cell, is to one angle (left, top or right vertex), the more similar the cell is to the cell cluster that vertex represents. 
+#### `plotTernary()`
+
+Shows sample similarity in ternary simplex -- equilateral triangle. The closer a dot, a cell, is to one angle (left, top or right vertex), the more similar the cell is to the cell cluster that vertex represents. 
 
 ```{R plotTernary, fig.height = 4, fig.width = 4}
 vertices <- c("OS", "RE", "CH")
@@ -74,7 +78,9 @@ plotTernary(rnaLognorm[ternFeatures, ], rnaCluster, vertices)
 
 >The previous two functions mainly depends of `ggplot2`, which is widely used to create figures in R. The binary simplex is plotted normally in ggplot 2D coordinates, while the ternary simplex added as "segments" in the 3D coordinates instead of implementing a ternary coordinate system. Users wishing to add customized alteration should pay attention to this.
 
-3. `plotQuaternary()` - Shows sample similarity in quaternary simplex -- tetrahedron. The 3D visualization denpends on package `plot3D`. For quaternary simplex, we need one more cluster as a vertex. Here, we add the cells in osteoblast-reticular transition state (`"ORT"`) into the vertex list.
+#### `plotQuaternary()`
+
+Shows sample similarity in quaternary simplex -- tetrahedron. The 3D visualization denpends on package `plot3D`. For quaternary simplex, we need one more cluster as a vertex. Here, we add the cells in osteoblast-reticular transition state (`"ORT"`) into the vertex list.
 
 ```{R plotQuaternary, fig.height = 4, fig.width = 4}
 vertices <- c("OS", "RE", "CH", "ORT")
@@ -82,6 +88,19 @@ quatFeature <- selectTopFeatures(rnaLognorm, clusterVar = rnaCluster,
                               vertices = vertices, nTop = 30,
                               normalize = FALSE)
 plotQuaternary(rnaLognorm[quatFeature, ], rnaCluster, vertices)
+```
+
+Since the quaternary simplex can only be shown with a 3D plotting, we implemented of GIF image generator that rotates the tetrahedron horizontally. Note that package `magick` is required for this feature. (<a href="https://cran.r-project.org/web/packages/magick/vignettes/intro.html#Installing_magick" target="_blank">See here for how to install `magick` in detail</a>)
+
+```{R writeGIF, results = "hide", message = FALSE}
+writeQuaternaryGIF(rnaLognorm[quatFeature, ], clusterVar = rnaCluster, vertices = vertices,
+                   gifPath = "rotating_tetra.gif")
+```
+
+```{R showGIF, echo = FALSE}
+if (!knitr:::is_latex_output()) {
+  knitr::include_graphics("rotating_tetra.gif")
+}
 ```
 
 ## Advanced usage

@@ -14,8 +14,9 @@ LazyData: true
 Depends:
     stats,
     methods,
-    R (>= 2.10)
+    R (>= 3.6)
 LinkingTo: Rcpp, RcppArmadillo
+biocViews:
 Imports:
     ggplot2,
     Matrix,
@@ -24,8 +25,10 @@ Imports:
     rlang,
 Suggests:
     knitr,
+    magick,
     patchwork,
     rmarkdown,
+    Seurat,
     testthat (>= 3.0.0)
 RoxygenNote: 7.2.3
 Config/testthat/edition: 3

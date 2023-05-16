@@ -53,10 +53,6 @@ colNNZAggr_sparse <- function(X, groups, ngroups) {
     .Call('_scPlotSimplex_colNNZAggr_sparse', PACKAGE = 'scPlotSimplex', X, groups, ngroups)
 }
 
-rowNNZAggr_dense <- function(X, groups, ngroups) {
-    .Call('_scPlotSimplex_rowNNZAggr_dense', PACKAGE = 'scPlotSimplex', X, groups, ngroups)
-}
-
 rowNNZAggr_sparse <- function(X, groups, ngroups) {
     .Call('_scPlotSimplex_rowNNZAggr_sparse', PACKAGE = 'scPlotSimplex', X, groups, ngroups)
 }
