@@ -1,6 +1,6 @@
 #' @importFrom rlang .data
 #' @import ggplot2
-#' @importFrom plot3D lines3D scatter3D text3D getplist
+#' @importFrom plot3D lines3D scatter3D text3D getplist arrows3D
 #' @importFrom methods show setMethod setOldClass
 #' @importFrom Matrix t colSums rowMeans
 #' @importFrom Rcpp evalCpp

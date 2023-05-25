@@ -17,11 +17,14 @@ test_that("Test quaternary - sparse", {
     expect_error(plotQuaternary(rnaLog[gene,], rnaCluster, vertices,
                              dotColor = c("a", "b")),
                  "`dotColor` need to be either 1")
+    expect_error(plotQuaternary(rnaLog[gene,], rnaCluster, vertices,
+                             veloGraph = rnaVelo[1:10,]),
+                 "`veloGraph must be of shape N x N and has dimnames covering ")
     expect_warning(plotQuaternary(rnaLog[gene,], rnaCluster, c(vertices, "Stem")),
                    "4 vertices are expected while 5 are specified.")
 
 
-    p <- plotQuaternary(rnaLog[gene,], rnaCluster, vertices)
+    p <- plotQuaternary(rnaLog[gene,], rnaCluster, vertices, veloGraph = rnaVelo)
     expect_s3_class(p, "plist")
 
     pl <- plotQuaternary(rnaLog[gene,], rnaCluster, vertices, splitCluster = TRUE)

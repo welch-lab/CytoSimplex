@@ -11,10 +11,13 @@ plotQuaternary(object, ...)
 
 \method{plotQuaternary}{simMat}(
   object,
+  veloMat = NULL,
+  nGrid = 10,
+  radius = 0.2,
   dotSize = 0.6,
   dotColor = "grey60",
   labelColors = c("#3B4992FF", "#EE0000FF", "#008B45FF", "#631879FF"),
-  distMethod = attributes(object)$method,
+  arrowLinewidth = 0.6,
   title = NULL,
   theta = 0,
   phi = 0,
@@ -25,6 +28,7 @@ plotQuaternary(object, ...)
   object,
   clusterVar,
   vertices,
+  veloGraph = NULL,
   method = c("euclidean", "cosine", "pearson", "spearman"),
   force = FALSE,
   sigma = 0.08,
@@ -42,6 +46,14 @@ plotQuaternary(object, ...)
 
 \item{...}{Arguments passed to other methods.}
 
+\item{veloMat}{Aggregated velocity matrix. Output of \code{aggrVeloGraph}.}
+
+\item{nGrid}{Number of grids along the x-axis of the tetrahedron
+triangle. Default \code{10}.}
+
+\item{radius}{Arrow length of unit velocity. Lower this when arrows point
+outside of the tetrahedron. Default \code{0.2}.}
+
 \item{dotSize, dotColor}{Dot aesthetics. Default \code{0.6} and
 \code{"grey60"}.}
 
@@ -49,7 +61,7 @@ plotQuaternary(object, ...)
 \code{c("#3B4992FF", "#EE0000FF", "#008B45FF", "#631879FF")} (blue, red,
 green and purple).}
 
-\item{distMethod}{Method name used for calculating the dist.matrix object.}
+\item{arrowLinewidth}{Arrow aesthetics. Default \code{0.6}.}
 
 \item{title}{Title text of the plot. Default \code{NULL}.}
 
@@ -64,6 +76,10 @@ variable from container object.}
 \item{vertices}{A vector of TWO values specifying the clusters as the
 terminals.}
 
+\item{veloGraph}{Cell x cell dgCMatrix object containing velocity
+information. Shows velocity grid-arrow layer when specified. Default
+\code{NULL} does not show velocity.}
+
 \item{method}{Distance calculation method. Default \code{"euclidean"}.
 Choose from \code{"euclidean"}, \code{"cosine"}, \code{"pearson"},
 \code{"spearman"}.}
@@ -75,7 +91,7 @@ features are detected, which is generally not recommended. Default
 \item{sigma}{Gaussian kernel parameter that controls the effect of variance.
 Only effective when using a distance metric (i.e. \code{method} is
 \code{"euclidian"} or \code{"cosine"}). Larger value tighten the dot
-spreading on figure. Default \code{100}.}
+spreading on figure. Default \code{0.08}.}
 
 \item{scale}{Whether to min-max scale the distance matrix by clusters.
 Default \code{TRUE}.}

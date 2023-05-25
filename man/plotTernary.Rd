@@ -35,8 +35,8 @@ plotTernary(object, ...)
   object,
   clusterVar,
   vertices,
-  method = c("euclidean", "cosine", "pearson", "spearman"),
   veloGraph = NULL,
+  method = c("euclidean", "cosine", "pearson", "spearman"),
   force = FALSE,
   sigma = 0.08,
   scale = TRUE,
@@ -100,13 +100,13 @@ variable from container object.}
 \item{vertices}{A vector of THREE values specifying the clusters as the
 terminals.}
 
-\item{method}{Distance calculation method. Default \code{"euclidean"}.
-Choose from \code{"euclidean"}, \code{"cosine"}, \code{"pearson"},
-\code{"spearman"}.}
-
 \item{veloGraph}{Cell x cell dgCMatrix object containing velocity
 information. Shows velocity grid-arrow layer when specified. Default
 \code{NULL} does not show velocity.}
+
+\item{method}{Distance calculation method. Default \code{"euclidean"}.
+Choose from \code{"euclidean"}, \code{"cosine"}, \code{"pearson"},
+\code{"spearman"}.}
 
 \item{force}{Whether to force calculate the distance when more then 500
 features are detected, which is generally not recommended. Default
@@ -156,9 +156,9 @@ described above.
 }
 \examples{
 rnaNorm <- colNormalize(rnaRaw)
-gene <- selectTopFeatures(rnaNorm, rnaCluster, c("RE", "OS", "CH"))
+gene <- selectTopFeatures(rnaNorm, rnaCluster, c("OS", "RE", "CH"))
 rnaLog <- colNormalize(rnaRaw, 1e4, TRUE)
-plotTernary(rnaLog[gene, ], rnaCluster, c("RE", "OS", "CH"))
+plotTernary(rnaLog[gene, ], rnaCluster, c("OS", "RE", "CH"))
 
 # Seurat example
 if (FALSE) {

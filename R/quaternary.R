@@ -26,12 +26,17 @@ plotQuaternary <- function(object, ...) {
 }
 
 #' @rdname plotQuaternary
+#' @param veloMat Aggregated velocity matrix. Output of \code{aggrVeloGraph}.
+#' @param nGrid Number of grids along the x-axis of the tetrahedron
+#' triangle. Default \code{10}.
+#' @param radius Arrow length of unit velocity. Lower this when arrows point
+#' outside of the tetrahedron. Default \code{0.2}.
 #' @param dotSize,dotColor Dot aesthetics. Default \code{0.6} and
 #' \code{"grey60"}.
 #' @param labelColors Colors of the vertex labels. Default
 #' \code{c("#3B4992FF", "#EE0000FF", "#008B45FF", "#631879FF")} (blue, red,
 #' green and purple).
-#' @param distMethod Method name used for calculating the dist.matrix object.
+#' @param arrowLinewidth Arrow aesthetics. Default \code{0.6}.
 #' @param title Title text of the plot. Default \code{NULL}.
 #' @param theta,phi Numeric scalar. The angles defining the viewing direction.
 #' \code{theta} gives the azimuthal direction and \code{phi} the colatitude.
@@ -40,10 +45,13 @@ plotQuaternary <- function(object, ...) {
 #' @method plotQuaternary simMat
 plotQuaternary.simMat <- function(
         object,
+        veloMat = NULL,
+        nGrid = 10,
+        radius = 0.2,
         dotSize = 0.6,
         dotColor = "grey60",
         labelColors = c("#3B4992FF", "#EE0000FF", "#008B45FF", "#631879FF"),
-        distMethod = attributes(object)$method,
+        arrowLinewidth = 0.6,
         title = NULL,
         theta = 0,
         phi = 0,
@@ -51,6 +59,7 @@ plotQuaternary.simMat <- function(
 ) {
     # Convert barycentric coordinates (4D) to cartesian coordinates (3D)
     df3D <- as.matrix(object) %*% tetra
+
 
     # Plot data
     grDevices::pdf(nullfile())
@@ -68,6 +77,17 @@ plotQuaternary.simMat <- function(
     text3D(tetra[,1], tetra[,2], tetra[,3],
            colnames(object)[seq(4)], col = labelColors,
            add = TRUE, plot = FALSE)
+    if (!is.null(veloMat)) {
+        arrowCoords <- calcGridVelo(simMat = object, veloMat = veloMat,
+                                    nGrid = nGrid, radius = radius)
+        for (i in seq_along(arrowCoords)) {
+            subcoord <- arrowCoords[[i]]
+            arrows3D(subcoord[,1], subcoord[,2], subcoord[,3],
+                     subcoord[,4], subcoord[,5], subcoord[,6],
+                     angle = 20, lwd = arrowLinewidth, length = 0.1,
+                     col = labelColors[i], add = TRUE, plot = FALSE)
+        }
+    }
     grDevices::dev.off()
     getplist()
 }
@@ -98,7 +118,9 @@ print.plist <- function(x, ...) {
 #' variable from container object.
 #' @param vertices A vector of TWO values specifying the clusters as the
 #' terminals.
-#'
+#' @param veloGraph Cell x cell dgCMatrix object containing velocity
+#' information. Shows velocity grid-arrow layer when specified. Default
+#' \code{NULL} does not show velocity.
 #' @param method Distance calculation method. Default \code{"euclidean"}.
 #' Choose from \code{"euclidean"}, \code{"cosine"}, \code{"pearson"},
 #' \code{"spearman"}.
@@ -122,6 +144,7 @@ plotQuaternary.default <- function(
         object,
         clusterVar,
         vertices,
+        veloGraph = NULL,
         method = c("euclidean", "cosine", "pearson", "spearman"),
         force = FALSE,
         sigma = 0.08,
@@ -146,19 +169,43 @@ plotQuaternary.default <- function(
     # simMat <- calcDist(object, clusterVar = vertClust,
     #                     vertices = vertices, method = method,
     #                     scale = scale, force = force)
+
+    veloMat <- NULL
+    if (!is.null(veloGraph)) {
+        if (ncol(veloGraph) != nrow(veloGraph) ||
+            !all(rownames(simMat) %in% rownames(veloGraph))) {
+            stop("`veloGraph must be of shape N x N and has dimnames covering ",
+                 "all cells in `object`.")
+        }
+        veloGraph <- veloGraph[rownames(simMat), rownames(simMat)]
+        veloMat <- aggrVeloGraph(veloGraph, clusterVar = vertClust,
+                                 vertices = vertices)
+    }
+
     if (isFALSE(splitCluster)) plotQuaternary(object = simMat,
+                                              veloMat = veloMat,
                                               dotColor = dotColor, ...)
     else {
         if (isTRUE(clusterTitle)) {
             plotList <- lapply(levels(clusterVar), function(clust) {
-                plotQuaternary(simMat[clusterVar == clust,], title = clust,
+                plotQuaternary(simMat[clusterVar == clust,],
+                               veloMat = veloMat[clusterVar == clust,],
+                               title = clust,
                                dotColor = dotColor[clusterVar == clust], ...)
             })
+            plotList$allCells <- plotQuaternary(simMat,
+                                                veloMat = veloMat,
+                                                dotColor = dotColor,
+                                                title = "All cells", ...)
         } else {
             plotList <- lapply(levels(clusterVar), function(clust) {
                 plotQuaternary(simMat[clusterVar == clust,],
+                               veloMat = veloMat[clusterVar == clust,],
                                dotColor = dotColor[clusterVar == clust], ...)
             })
+            plotList$allCells <- plotQuaternary(simMat,
+                                                veloMat = veloMat,
+                                                dotColor = dotColor, ...)
         }
         names(plotList) <- levels(clusterVar)
         return(plotList)

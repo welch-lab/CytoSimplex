@@ -20,9 +20,9 @@
 #' \code{splitCluster = TRUE}.
 #' @examples
 #' rnaNorm <- colNormalize(rnaRaw)
-#' gene <- selectTopFeatures(rnaNorm, rnaCluster, c("RE", "OS", "CH"))
+#' gene <- selectTopFeatures(rnaNorm, rnaCluster, c("OS", "RE", "CH"))
 #' rnaLog <- colNormalize(rnaRaw, 1e4, TRUE)
-#' plotTernary(rnaLog[gene, ], rnaCluster, c("RE", "OS", "CH"))
+#' plotTernary(rnaLog[gene, ], rnaCluster, c("OS", "RE", "CH"))
 plotTernary <- function(object, ...) {
     UseMethod('plotTernary', object)
 }
@@ -154,29 +154,22 @@ plotTernary.simMat <- function(
     if (!is.null(veloMat)) {
         arrowCoords <- calcGridVelo(simMat = object, veloMat = veloMat,
                                     nGrid = nGrid, radius = radius)
-        p <- p +
-            annotate("segment", x = arrowCoords$left$x, y = arrowCoords$left$y,
-                     xend = arrowCoords$left$xend, yend = arrowCoords$left$yend,
-                     color = labelColors[1],
-                     arrow = arrow(angle = 20, length = unit(.1, "cm"),
-                                   type = "closed")) +
-            annotate("segment", x = arrowCoords$top$x, y = arrowCoords$top$y,
-                     xend = arrowCoords$top$xend, yend = arrowCoords$top$yend,
-                     color = labelColors[2],
-                     arrow = arrow(angle = 20, length = unit(.1, "cm"),
-                                   type = "closed")) +
-            annotate("segment", x = arrowCoords$right$x, y = arrowCoords$right$y,
-                     xend = arrowCoords$right$xend, yend = arrowCoords$right$yend,
-                     color = labelColors[3],
-                     arrow = arrow(angle = 20, length = unit(.1, "cm"),
-                                   type = "closed"))
+        for (i in seq_along(arrowCoords)) {
+            subcoords <- arrowCoords[[i]]
+            p <- p +
+                annotate("segment", x = subcoords[,1], y = subcoords[,2],
+                         xend = subcoords[,3], yend = subcoords[,4],
+                         color = labelColors[i],
+                         arrow = arrow(angle = 20, length = unit(.1, "cm"),
+                                       type = "closed"))
+        }
     }
     if (isTRUE(equilateral)) {
-        suppressMessages(
+        suppressMessages({
             p <- p +
                 coord_fixed(xlim = c(0 - margin, 1 + margin),
                             ylim = c(0 - margin, 3^0.5/2 + margin))
-        )
+        })
     }
     return(p)
 }
@@ -186,12 +179,12 @@ plotTernary.simMat <- function(
 #' variable from container object.
 #' @param vertices A vector of THREE values specifying the clusters as the
 #' terminals.
-#' @param method Distance calculation method. Default \code{"euclidean"}.
-#' Choose from \code{"euclidean"}, \code{"cosine"}, \code{"pearson"},
-#' \code{"spearman"}.
 #' @param veloGraph Cell x cell dgCMatrix object containing velocity
 #' information. Shows velocity grid-arrow layer when specified. Default
 #' \code{NULL} does not show velocity.
+#' @param method Distance calculation method. Default \code{"euclidean"}.
+#' Choose from \code{"euclidean"}, \code{"cosine"}, \code{"pearson"},
+#' \code{"spearman"}.
 #' @param force Whether to force calculate the distance when more then 500
 #' features are detected, which is generally not recommended. Default
 #' \code{FALSE}.
@@ -212,8 +205,8 @@ plotTernary.default <- function(
         object,
         clusterVar,
         vertices,
-        method = c("euclidean", "cosine", "pearson", "spearman"),
         veloGraph = NULL,
+        method = c("euclidean", "cosine", "pearson", "spearman"),
         force = FALSE,
         #distKernel = c("gaussian", "log"),
         sigma = 0.08,

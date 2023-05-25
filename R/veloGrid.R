@@ -7,7 +7,7 @@ aggrVeloGraph <- function(
         graph <- methods::as(graph, "CsparseMatrix")
     }
     veloMat <- sapply(vertices, function(clust) {
-        rowMeans(graph[, clusterVar == clust])
+        rowMeans(graph[, clusterVar == clust], na.rm = TRUE)
     })
 
     veloMat = t(apply(veloMat, 1, .normalize))
@@ -31,84 +31,70 @@ calcGridVelo <- function(
         nGrid = 10,
         radius = 0.1
 ) {
-    win <- 1/nGrid
+    # Determine what simplex we are working with
+    n <- ncol(simMat)
+    # Get the vertex coordinates in cartesian
+    shape <- if (n == 3) triangle else if (n == 4) tetra
+    # Draw breaks on each axis and use combination to get the full grid
+    range <- as.data.frame(rbind(apply(shape, 2, min), apply(shape, 2, max)))
+    ## Determin grid edge length just by x axis
+    win <- abs(range[1,1] - range[2,1])/nGrid
     seg <- win/2
+    gridCart.axis <- lapply(range, function(v) seq(v[1] + seg, v[2] - seg, win))
+    gridCart <- expand.grid(gridCart.axis)
 
-    # Initialize `nGrid`^2 grid centroids coords in a 1x1 square
-    gridCentroidCoord <- data.frame(
-        x = rep(seq(win/2, 1 - win/2, win), each = nGrid),
-        y = rep(seq(win/2, 1 - win/2, win), nGrid)
-    )
+    # Select those that fall into the simplex space with barycentric coord
+    gridBary <- cart2bary(shape, gridCart)
+    gridSelect <- rowSums(gridBary > 0 & gridBary < 1) == ncol(gridBary)
+    gridCart <- gridCart[gridSelect,]
+    rownames(gridCart) <- paste0("grid", seq(nrow(gridCart)))
 
-    # Select those that fall into the equilateral triangle by y/x < tan(pi/3)
-    inLeft <- gridCentroidCoord$y/gridCentroidCoord$x < 3^0.5
-    inRight <- gridCentroidCoord$y/(1 - gridCentroidCoord$x) < 3^0.5
-    gridCentroidCoord <- gridCentroidCoord[inLeft & inRight, ]
-    rownames(gridCentroidCoord) <- paste0("grid", seq(nrow(gridCentroidCoord)))
+    # Convert simplex barycentric coord of cells to cartesien coord (2D space)
+    cellCart <- as.data.frame(as.matrix(simMat) %*% shape)
 
-    # Convert the cell similarity matrix from ternary into 2D space
-    simMat <- simMat[,seq(3)]
-    colnames(simMat) <- c("x", "y", "z")
-    cellCoord <- as.data.frame(as.matrix(simMat) %*% triangle)
-
-    # Aggregate velocity by grid, comparing cell 2D coordinate
-    gridVelo <- matrix(0, nrow = nrow(gridCentroidCoord), ncol = 3,
-                       dimnames = list(rownames(gridCentroidCoord),
+    # Aggregate velocity by grid, comparing cell cartesian coordinate
+    gridVelo <- matrix(0, nrow = nrow(gridCart), ncol = ncol(veloMat),
+                       dimnames = list(rownames(gridCart),
                                        colnames(veloMat)))
-    for (i in seq(nrow(gridCentroidCoord))) {
-        bcIdx <- cellCoord$x > (gridCentroidCoord$x[i] - seg) &
-            cellCoord$x < (gridCentroidCoord$x[i] + seg) &
-            cellCoord$y > (gridCentroidCoord$y[i] - seg) &
-            cellCoord$y < (gridCentroidCoord$y[i] + seg)
-
-        if (sum(bcIdx) > 5) {
+    for (i in seq(nrow(gridCart))) {
+        bcIdx <- rep(TRUE, nrow(cellCart))
+        for (j in seq(ncol(cellCart))) {
+            bcIdx <- bcIdx &
+                cellCart[,j] > (gridCart[i,j] - seg) &
+                cellCart[,j] < (gridCart[i,j] + seg)
+        }
+        if (sum(bcIdx) > 4) {
             # Get the velocity value presented as arrow length only when more
             # then 5 cells fall into a grid
             subVelo <- veloMat[bcIdx, , drop = FALSE]
-            gridVelo[i,] <- colMeans(subVelo + 1e-8,
-                                     na.rm = TRUE)
+            gridVelo[i,] <- colMeans(subVelo, na.rm = TRUE)
         }
     }
     # Remove zero-velo grid
     gridToKeep <- rowSums(gridVelo, na.rm = TRUE) > 0
-    gridCentroidCoord <- gridCentroidCoord[gridToKeep, , drop = FALSE]
+    gridCart <- gridCart[gridToKeep, , drop = FALSE]
     gridVelo <- gridVelo[gridToKeep, , drop = FALSE]
 
-    # message(nrow(veloMat), " cells and ", nrow(gridVelo), " grids")
-    # Calculate arrow ending 2D coords
-    leftEnds <- getArrowEndCoord(G = gridCentroidCoord, xv = 0, yv = 0,
-                                 len = gridVelo[,1] * radius)
-    topEnds <- getArrowEndCoord(G = gridCentroidCoord, xv = 0.5, yv = 3^0.5/2,
-                                 len = gridVelo[,2] * radius)
-    rightEnds <- getArrowEndCoord(G = gridCentroidCoord, xv = 1, yv = 0,
-                                 len = gridVelo[,3] * radius)
-
-    return(list(
-        left = cbind(gridCentroidCoord, leftEnds),
-        top = cbind(gridCentroidCoord, topEnds),
-        right = cbind(gridCentroidCoord, rightEnds)
-    ))
-    # return(list(
-    #     grid = tlr2xy(gridCentroidCoord, coord_tern(), inverse = TRUE),
-    #     left = tlr2xy(leftEnds, coord_tern(), inverse = TRUE),
-    #     top = tlr2xy(topEnds, coord_tern(), inverse = TRUE),
-    #     right = tlr2xy(rightEnds, coord_tern(), inverse = TRUE)
-    # ))
+    # Calculate cartesian coordinates of each arrow ending
+    arrow.cart <- lapply(seq_len(ncol(gridVelo)), function(i) {
+        ends <- getArrowEndCoord(G = gridCart, target = shape[i,],
+                                  len = gridVelo[,i] * radius)
+        colnames(ends) <- paste0(colnames(ends), "end")
+        arrow.cart.sub <- cbind(gridCart, ends)
+        arrow.cart.sub <- arrow.cart.sub[gridVelo[,i] > 0.1,]
+    })
+    return(arrow.cart)
 }
 
-# G - coordinate of grid centroid, N x 2 matrix, G[,1] x of each centroid,
-#     G[,2] y of each centroid
-# xv, yv - coordinate of one vertex
-# len - arrow length. N element vector
-#
-# Using "G" to denote the grid centroid point, "V" to denote the vertex point
-# "A" to denote the arrow end point.
-#
-# Need to be aware that none of G should overlap with V
-# According to how grids are initialized, we are fine though.
-getArrowEndCoord <- function(G, xv, yv, len) {
+# G      - coordinate of grid centroid, N x m matrix, G[,1] 'x' of each
+#          centroid, G[,2] 'y' of each centroid, etc
+# target - length m vector, cartesian coordinate of the vertex where the arrow
+#          is pointing to
+# len    - arrow length. N element vector
+getArrowEndCoord <- function(G, target, len) {
     if (nrow(G) == 0) return(G)
-    V <- matrix(c(rep(xv, nrow(G)), rep(yv, nrow(G))), ncol = 2)
+    V <- matrix(rep(target, nrow(G)), nrow = nrow(G), byrow = TRUE)
+    # V <- matrix(c(rep(xv, nrow(G)), rep(yv, nrow(G))), ncol = 2)
     # Directed vector pointing from G to V
     vecGV <- V - G
     # Euclidean distance from G to V
@@ -118,6 +104,19 @@ getArrowEndCoord <- function(G, xv, yv, len) {
     # Directed vector pointing from G to A
     vecGA <- (vecGV / lenGV) * len
     A <- G + vecGA
-    colnames(A) <- c("xend", "yend")
+    # colnames(A) <- c("xend", "yend")
     return(A)
+}
+
+# Adopted from geometry::cart2bary
+cart2bary <- function(X, P) {
+    X <- as.matrix(X)
+    P <- as.matrix(P)
+    M <- nrow(P)
+    N <- ncol(P)
+    X1 <- X[1:N, ] - (matrix(1, N, 1) %*% X[N + 1, , drop = FALSE])
+    Beta <- (P - matrix(X[N + 1, ], M, N, byrow = TRUE)) %*%
+        solve(X1)
+    Beta <- cbind(Beta, 1 - apply(Beta, 1, sum))
+    return(Beta)
 }
