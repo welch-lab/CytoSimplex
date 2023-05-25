@@ -1,23 +1,25 @@
 #' Create quaternary simplex plots
 #' @description
 #' Create quaternary plots that show similarity between single cells and
-#' selected terminals in a tetrahedron space.
+#' selected four terminals in a tetrahedron space.
 #'
 #' A dynamic rotating view in a GIF image file can be created with
 #' \code{\link{writeQuaternaryGIF}}. Package \code{magick} must be installed in
-#' advance.
+#' advance. Linux users may refer to this
+#' \href{https://cran.r-project.org/web/packages/magick/vignettes/intro.html#Build_from_source}{installation guide}.
 #' @param object An object
 #' @param ... Arguments passed to other methods.
 #' @rdname plotQuaternary
 #' @export plotQuaternary
-#' @return For simMat method, a plist (plot3D package product) object. For
-#' other methods, a plist object when \code{splitCluster = FALSE}, or a list of
-#' plist objects when \code{splitCluster = TRUE}. A plist object can be viewed
-#' with \code{print()}, \code{show()} or a direct run of the object variable in
-#' console.
+#' @return For "simMat" method, a "plist" (plot3D package product) object. For
+#' other methods, a "plist" object when \code{splitCluster = FALSE}, or a list
+#' of "plist" objects when \code{splitCluster = TRUE}. A "plist" object can be
+#' viewed with \code{print()}, \code{show()} or a direct run of the object
+#' variable name in interactive console.
 #' @examples
+#' rnaNorm <- colNormalize(rnaRaw)
+#' gene <- selectTopFeatures(rnaNorm, rnaCluster, c("RE", "OS", "CH", "ORT"))
 #' rnaLog <- colNormalize(rnaRaw, 1e4, TRUE)
-#' gene <- selectTopFeatures(rnaRaw, rnaCluster, c("RE", "OS", "CH", "ORT"))
 #' plotQuaternary(rnaLog[gene, ], rnaCluster, c("RE", "OS", "CH", "ORT"))
 plotQuaternary <- function(object, ...) {
     UseMethod('plotQuaternary', object)
@@ -106,7 +108,7 @@ print.plist <- function(x, ...) {
 #' @param sigma Gaussian kernel parameter that controls the effect of variance.
 #' Only effective when using a distance metric (i.e. \code{method} is
 #' \code{"euclidian"} or \code{"cosine"}). Larger value tighten the dot
-#' spreading on figure. Default \code{100}.
+#' spreading on figure. Default \code{0.08}.
 #' @param scale Whether to min-max scale the distance matrix by clusters.
 #' Default \code{TRUE}.
 #' @param splitCluster Logical, whether to return a list of plots where each
@@ -122,7 +124,7 @@ plotQuaternary.default <- function(
         vertices,
         method = c("euclidean", "cosine", "pearson", "spearman"),
         force = FALSE,
-        sigma = 100,
+        sigma = 0.08,
         scale = TRUE,
         splitCluster = FALSE,
         clusterTitle = TRUE,
@@ -138,23 +140,23 @@ plotQuaternary.default <- function(
         stop("`dotColor` need to be either 1 scalar or match the number of ",
              "samples in `object`.")
     }
-    distMat <- calcDist2(object, clusterVar = vertClust,
-                         vertices = vertices, method = method,
-                         scale = scale, force = force, sigma = sigma)
-    # distMat <- calcDist(object, clusterVar = vertClust,
+    simMat <- calcSim(object, clusterVar = vertClust,
+                       vertices = vertices, method = method,
+                       scale = scale, force = force, sigma = sigma)
+    # simMat <- calcDist(object, clusterVar = vertClust,
     #                     vertices = vertices, method = method,
     #                     scale = scale, force = force)
-    if (isFALSE(splitCluster)) plotQuaternary(object = distMat,
+    if (isFALSE(splitCluster)) plotQuaternary(object = simMat,
                                               dotColor = dotColor, ...)
     else {
         if (isTRUE(clusterTitle)) {
             plotList <- lapply(levels(clusterVar), function(clust) {
-                plotQuaternary(distMat[clusterVar == clust,], title = clust,
+                plotQuaternary(simMat[clusterVar == clust,], title = clust,
                                dotColor = dotColor[clusterVar == clust], ...)
             })
         } else {
             plotList <- lapply(levels(clusterVar), function(clust) {
-                plotQuaternary(distMat[clusterVar == clust,],
+                plotQuaternary(simMat[clusterVar == clust,],
                                dotColor = dotColor[clusterVar == clust], ...)
             })
         }

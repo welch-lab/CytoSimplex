@@ -1,6 +1,7 @@
 .DS_Store
 src/*.o
 src/*.so
+vignettes/*png
 
 # History files
 .Rhistory

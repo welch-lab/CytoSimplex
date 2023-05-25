@@ -9,36 +9,33 @@ selectTopFeatures(
   clusterVar,
   vertices,
   nTop = 30,
-  normalize = TRUE,
-  padjThresh = 0.01,
+  lfcThresh = 0.1,
   returnStats = FALSE
 )
 }
 \arguments{
-\item{x}{Dense or sparse matrix, observation per column.}
+\item{x}{Dense or sparse matrix, observation per column. Must be library size
+normalized but not log-transformed.}
 
 \item{clusterVar}{Grouping labels. Length must match with \code{ncol(x)}}
 
-\item{vertices}{Vector of cluster names that will be used for plotting.}
+\item{vertices}{Vector of cluster names that will be used for plotting. Or a
+named list that groups clusters as a terminal vertex. There must not be any
+overlap between groups.}
 
 \item{nTop}{Number of top differentially presented features per cluster.
 Default \code{30}.}
 
-\item{normalize}{Logical. Whether to normalize matrix by column sum (i.e.
-library size). Default \code{TRUE} when \code{x} is raw count matrix. Users
-using already log-transformed normalized input should turn this to
-\code{FALSE} as normalizing when then change the feature ranking.}
+\item{lfcThresh}{Threshold on log fold-change to identify up-regulated
+features. Default \code{0.1}.}
 
-\item{padjThresh}{Threshold on adjusted p-value to identify significant
-features. Default \code{0.01}.}
-
-\item{returnStats}{Logical. Whether to return the whole statistics table
+\item{returnStats}{Logical. Whether to return the full statistics table
 rather then returning the selected genes. Default \code{FALSE}}
 }
 \value{
-When \code{returnStats = FALSE} (default), a character vector of
-\code{length(unique(vertices))*nTop} feature names. When \code{returnStats =
-TRUE}, a data.frame of wilcoxon rank sum test statistics.
+When \code{returnStats = FALSE} (default), a character vector of at
+most \code{length(unique(vertices))*nTop} feature names. When
+\code{returnStats = TRUE}, a data.frame of wilcoxon rank sum test statistics.
 }
 \description{
 Performs wilcoxon rank sum test on input matrix. Comparisons are formed by

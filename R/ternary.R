@@ -1,26 +1,27 @@
 #' Create ternary plots
 #' @description
 #' Create ternary plots that show similarity between single cells and
-#' selected terminals in a triangle 2D space.
+#' selected three terminals in a triangle 2D space.
 #' @param object An object
 #' @param ... Arguments passed to other methods.
 #' @rdname plotTernary
 #' @export plotTernary
 #' @details
-#' \bold{Argument inheritance} - For matrix/dgCMatrix input object, we first
-#' calculate the similarity matrix and obtain a \code{dist.matrix} object. Then
-#' we call the \code{plotTernary.dist.matrix} method. For data container objects
-#' (e.g. liger), we obtain the correct data matrix first and then call the
-#' matrix/dgCMatrix method. Therefore, the arguments inherits as the flow
+#' \bold{Argument inheritance} - For matrix/dgCMatrix input object ("default"
+#' method), we first calculate the similarity matrix and obtain a "simMat"
+#' object. Then we call the "simMat" method. For data container objects
+#' (e.g. Seurat), we obtain the correct data matrix first and then call the
+#' "default" method. Therefore, the arguments inherits as the flow
 #' described above.
 #'
 #' \bold{The calculation of similarity matrix} - TODO
-#' @return For distMatrix method, a ggplot object. For other methods, a ggplot
+#' @return For "simMat" method, a ggplot object. For other methods, a ggplot
 #' object when \code{splitCluster = FALSE}, or a list of ggplot objects when
 #' \code{splitCluster = TRUE}.
 #' @examples
+#' rnaNorm <- colNormalize(rnaRaw)
+#' gene <- selectTopFeatures(rnaNorm, rnaCluster, c("RE", "OS", "CH"))
 #' rnaLog <- colNormalize(rnaRaw, 1e4, TRUE)
-#' gene <- selectTopFeatures(rnaRaw, rnaCluster, c("RE", "OS", "CH"))
 #' plotTernary(rnaLog[gene, ], rnaCluster, c("RE", "OS", "CH"))
 plotTernary <- function(object, ...) {
     UseMethod('plotTernary', object)
@@ -151,7 +152,7 @@ plotTernary.simMat <- function(
     p <- ternCoord + geom_point(color = dotColor, size = dotSize)
 
     if (!is.null(veloMat)) {
-        arrowCoords <- calcGridVelo(distMat = object, veloMat = veloMat,
+        arrowCoords <- calcGridVelo(simMat = object, veloMat = veloMat,
                                     nGrid = nGrid, radius = radius)
         p <- p +
             annotate("segment", x = arrowCoords$left$x, y = arrowCoords$left$y,
@@ -197,7 +198,7 @@ plotTernary.simMat <- function(
 #' @param sigma Gaussian kernel parameter that controls the effect of variance.
 #' Only effective when using a distance metric (i.e. \code{method} is
 #' \code{"euclidian"} or \code{"cosine"}). Larger value tighten the dot
-#' spreading on figure. Default \code{100}.
+#' spreading on figure. Default \code{0.08}.
 #' @param scale Whether to min-max scale the distance matrix by clusters.
 #' Default \code{TRUE}.
 #' @param splitCluster Logical, whether to return a list of plots where each
@@ -214,7 +215,8 @@ plotTernary.default <- function(
         method = c("euclidean", "cosine", "pearson", "spearman"),
         veloGraph = NULL,
         force = FALSE,
-        sigma = 100,
+        #distKernel = c("gaussian", "log"),
+        sigma = 0.08,
         scale = TRUE,
         splitCluster = FALSE,
         clusterTitle = TRUE,
@@ -230,43 +232,53 @@ plotTernary.default <- function(
         stop("`dotColor` need to be either 1 scalar or match the number of ",
              "samples in `object`.")
     }
-    distMat <- calcDist2(object, clusterVar = vertClust,
-                         vertices = vertices, method = method,
-                         scale = scale, force = force, sigma = sigma)
+    simMat <- calcSim(object, clusterVar = vertClust,
+                       vertices = vertices, method = method,
+                       scale = scale, force = force, sigma = sigma)
+    # simMat <- calcDist(object, clusterVar = vertClust,
+    #                     vertices = vertices, method = method,
+    #                     scale = scale, force = force)
 
     veloMat <- NULL
     if (!is.null(veloGraph)) {
         if (ncol(veloGraph) != nrow(veloGraph) ||
-            !all(rownames(distMat) %in% rownames(veloGraph))) {
+            !all(rownames(simMat) %in% rownames(veloGraph))) {
             stop("`veloGraph must be of shape N x N and has dimnames covering ",
                  "all cells in `object`.")
         }
-        veloGraph <- veloGraph[rownames(distMat), rownames(distMat)]
+        veloGraph <- veloGraph[rownames(simMat), rownames(simMat)]
         veloMat <- aggrVeloGraph(veloGraph, clusterVar = vertClust,
                                  vertices = vertices)
     }
 
-    if (isFALSE(splitCluster)) plotTernary(object = distMat,
+    if (isFALSE(splitCluster)) plotTernary(object = simMat,
                                            veloMat = veloMat,
                                            dotColor = dotColor,
                                            ...)
     else {
         if (isTRUE(clusterTitle)) {
             plotList <- lapply(levels(clusterVar), function(clust) {
-                plotTernary(distMat[clusterVar == clust,],
+                plotTernary(simMat[clusterVar == clust,],
                             veloMat = veloMat[clusterVar == clust,],
                             dotColor = dotColor[clusterVar == clust],
                             title = clust, ...)
             })
+            plotList$allCells <- plotTernary(simMat,
+                                             veloMat = veloMat,
+                                             dotColor = dotColor,
+                                             title = "All cells", ...)
         } else {
             plotList <- lapply(levels(clusterVar), function(clust) {
-                plotTernary(distMat[clusterVar == clust,],
+                plotTernary(simMat[clusterVar == clust,],
                             veloMat = veloMat[clusterVar == clust,],
                             dotColor = dotColor[clusterVar == clust],
                             ...)
             })
+            plotList$allCells <- plotTernary(simMat,
+                                             veloMat = veloMat,
+                                             dotColor = dotColor, ...)
         }
-        names(plotList) <- levels(clusterVar)
+        names(plotList) <- c(levels(clusterVar), "allCells")
         return(plotList)
     }
 }

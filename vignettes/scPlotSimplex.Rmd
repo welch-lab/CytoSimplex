@@ -32,24 +32,29 @@ print(table(rnaCluster))
 
 ## Select top features (Optional)
 
-Technically, any forms of feature-by-observation matrix is acceptable for the method we developed, and users are encouraged to explore the usability of our method with other types of data, even not biological. However, single-cell transcriptomics data, as provided, usually is of high dimensionality and contains technical and biological noise. Meanwhile, distance calculation tends to be computationally expensive with such high dimensionality. With testing different approaches of reducing the dimensionality and noise, we recommend that users select a number of top differentially expressed genes (DEGs) for each cluster that a vertex represents. 
+Technically, any forms of feature-by-observation matrix is acceptable for the method we developed, and users are encouraged to explore the usability of our method with other types of data, even not biological. However, single-cell transcriptomics data, as provided, usually is of high dimensionality and contains technical and biological noise. With testing different approaches of reducing the dimensionality and noise, we recommend that users select a number of top differentially expressed genes (DEGs) for each cluster that a vertex represents. 
 
 We implemented a fast Wilcoxon rank-sum test method which can be invoked with function `selectTopFeatures()`. Here, we will choose the top DEGs for Osteoblast cells (`"OS"`), Reticular cells (`"RE"`) and Chondrocytes (`"CH"`), as also shown in the previously mentioned publication. The number of top DEGs for each cluster is set to 30 (`nTop = 30`), thus 90 unique genes are expected to be returned. Alternatively, users can set `returnStats = TRUE` to obtain a table of full Wilcoxon rank-sum test statistics, including the result for all clusters instead of selected vertices.
 
 ```{R selectTopGenes}
 vertices <- c("OS", "RE", "CH")
-geneSelect <- selectTopFeatures(rnaRaw, clusterVar = rnaCluster, vertices = vertices,
-                             nTop = 30, normalize = TRUE)
+rnaNorm <- colNormalize(rnaRaw)
+geneSelect <- selectTopFeatures(rnaNorm, clusterVar = rnaCluster, 
+                                vertices = vertices, nTop = 30)
 head(geneSelect)
 
-stats <- selectTopFeatures(rnaRaw, clusterVar = rnaCluster, vertices = vertices,
-                        nTop = 30, normalize = TRUE, returnStats = TRUE)
+stats <- selectTopFeatures(rnaNorm, clusterVar = rnaCluster, 
+                           vertices = vertices, nTop = 30, returnStats = TRUE)
 head(stats)
 ```
 
 ## Simplex visualization
 
-We provide three core functions, as demonstrated below.
+We provide three core functions, as demonstrated below. Before plotting, we recommend obtaining a log-transformed normalized expression matrix as it better balances the distances from non-terminal cells to the terminals.
+
+```{R log}
+rnaLog <- colNormalize(rnaRaw, scaleFactor = 1e4, log = TRUE)
+```
 
 #### `plotBinary()`
 
@@ -57,11 +62,9 @@ Shows sample similarity in binary simplex -- two-ended line. In practice, we jit
 
 ```{R plotBinary, fig.width = 5, fig.height = 3}
 vertices <- c("OS", "RE")
-rnaLognorm <- colNormalize(rnaRaw, scaleFactor = 1e4, log = TRUE)
-binFeatures <- selectTopFeatures(rnaLognorm, clusterVar = rnaCluster, 
-                              vertices = vertices, nTop = 30,
-                              normalize = FALSE)
-plotBinary(rnaLognorm[binFeatures, ], rnaCluster, vertices[1:2])
+binFeatures <- selectTopFeatures(rnaNorm, clusterVar = rnaCluster, 
+                                 vertices = vertices, nTop = 30)
+plotBinary(rnaLog[binFeatures, ], rnaCluster, vertices[1:2])
 ```
 
 #### `plotTernary()`
@@ -70,10 +73,9 @@ Shows sample similarity in ternary simplex -- equilateral triangle. The closer a
 
 ```{R plotTernary, fig.height = 4, fig.width = 4}
 vertices <- c("OS", "RE", "CH")
-ternFeatures <- selectTopFeatures(rnaLognorm, clusterVar = rnaCluster, 
-                               vertices = vertices, nTop = 30,
-                               normalize = FALSE)
-plotTernary(rnaLognorm[ternFeatures, ], rnaCluster, vertices)
+ternFeatures <- selectTopFeatures(rnaNorm, clusterVar = rnaCluster, 
+                                  vertices = vertices, nTop = 30)
+plotTernary(rnaLog[ternFeatures, ], rnaCluster, vertices)
 ```
 
 >The previous two functions mainly depends of `ggplot2`, which is widely used to create figures in R. The binary simplex is plotted normally in ggplot 2D coordinates, while the ternary simplex added as "segments" in the 3D coordinates instead of implementing a ternary coordinate system. Users wishing to add customized alteration should pay attention to this.
@@ -84,17 +86,16 @@ Shows sample similarity in quaternary simplex -- tetrahedron. The 3D visualizati
 
 ```{R plotQuaternary, fig.height = 4, fig.width = 4}
 vertices <- c("OS", "RE", "CH", "ORT")
-quatFeature <- selectTopFeatures(rnaLognorm, clusterVar = rnaCluster, 
-                              vertices = vertices, nTop = 30,
-                              normalize = FALSE)
-plotQuaternary(rnaLognorm[quatFeature, ], rnaCluster, vertices)
+quatFeature <- selectTopFeatures(rnaNorm, clusterVar = rnaCluster, 
+                                 vertices = vertices, nTop = 30)
+plotQuaternary(rnaLog[quatFeature, ], rnaCluster, vertices)
 ```
 
 Since the quaternary simplex can only be shown with a 3D plotting, we implemented of GIF image generator that rotates the tetrahedron horizontally. Note that package `magick` is required for this feature. (<a href="https://cran.r-project.org/web/packages/magick/vignettes/intro.html#Installing_magick" target="_blank">See here for how to install `magick` in detail</a>)
 
 ```{R writeGIF, results = "hide", message = FALSE}
-writeQuaternaryGIF(rnaLognorm[quatFeature, ], clusterVar = rnaCluster, vertices = vertices,
-                   gifPath = "rotating_tetra.gif")
+writeQuaternaryGIF(rnaLog[quatFeature, ], clusterVar = rnaCluster, 
+                   vertices = vertices, gifPath = "rotating_tetra.gif")
 ```
 
 ```{R showGIF, echo = FALSE}
@@ -114,7 +115,7 @@ An argument `splitCluster` is supported for all three plotting functions. By set
 ```{R splitCluster, fig.width = 7, fig.height = 7}
 library(patchwork)
 vertices <- c("OS", "RE", "CH")
-ternList <- plotTernary(rnaLognorm[ternFeatures, ], rnaCluster, vertices, splitCluster = TRUE)
+ternList <- plotTernary(rnaLog[ternFeatures, ], rnaCluster, vertices, splitCluster = TRUE)
 print(names(ternList))
 (ternList$Stem + ternList$RE) / (ternList$ORT + ternList$OS)
 ```
@@ -133,14 +134,14 @@ print(paste0("Class of `rnaVelo`: ", class(rnaVelo), ", dimension of `rnaRaw`: "
 We create a number of square grids in the 2D plain of the ternary simplex, and aggregate the cells fall into each grid with taking the mean of velocity towards each of the three vertices. Finally, we draw an arrow from the grid center pointing to each vertex with the length of the aggregated mean velocity. 
 
 ```{R ternVelo, fig.width = 4, fig.height = 4}
-plotTernary(rnaLognorm[ternFeatures, ], rnaCluster, vertices, 
+plotTernary(rnaLog[ternFeatures, ], rnaCluster, vertices, 
             veloGraph = rnaVelo)
 ```
 
 Similarly, the velocity layer can also be splitted.
 
 ```{R ternVeloSplit, fig.width = 7, fig.height = 7}
-veloSplit <- plotTernary(rnaLognorm[ternFeatures, ], rnaCluster, vertices, 
+veloSplit <- plotTernary(rnaLog[ternFeatures, ], rnaCluster, vertices, 
                          veloGraph = rnaVelo, splitCluster = TRUE)
 (veloSplit$Stem + veloSplit$RE) / (veloSplit$ORT + veloSplit$OS)
 ```

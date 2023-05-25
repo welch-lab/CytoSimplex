@@ -1,19 +1,21 @@
 #' Create binary plots
 #' @description
-#' Create binary plots that show similarity between single cells and
+#' Create binary plots that show similarity between single cells and two
 #' selected terminals in a 2D space. The two vertices are placed at the left and
-#' right of a 2D plot where x-axis shows the similarity. Y-axis is jittered for
-#' clear view. A density curve is added for indicating the distribution.
+#' right of a 2D plot where x-axis measures the similarity. Y-axis is jittered
+#' for a clear view. A density (histogram) curve is added for indicating the
+#' distribution.
 #' @param object An object
 #' @param ... Arguments passed to other methods.
 #' @rdname plotBinary
 #' @export plotBinary
-#' @return For distMatrix method, a ggplot object. For other methods, a ggplot
+#' @return For 'simMat' method, a ggplot object. For other methods, a ggplot
 #' object when \code{splitCluster = FALSE}, or a list of ggplot objects when
 #' \code{splitCluster = TRUE}.
 #' @examples
+#' rnaNorm <- colNormalize(rnaRaw)
+#' gene <- selectTopFeatures(rnaNorm, rnaCluster, c("RE", "OS"))
 #' rnaLog <- colNormalize(rnaRaw, 1e4, TRUE)
-#' gene <- selectTopFeatures(rnaRaw, rnaCluster, c("RE", "OS"))
 #' plotBinary(rnaLog[gene, ], rnaCluster, c("RE", "OS"))
 plotBinary <- function(object, ...) {
     UseMethod('plotBinary', object)
@@ -98,7 +100,7 @@ plotBinary.simMat <- function(
 #' @param sigma Gaussian kernel parameter that controls the effect of variance.
 #' Only effective when using a distance metric (i.e. \code{method} is
 #' \code{"euclidian"} or \code{"cosine"}). Larger value tighten the dot
-#' spreading on figure. Default \code{100}.
+#' spreading on figure. Default \code{0.08}.
 #' @param scale Whether to min-max scale the distance matrix by clusters.
 #' Default \code{TRUE}.
 #' @param splitCluster Logical, whether to return a list of plots where each
@@ -114,7 +116,7 @@ plotBinary.default <- function(
         vertices,
         method = c("euclidean", "cosine", "pearson", "spearman"),
         force = FALSE,
-        sigma = 100,
+        sigma = 0.08,
         scale = TRUE,
         splitCluster = FALSE,
         clusterTitle = TRUE,
@@ -130,22 +132,25 @@ plotBinary.default <- function(
         stop("`dotColor` need to be either 1 scalar or match the number of ",
              "samples in `object`.")
     }
-    distMat <- calcDist2(object, clusterVar = vertClust,
-                         vertices = vertices, method = method,
-                         scale = scale, force = force, sigma = sigma)
-    if (isFALSE(splitCluster)) plotBinary(object = distMat,
+    simMat <- calcSim(object, clusterVar = vertClust,
+                       vertices = vertices, method = method,
+                       scale = scale, force = force, sigma = sigma)
+    # simMat <- calcDist(object, clusterVar = vertClust,
+    #                     vertices = vertices, method = method,
+    #                     scale = scale, force = force)
+    if (isFALSE(splitCluster)) plotBinary(object = simMat,
                                           dotColor = dotColor,
                                           ...)
     else {
         if (isTRUE(clusterTitle)) {
             plotList <- lapply(levels(clusterVar), function(clust) {
-                plotBinary(distMat[clusterVar == clust,], title = clust,
+                plotBinary(simMat[clusterVar == clust,], title = clust,
                            dotColor = dotColor[clusterVar == clust],
                            ...)
             })
         } else {
             plotList <- lapply(levels(clusterVar), function(clust) {
-                plotBinary(distMat[clusterVar == clust,],
+                plotBinary(simMat[clusterVar == clust,],
                            dotColor = dotColor[clusterVar == clust], ...)
             })
         }

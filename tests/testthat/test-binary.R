@@ -24,8 +24,8 @@ test_that("Test binary - sparse", {
     expect_warning(plotBinary(rnaLog[gene,], rnaCluster, c(vertices, "CH")),
                    "2 vertices are expected while 3 are specified")
 
-
-    p <- plotBinary(rnaLog[gene,], rnaCluster, vertices)
+    rnaCluster.char <- as.character(rnaCluster)
+    p <- plotBinary(rnaLog[gene,], rnaCluster.char, vertices)
     expect_s3_class(p, "ggplot")
 
     expect_no_error(

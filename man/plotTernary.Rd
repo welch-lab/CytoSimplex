@@ -38,7 +38,7 @@ plotTernary(object, ...)
   method = c("euclidean", "cosine", "pearson", "spearman"),
   veloGraph = NULL,
   force = FALSE,
-  sigma = 100,
+  sigma = 0.08,
   scale = TRUE,
   splitCluster = FALSE,
   clusterTitle = TRUE,
@@ -115,7 +115,7 @@ features are detected, which is generally not recommended. Default
 \item{sigma}{Gaussian kernel parameter that controls the effect of variance.
 Only effective when using a distance metric (i.e. \code{method} is
 \code{"euclidian"} or \code{"cosine"}). Larger value tighten the dot
-spreading on figure. Default \code{100}.}
+spreading on figure. Default \code{0.08}.}
 
 \item{scale}{Whether to min-max scale the distance matrix by clusters.
 Default \code{TRUE}.}
@@ -136,27 +136,28 @@ selects features. Default \code{NULL} uses all available features.}
 \code{NULL} to the default assay.}
 }
 \value{
-For distMatrix method, a ggplot object. For other methods, a ggplot
+For "simMat" method, a ggplot object. For other methods, a ggplot
 object when \code{splitCluster = FALSE}, or a list of ggplot objects when
 \code{splitCluster = TRUE}.
 }
 \description{
 Create ternary plots that show similarity between single cells and
-selected terminals in a triangle 2D space.
+selected three terminals in a triangle 2D space.
 }
 \details{
-\bold{Argument inheritance} - For matrix/dgCMatrix input object, we first
-calculate the similarity matrix and obtain a \code{dist.matrix} object. Then
-we call the \code{plotTernary.dist.matrix} method. For data container objects
-(e.g. liger), we obtain the correct data matrix first and then call the
-matrix/dgCMatrix method. Therefore, the arguments inherits as the flow
+\bold{Argument inheritance} - For matrix/dgCMatrix input object ("default"
+method), we first calculate the similarity matrix and obtain a "simMat"
+object. Then we call the "simMat" method. For data container objects
+(e.g. Seurat), we obtain the correct data matrix first and then call the
+"default" method. Therefore, the arguments inherits as the flow
 described above.
 
 \bold{The calculation of similarity matrix} - TODO
 }
 \examples{
+rnaNorm <- colNormalize(rnaRaw)
+gene <- selectTopFeatures(rnaNorm, rnaCluster, c("RE", "OS", "CH"))
 rnaLog <- colNormalize(rnaRaw, 1e4, TRUE)
-gene <- selectTopFeatures(rnaRaw, rnaCluster, c("RE", "OS", "CH"))
 plotTernary(rnaLog[gene, ], rnaCluster, c("RE", "OS", "CH"))
 
 # Seurat example

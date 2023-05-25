@@ -27,7 +27,7 @@ plotQuaternary(object, ...)
   vertices,
   method = c("euclidean", "cosine", "pearson", "spearman"),
   force = FALSE,
-  sigma = 100,
+  sigma = 0.08,
   scale = TRUE,
   splitCluster = FALSE,
   clusterTitle = TRUE,
@@ -96,23 +96,25 @@ selects features. Default \code{NULL} uses all available features.}
 \code{NULL} to the default assay.}
 }
 \value{
-For simMat method, a plist (plot3D package product) object. For
-other methods, a plist object when \code{splitCluster = FALSE}, or a list of
-plist objects when \code{splitCluster = TRUE}. A plist object can be viewed
-with \code{print()}, \code{show()} or a direct run of the object variable in
-console.
+For "simMat" method, a "plist" (plot3D package product) object. For
+other methods, a "plist" object when \code{splitCluster = FALSE}, or a list
+of "plist" objects when \code{splitCluster = TRUE}. A "plist" object can be
+viewed with \code{print()}, \code{show()} or a direct run of the object
+variable name in interactive console.
 }
 \description{
 Create quaternary plots that show similarity between single cells and
-selected terminals in a tetrahedron space.
+selected four terminals in a tetrahedron space.
 
 A dynamic rotating view in a GIF image file can be created with
 \code{\link{writeQuaternaryGIF}}. Package \code{magick} must be installed in
-advance.
+advance. Linux users may refer to this
+\href{https://cran.r-project.org/web/packages/magick/vignettes/intro.html#Build_from_source}{installation guide}.
 }
 \examples{
+rnaNorm <- colNormalize(rnaRaw)
+gene <- selectTopFeatures(rnaNorm, rnaCluster, c("RE", "OS", "CH", "ORT"))
 rnaLog <- colNormalize(rnaRaw, 1e4, TRUE)
-gene <- selectTopFeatures(rnaRaw, rnaCluster, c("RE", "OS", "CH", "ORT"))
 plotQuaternary(rnaLog[gene, ], rnaCluster, c("RE", "OS", "CH", "ORT"))
 
 # Seurat example

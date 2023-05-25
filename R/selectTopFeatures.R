@@ -29,23 +29,22 @@ colNormalize <- function(x, scaleFactor = NULL, log = FALSE) {
 #' presence in group (\code{avgExpr}), log fold-change (\code{logFC}), AUC
 #' (\code{auc}), percentage in group (\code{pct_in}) and percentage out of group
 #' (\code{pct_out}) will be calculated.
-#' @param x Dense or sparse matrix, observation per column.
+#' @param x Dense or sparse matrix, observation per column. Must be library size
+#' normalized but not log-transformed.
 #' @param clusterVar Grouping labels. Length must match with \code{ncol(x)}
-#' @param vertices Vector of cluster names that will be used for plotting.
+#' @param vertices Vector of cluster names that will be used for plotting. Or a
+#' named list that groups clusters as a terminal vertex. There must not be any
+#' overlap between groups.
 #' @param nTop Number of top differentially presented features per cluster.
 #' Default \code{30}.
-#' @param normalize Logical. Whether to normalize matrix by column sum (i.e.
-#' library size). Default \code{TRUE} when \code{x} is raw count matrix. Users
-#' using already log-transformed normalized input should turn this to
-#' \code{FALSE} as normalizing when then change the feature ranking.
-#' @param padjThresh Threshold on adjusted p-value to identify significant
-#' features. Default \code{0.01}.
-#' @param returnStats Logical. Whether to return the whole statistics table
+#' @param lfcThresh Threshold on log fold-change to identify up-regulated
+#' features. Default \code{0.1}.
+#' @param returnStats Logical. Whether to return the full statistics table
 #' rather then returning the selected genes. Default \code{FALSE}
 #' @export
-#' @return When \code{returnStats = FALSE} (default), a character vector of
-#' \code{length(unique(vertices))*nTop} feature names. When \code{returnStats =
-#' TRUE}, a data.frame of wilcoxon rank sum test statistics.
+#' @return When \code{returnStats = FALSE} (default), a character vector of at
+#' most \code{length(unique(vertices))*nTop} feature names. When
+#' \code{returnStats = TRUE}, a data.frame of wilcoxon rank sum test statistics.
 #' @examples
 #' selectTopFeatures(rnaRaw, rnaCluster, "RE")
 selectTopFeatures <- function(
@@ -53,14 +52,9 @@ selectTopFeatures <- function(
         clusterVar,
         vertices,
         nTop = 30,
-        normalize = TRUE,
-        padjThresh = 0.01,
+        lfcThresh = 0.1,
         returnStats = FALSE
 ) {
-    if (methods::is(x, 'dgeMatrix')) x <- as.matrix(x)
-    if (methods::is(x, 'data.frame')) x <- as.matrix(x)
-    if (methods::is(x, 'dgTMatrix')) x <- methods::as(x, 'CsparseMatrix')
-    if (methods::is(x, 'TsparseMatrix')) x <- methods::as(x, 'CsparseMatrix')
     if (ncol(x) != length(clusterVar))
         stop("number of columns of x does not match length of clusterVar")
 
@@ -79,33 +73,33 @@ selectTopFeatures <- function(
         stop("Must have at least 2 non-empty groups defined.")
     }
 
-    # Preprocessing as needed
-    if (isTRUE(normalize)) x <- colNormalize(x)
-
-    statsTable <- wilcoxauc(x, clusters)
+    statsTable <- wilcoxauc(log1p(1e10*x), clusters)
 
     if (isTRUE(returnStats)) return(statsTable)
 
     # Take the parts for selected vertices
     statsTable <- statsTable[statsTable$group %in% vertices,]
-    # Take only significant features
-    statsTable <- statsTable[statsTable$padj < padjThresh,]
-    # Remove features identified as marker for multiple groups but has less
-    # logFC in some of groups
-    statsTable <- statsTable[order(statsTable$logFC, decreasing = TRUE),]
-    statsTable <- statsTable[!duplicated(statsTable$feature),]
+    # Take only upregulated marker features
+    statsTable <- statsTable[statsTable$logFC > lfcThresh,]
     # Take the top N features per group, ordered by logFC
     statsTable <- split(statsTable, droplevels(statsTable$group))
     selected <- unlist(lapply(statsTable, function(tab) {
-        tab <- tab[order(tab$logFC, decreasing = TRUE)[seq_len(nTop)],]
-        tab$feature
+        tab <- tab[order(tab$padj, -tab$logFC)[seq_len(nTop)],]
+        selected <- tab$feature
+        message("Selected ", length(selected), " features for \"",
+                tab$group[1], "\".")
+        return(selected)
     }), use.names = FALSE)
     selected[!is.na(selected)]
 }
 
 # By default, all group-against-rest tests are conducted all together.
-# Features from groups of interests will be selected downstream.
+# Features from groups of interests will be selected downstream after this func.
 wilcoxauc <- function(x, clusterVar) {
+    if (methods::is(x, 'dgeMatrix')) x <- as.matrix(x)
+    if (methods::is(x, 'data.frame')) x <- as.matrix(x)
+    if (methods::is(x, 'dgTMatrix')) x <- methods::as(x, 'CsparseMatrix')
+    if (methods::is(x, 'TsparseMatrix')) x <- methods::as(x, 'CsparseMatrix')
     if (is.null(row.names(x))) {
         rownames(x) <- paste0('Feature', seq(nrow(x)))
     }
@@ -114,6 +108,7 @@ wilcoxauc <- function(x, clusterVar) {
     ## Compute primary statistics
     n1n2 <- groupSize * (ncol(x) - groupSize)
     # rankRes - list(X_ranked, ties), where X_ranked is obs x feature
+
     rankRes <- rankMatrix(x)
     ustat <- computeUstat(rankRes$X_ranked, clusterVar, n1n2, groupSize)
     auc <- t(ustat / n1n2)
@@ -131,20 +126,19 @@ wilcoxauc <- function(x, clusterVar) {
                            "/")
     group_pct_out <- t(group_pct_out)
 
-    group_means <- t(sweep(groupSums, 1, as.numeric(table(clusterVar)), "/"))
+    groupMeans <- t(sweep(groupSums, 1, as.numeric(table(clusterVar)), "/"))
 
     cs <- colSums(groupSums)
     gs <- as.numeric(table(clusterVar))
     lfc <- Reduce(cbind, lapply(seq_along(levels(clusterVar)), function(g) {
-        group_means[, g] -
-            (cs - groupSums[g,]) / (length(clusterVar) - gs[g])
+        groupMeans[, g] - (cs - groupSums[g, ])/(length(clusterVar) - gs[g])
     }))
 
     data.frame(
         feature = rep(row.names(x), times = length(levels(clusterVar))),
         group = factor(rep(levels(clusterVar), each = nrow(x)),
                        levels = levels(clusterVar)),
-        avgExpr = as.numeric(group_means),
+        avgExpr = as.numeric(groupMeans),
         logFC = as.numeric(lfc),
         statistic = as.numeric(t(ustat)),
         auc = as.numeric(auc),
@@ -159,6 +153,8 @@ computeUstat <- function(Xr, cols, n1n2, groupSize) {
     grs <- rowAggregateSum(Xr, cols)
 
     if (inherits(Xr, 'dgCMatrix')) {
+        # With the ranking of only non-zero features, here the tie-ranking of
+        # zeros need to be added.
         nnz <- rowNNZAggr_sparse(Xr, as.integer(cols) - 1, length(unique(cols)))
         gnz <- groupSize - nnz
         zero.ranks <- (nrow(Xr) - diff(Xr@p) + 1) / 2
@@ -190,9 +186,11 @@ computePval <- function(ustat, ties, N, n1n2) {
 rankMatrix <- function(x) {
     if (inherits(x, "dgCMatrix")) {
         x <- Matrix::t(x)
+        # This computes the ranking of non-zero values and the ties
         ties <- cpp_rank_matrix_dgc(x@x, x@p, nrow(x), ncol(x))
         return(list(X_ranked = x, ties = ties))
     } else {
+        # This directlu computes the feature ranking and the ties.
         rankMatrix_dense(x)
     }
 }

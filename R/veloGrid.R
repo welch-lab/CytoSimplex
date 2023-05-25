@@ -17,7 +17,7 @@ aggrVeloGraph <- function(
     return(veloMat)
 }
 
-# distMat --- Output from `calcDist()`, ncell x 4 distMatrix, data.frame object
+# simMat --- Output from `calcDist()`, ncell x 4 simMat, data.frame object
 #             First three columns are normalized similarity, 4th col cluster
 # veloMat --- Output from `aggrVeloGraph()`, ncell x 3 matrix object
 # Returns a data.frame with 12 columns, where
@@ -26,7 +26,7 @@ aggrVeloGraph <- function(
 #   7:9 arrow end ternary coords, pointing to top
 #   10:12 arrow end ternary coords, pointing to right
 calcGridVelo <- function(
-        distMat,
+        simMat,
         veloMat,
         nGrid = 10,
         radius = 0.1
@@ -47,9 +47,9 @@ calcGridVelo <- function(
     rownames(gridCentroidCoord) <- paste0("grid", seq(nrow(gridCentroidCoord)))
 
     # Convert the cell similarity matrix from ternary into 2D space
-    distMat <- distMat[,seq(3)]
-    colnames(distMat) <- c("x", "y", "z")
-    cellCoord <- as.data.frame(as.matrix(distMat) %*% triangle)
+    simMat <- simMat[,seq(3)]
+    colnames(simMat) <- c("x", "y", "z")
+    cellCoord <- as.data.frame(as.matrix(simMat) %*% triangle)
 
     # Aggregate velocity by grid, comparing cell 2D coordinate
     gridVelo <- matrix(0, nrow = nrow(gridCentroidCoord), ncol = 3,
@@ -61,7 +61,9 @@ calcGridVelo <- function(
             cellCoord$y > (gridCentroidCoord$y[i] - seg) &
             cellCoord$y < (gridCentroidCoord$y[i] + seg)
 
-        if (sum(bcIdx) > 0) {
+        if (sum(bcIdx) > 5) {
+            # Get the velocity value presented as arrow length only when more
+            # then 5 cells fall into a grid
             subVelo <- veloMat[bcIdx, , drop = FALSE]
             gridVelo[i,] <- colMeans(subVelo + 1e-8,
                                      na.rm = TRUE)
