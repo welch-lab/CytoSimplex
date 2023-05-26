@@ -175,10 +175,13 @@ plotTernary.simMat <- function(
 }
 
 #' @param clusterVar A vector/factor assigning the cluster variable to each
-#' column of the matrix object. Or a character scalar selecting a cell metadata
-#' variable from container object.
-#' @param vertices A vector of THREE values specifying the clusters as the
-#' terminals.
+#' column of the matrix object. For "Seurat" method, leave \code{NULL} for using
+#' default "Idents", or can also be a variable in \code{meta.data} slot. For
+#' "SingleCellExperiment" method, leave \code{NULL} for using "colLabels", or
+#' can be a variable in \code{colData} slot.
+#' @param vertices Vector of three unique cluster names that will be used for
+#' plotting. Or a named list that groups clusters as three terminal vertices.
+#' There must not be any overlap between groups.
 #' @param veloGraph Cell x cell dgCMatrix object containing velocity
 #' information. Shows velocity grid-arrow layer when specified. Default
 #' \code{NULL} does not show velocity.
@@ -276,12 +279,12 @@ plotTernary.default <- function(
     }
 }
 
-#' @param features For container object methods. Valid row subsetting index that
+#' @param features For "Seurat" method. Valid row subsetting index that
 #' selects features. Default \code{NULL} uses all available features.
-#' @param slot For Seurat method, choose from \code{"data"},
+#' @param slot For "Seurat" method, choose from \code{"data"},
 #' \code{"scale.data"} or \code{"counts"}. Default \code{"data"}.
-#' @param assay For Seurat method, the specific assay to get data from. Default
-#' \code{NULL} to the default assay.
+#' @param assay For "Seurat" method, the specific assay to get data from.
+#' Default \code{NULL} to the default assay.
 #' @rdname plotTernary
 #' @export
 #' @method plotTernary Seurat
@@ -289,12 +292,11 @@ plotTernary.default <- function(
 #'
 #' # Seurat example
 #' if (FALSE) {
-#'     library(Seurat)
 #'     srt <- CreateSeuratObject(rnaRaw)
 #'     Idents(srt) <- rnaCluster
-#'     geneSel <- selectTopFeatures(rnaRaw, rnaCluster,
-#'                                  vertices = c("OS", "RE", "CH"))
-#'     srt <- NormalizeData(srt)
+#'     srt <- colNormalize(srt)
+#'     gene <- selectTopFeatures(srt, vertices = c("OS", "RE", "CH"))
+#'     srt <- colNormalize(srt, scaleFactor = 1e4, log = TRUE)
 #'     plotTernary(srt, features = geneSel, vertices = c("OS", "RE", "CH"))
 #' }
 plotTernary.Seurat <- function(
@@ -302,11 +304,45 @@ plotTernary.Seurat <- function(
         features = NULL,
         slot = "data",
         assay = NULL,
+        clusterVar = NULL,
         ...
 ) {
     values <- .getSeuratData(object, features = features,
-                             slot = slot, assay = assay)
-    plotTernary(values[[1]], values[[2]], ...)
+                             slot = slot, assay = assay,
+                             clusterVar = clusterVar)
+    plotTernary(values[[1]], clusterVar = values[[2]], ...)
+}
+
+#' @param subset.row For "SingleCellExperiment" methods. Valid row subsetting
+#' index that selects features. Default \code{NULL} uses all available features.
+#' @param assay.type For "SingleCellExperiment" methods. Which assay to use for
+#' calculating the similarity. Default \code{"logcounts"}.
+#' @rdname plotTernary
+#' @export
+#' @method plotTernary SingleCellExperiment
+#' @examples
+#'
+#' # SingleCellExperiment example
+#' if (FALSE) {
+#'     library(SingleCellExperiment)
+#'     sce <- SingleCellExperiment(assays = list(counts = rnaRaw))
+#'     colLabels(sce) <- rnaCluster
+#'     sce <- colNormalize(sce)
+#'     gene <- selectTopFeatures(sce, vertices = c("OS", "RE", "CH"))
+#'     sce <- colNormalize(sce, scaleFactor = 1e4, log = TRUE)
+#'     plotTernary(sce, subset.row = gene, vertices = c("OS", "RE", "CH"))
+#' }
+plotTernary.SingleCellExperiment <- function(
+        object,
+        assay.type = "logcounts",
+        subset.row = NULL,
+        clusterVar = NULL,
+        ...
+) {
+    values <- .getSCEData(object, subset.row = subset.row,
+                          assay.type = assay.type,
+                          clusterVar = clusterVar)
+    plotTernary(values[[1]], clusterVar = values[[2]], ...)
 }
 
 #' #' @rdname plotTernary

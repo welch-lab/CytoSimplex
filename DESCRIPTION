@@ -29,6 +29,8 @@ Suggests:
     patchwork,
     rmarkdown,
     Seurat,
+    SingleCellExperiment,
+    SummarizedExperiment,
     testthat (>= 3.0.0)
 RoxygenNote: 7.2.3
 Config/testthat/edition: 3

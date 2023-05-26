@@ -1,25 +1,3 @@
-#' Normalize each column of the input matrix by the column sum
-#' @param x Feature by observation matrix.
-#' @param scaleFactor Multiplier on normalized data. Default \code{NULL}.
-#' @param log Logical. Whether to take log1p transformation after scaling.
-#' Default \code{FALSE}
-#' @return Normalized matrix of the same size
-#' @export
-#' @examples
-#' rnaNorm <- colNormalize(rnaRaw)
-colNormalize <- function(x, scaleFactor = NULL, log = FALSE) {
-    if (inherits(x, "dgCMatrix")) {
-        x@x <- x@x / rep.int(Matrix::colSums(x), diff(x@p))
-    } else if (is.matrix(x)) {
-        x <- colNormalize_dense(x, base::colSums(x))
-    } else {
-        stop("Input matrix of class ", class(x)[1], " is not yet supported.")
-    }
-    if (!is.null(scaleFactor)) x <- x * scaleFactor
-    if (isTRUE(log)) x <- log1p(x)
-    return(x)
-}
-
 #' Pick top differentially presented features for similarity calculation
 #' @description
 #' Performs wilcoxon rank sum test on input matrix. Comparisons are formed by
@@ -29,34 +7,64 @@ colNormalize <- function(x, scaleFactor = NULL, log = FALSE) {
 #' presence in group (\code{avgExpr}), log fold-change (\code{logFC}), AUC
 #' (\code{auc}), percentage in group (\code{pct_in}) and percentage out of group
 #' (\code{pct_out}) will be calculated.
+#'
+#' Top features are selected by sorting primarily on adjusted p-value, and
+#' secondarily on log fold-change, after filtering for up-regulated features.
 #' @param x Dense or sparse matrix, observation per column. Must be library size
-#' normalized but not log-transformed.
-#' @param clusterVar Grouping labels. Length must match with \code{ncol(x)}
+#' normalized but not log-transformed. Alternatively, a \code{Seurat} object or
+#' a \code{SingleCellExperiment} object with library size normalized data
+#' available.
+#' @param clusterVar A vector/factor assigning the cluster variable to each
+#' column of the matrix object. For "Seurat" method, leave \code{NULL} for using
+#' default "Idents", or can also be a variable in \code{meta.data} slot. For
+#' "SingleCellExperiment" method, leave \code{NULL} for using "colLabels", or
+#' can be a variable in \code{colData} slot.
 #' @param vertices Vector of cluster names that will be used for plotting. Or a
 #' named list that groups clusters as a terminal vertex. There must not be any
 #' overlap between groups.
+#' @param ... Arguments passed to methods.
+#' @export
+#' @return When \code{returnStats = FALSE} (default), a character vector of at
+#' most \code{length(unique(vertices))*nTop} feature names. When
+#' \code{returnStats = TRUE}, a data.frame of wilcoxon rank sum test statistics.
+#' @rdname selectTopFeatures
+#' @examples
+#' rnaNorm <- colNormalize(rnaRaw)
+#' selectTopFeatures(rnaNorm, rnaCluster, c("OS", "RE"))
+selectTopFeatures <- function(
+    x,
+    clusterVar,
+    vertices,
+    ...
+) {
+    UseMethod("selectTopFeatures", x)
+}
+
+#' @rdname selectTopFeatures
+#' @export
+#' @method selectTopFeatures default
 #' @param nTop Number of top differentially presented features per cluster.
 #' Default \code{30}.
 #' @param lfcThresh Threshold on log fold-change to identify up-regulated
 #' features. Default \code{0.1}.
 #' @param returnStats Logical. Whether to return the full statistics table
 #' rather then returning the selected genes. Default \code{FALSE}
-#' @export
-#' @return When \code{returnStats = FALSE} (default), a character vector of at
-#' most \code{length(unique(vertices))*nTop} feature names. When
-#' \code{returnStats = TRUE}, a data.frame of wilcoxon rank sum test statistics.
-#' @examples
-#' selectTopFeatures(rnaRaw, rnaCluster, "RE")
-selectTopFeatures <- function(
+selectTopFeatures.default <- function(
         x,
         clusterVar,
         vertices,
         nTop = 30,
         lfcThresh = 0.1,
-        returnStats = FALSE
+        returnStats = FALSE,
+        ...
 ) {
     if (ncol(x) != length(clusterVar))
         stop("number of columns of x does not match length of clusterVar")
+
+    if (!all(abs(colSums(x) - 1) < 1e-10)) {
+        warning("Data being used does not seem to be library-size normalized.",
+                immediate. = TRUE)
+    }
 
     if (!is.factor(clusterVar)) clusterVar <- factor(clusterVar)
     else clusterVar <- droplevels(clusterVar)
@@ -90,7 +98,64 @@ selectTopFeatures <- function(
                 tab$group[1], "\".")
         return(selected)
     }), use.names = FALSE)
-    selected[!is.na(selected)]
+    return(selected[!is.na(selected)])
+}
+
+#' @rdname selectTopFeatures
+#' @export
+#' @method selectTopFeatures Seurat
+#' @param slot Slot name of the Seurat object to be used. Default \code{"data"}.
+#' @param assay Assay name of the Seurat object to be used. Default \code{NULL}.
+#' @examples
+#'
+#' # Seurat example
+#' if (FALSE) {
+#'     library(Seurat)
+#'     srt <- CreateSeuratObject(rnaRaw)
+#'     Idents(srt) <- rnaCluster
+#'     srt <- colNormalize(srt)
+#'     gene <- selectTopFeatures(srt, vertices = c("OS", "RE"))
+#' }
+selectTopFeatures.Seurat <- function(
+    x,
+    clusterVar = NULL,
+    vertices,
+    assay = NULL,
+    slot = "data",
+    ...
+) {
+    value <- .getSeuratData(x, assay = assay, slot = slot,
+                            clusterVar = clusterVar)
+    mat <- value[[1]]
+    clusterVar <- value[[2]]
+    selectTopFeatures(mat, clusterVar, vertices, ...)
+}
+
+#' @rdname selectTopFeatures
+#' @export
+#' @method selectTopFeatures SingleCellExperiment
+#' @param assay.type Assay name of the SingleCellExperiment object to be used.
+#' @examples
+#'
+#' # SingleCellExperiment example
+#' if (FALSE) {
+#'     library(SingleCellExperiment)
+#'     sce <- SingleCellExperiment(assays = list(counts = rnaRaw))
+#'     colLabels(sce) <- rnaCluster
+#'     sce <- colNormalize(sce)
+#'     gene <- selectTopFeatures(sce, vertices = c("OS", "RE"))
+#' }
+selectTopFeatures.SingleCellExperiment <- function(
+    x,
+    clusterVar = NULL,
+    vertices,
+    assay.type = "normcounts",
+    ...
+) {
+    value <- .getSCEData(x, assay.type = assay.type, clusterVar = clusterVar)
+    mat <- value[[1]]
+    clusterVar <- value[[2]]
+    selectTopFeatures(mat, clusterVar, vertices, ...)
 }
 
 # By default, all group-against-rest tests are conducted all together.

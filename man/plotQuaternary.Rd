@@ -5,6 +5,7 @@
 \alias{plotQuaternary.simMat}
 \alias{plotQuaternary.default}
 \alias{plotQuaternary.Seurat}
+\alias{plotQuaternary.SingleCellExperiment}
 \title{Create quaternary simplex plots}
 \usage{
 plotQuaternary(object, ...)
@@ -40,6 +41,8 @@ plotQuaternary(object, ...)
 )
 
 \method{plotQuaternary}{Seurat}(object, features = NULL, slot = "data", assay = NULL, ...)
+
+\method{plotQuaternary}{SingleCellExperiment}(object, subset.row = NULL, assay.type = "logcounts", ...)
 }
 \arguments{
 \item{object}{An object}
@@ -70,11 +73,14 @@ green and purple).}
 Default \code{-40} and \code{-10}.}
 
 \item{clusterVar}{A vector/factor assigning the cluster variable to each
-column of the matrix object. Or a character scalar selecting a cell metadata
-variable from container object.}
+column of the matrix object. For "Seurat" method, leave \code{NULL} for using
+default "Idents", or can also be a variable in \code{meta.data} slot. For
+"SingleCellExperiment" method, leave \code{NULL} for using "colLabels", or
+can be a variable in \code{colData} slot.}
 
-\item{vertices}{A vector of TWO values specifying the clusters as the
-terminals.}
+\item{vertices}{Vector of four unique cluster names that will be used for
+plotting. Or a named list that groups clusters as four terminal vertices.
+There must not be any overlap between groups.}
 
 \item{veloGraph}{Cell x cell dgCMatrix object containing velocity
 information. Shows velocity grid-arrow layer when specified. Default
@@ -110,6 +116,12 @@ selects features. Default \code{NULL} uses all available features.}
 
 \item{assay}{For Seurat method, the specific assay to get data from. Default
 \code{NULL} to the default assay.}
+
+\item{subset.row}{For "SingleCellExperiment" methods. Valid row subsetting
+index that selects features. Default \code{NULL} uses all available features.}
+
+\item{assay.type}{For "SingleCellExperiment" methods. Which assay to use for
+calculating the similarity. Default \code{"logcounts"}.}
 }
 \value{
 For "simMat" method, a "plist" (plot3D package product) object. For
@@ -135,12 +147,23 @@ plotQuaternary(rnaLog[gene, ], rnaCluster, c("RE", "OS", "CH", "ORT"))
 
 # Seurat example
 if (FALSE) {
-    library(Seurat)
     srt <- CreateSeuratObject(rnaRaw)
     Idents(srt) <- rnaCluster
-    geneSel <- selectTopFeatures(rnaRaw, rnaCluster,
-                                 vertices = c("OS", "RE", "CH", "ORT"))
-    srt <- NormalizeData(srt)
+    srt <- colNormalize(srt)
+    gene <- selectTopFeatures(srt, vertices = c("OS", "RE", "CH", "ORT"))
+    srt <- colNormalize(srt, scaleFactor = 1e4, log = TRUE)
     plotQuaternary(srt, features = geneSel, vertices = c("OS", "RE", "CH", "ORT"))
+}
+
+# SingleCellExperiment example
+if (FALSE) {
+    library(SingleCellExperiment)
+    sce <- SingleCellExperiment(assays = list(counts = rnaRaw))
+    colLabels(sce) <- rnaCluster
+    sce <- colNormalize(sce)
+    gene <- selectTopFeatures(sce, vertices = c("OS", "RE", "CH", "ORT"))
+    sce <- colNormalize(sce, scaleFactor = 1e4, log = TRUE)
+    plotQuaternary(sce, subset.row = gene,
+                   vertices = c("OS", "RE", "CH", "ORT"))
 }
 }

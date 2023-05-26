@@ -86,11 +86,13 @@ plotBinary.simMat <- function(
 }
 
 #' @param clusterVar A vector/factor assigning the cluster variable to each
-#' column of the matrix object. Or a character scalar selecting a cell metadata
-#' variable from container object.
-#' @param vertices A vector of TWO values specifying the clusters as the
-#' terminals.
-#'
+#' column of the matrix object. For "Seurat" method, leave \code{NULL} for using
+#' default "Idents", or can also be a variable in \code{meta.data} slot. For
+#' "SingleCellExperiment" method, leave \code{NULL} for using "colLabels", or
+#' can be a variable in \code{colData} slot.
+#' @param vertices Vector of two unique cluster names that will be used for
+#' plotting. Or a named list that groups clusters as two terminal vertices.
+#' There must not be any overlap between groups.
 #' @param method Distance calculation method. Default \code{"euclidean"}.
 #' Choose from \code{"euclidean"}, \code{"cosine"}, \code{"pearson"},
 #' \code{"spearman"}.
@@ -172,12 +174,12 @@ plotBinary.default <- function(
 #'
 #' # Seurat example
 #' if (FALSE) {
-#'     library(Seurat)
 #'     srt <- CreateSeuratObject(rnaRaw)
 #'     Idents(srt) <- rnaCluster
-#'     geneSel <- selectTopFeatures(rnaRaw, rnaCluster, vertices = c("OS", "RE"))
-#'     srt <- NormalizeData(srt)
-#'     plotBinary(srt, features = geneSel, vertices = c("OS", "RE"))
+#'     srt <- colNormalize(srt)
+#'     gene <- selectTopFeatures(srt, vertices = c("OS", "RE"))
+#'     srt <- colNormalize(srt, scaleFactor = 1e4, log = TRUE)
+#'     plotBinary(srt, features = gene, vertices = c("OS", "RE"))
 #' }
 plotBinary.Seurat <- function(
         object,
@@ -188,6 +190,36 @@ plotBinary.Seurat <- function(
 ) {
     values <- .getSeuratData(object, features = features,
                              slot = slot, assay = assay)
+    plotBinary(values[[1]], values[[2]], ...)
+}
+
+#' @param subset.row For "SingleCellExperiment" methods. Valid row subsetting
+#' index that selects features. Default \code{NULL} uses all available features.
+#' @param assay.type For "SingleCellExperiment" methods. Which assay to use for
+#' calculating the similarity. Default \code{"logcounts"}.
+#' @rdname plotBinary
+#' @export
+#' @method plotBinary SingleCellExperiment
+#' @examples
+#'
+#' # SingleCellExperiment example
+#' if (FALSE) {
+#'     library(SingleCellExperiment)
+#'     sce <- SingleCellExperiment(assays = list(counts = rnaRaw))
+#'     colLabels(sce) <- rnaCluster
+#'     sce <- colNormalize(sce)
+#'     gene <- selectTopFeatures(sce, vertices = c("OS", "RE"))
+#'     sce <- colNormalize(sce, scaleFactor = 1e4, log = TRUE)
+#'     plotBinary(sce, subset.row = gene, vertices = c("OS", "RE"))
+#' }
+plotBinary.SingleCellExperiment <- function(
+        object,
+        subset.row = NULL,
+        assay.type = "logcounts",
+        ...
+) {
+    values <- .getSCEData(object, subset.row = subset.row,
+                          assay.type = assay.type)
     plotBinary(values[[1]], values[[2]], ...)
 }
 

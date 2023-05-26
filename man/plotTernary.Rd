@@ -5,6 +5,7 @@
 \alias{plotTernary.simMat}
 \alias{plotTernary.default}
 \alias{plotTernary.Seurat}
+\alias{plotTernary.SingleCellExperiment}
 \title{Create ternary plots}
 \usage{
 plotTernary(object, ...)
@@ -46,7 +47,22 @@ plotTernary(object, ...)
   ...
 )
 
-\method{plotTernary}{Seurat}(object, features = NULL, slot = "data", assay = NULL, ...)
+\method{plotTernary}{Seurat}(
+  object,
+  features = NULL,
+  slot = "data",
+  assay = NULL,
+  clusterVar = NULL,
+  ...
+)
+
+\method{plotTernary}{SingleCellExperiment}(
+  object,
+  assay.type = "logcounts",
+  subset.row = NULL,
+  clusterVar = NULL,
+  ...
+)
 }
 \arguments{
 \item{object}{An object}
@@ -94,11 +110,14 @@ equilateral. Default \code{TRUE}.}
 \code{equilateral = TRUE}}
 
 \item{clusterVar}{A vector/factor assigning the cluster variable to each
-column of the matrix object. Or a character scalar selecting a cell metadata
-variable from container object.}
+column of the matrix object. For "Seurat" method, leave \code{NULL} for using
+default "Idents", or can also be a variable in \code{meta.data} slot. For
+"SingleCellExperiment" method, leave \code{NULL} for using "colLabels", or
+can be a variable in \code{colData} slot.}
 
-\item{vertices}{A vector of THREE values specifying the clusters as the
-terminals.}
+\item{vertices}{Vector of three unique cluster names that will be used for
+plotting. Or a named list that groups clusters as three terminal vertices.
+There must not be any overlap between groups.}
 
 \item{veloGraph}{Cell x cell dgCMatrix object containing velocity
 information. Shows velocity grid-arrow layer when specified. Default
@@ -126,14 +145,20 @@ contains cells belonging to only one cluster. Default \code{FALSE}.}
 \item{clusterTitle}{If \code{splitCluster = TRUE}, whether to title each
 subplot by the name of each cluster. Default \code{TRUE}.}
 
-\item{features}{For container object methods. Valid row subsetting index that
+\item{features}{For "Seurat" method. Valid row subsetting index that
 selects features. Default \code{NULL} uses all available features.}
 
-\item{slot}{For Seurat method, choose from \code{"data"},
+\item{slot}{For "Seurat" method, choose from \code{"data"},
 \code{"scale.data"} or \code{"counts"}. Default \code{"data"}.}
 
-\item{assay}{For Seurat method, the specific assay to get data from. Default
-\code{NULL} to the default assay.}
+\item{assay}{For "Seurat" method, the specific assay to get data from.
+Default \code{NULL} to the default assay.}
+
+\item{assay.type}{For "SingleCellExperiment" methods. Which assay to use for
+calculating the similarity. Default \code{"logcounts"}.}
+
+\item{subset.row}{For "SingleCellExperiment" methods. Valid row subsetting
+index that selects features. Default \code{NULL} uses all available features.}
 }
 \value{
 For "simMat" method, a ggplot object. For other methods, a ggplot
@@ -162,12 +187,22 @@ plotTernary(rnaLog[gene, ], rnaCluster, c("OS", "RE", "CH"))
 
 # Seurat example
 if (FALSE) {
-    library(Seurat)
     srt <- CreateSeuratObject(rnaRaw)
     Idents(srt) <- rnaCluster
-    geneSel <- selectTopFeatures(rnaRaw, rnaCluster,
-                                 vertices = c("OS", "RE", "CH"))
-    srt <- NormalizeData(srt)
+    srt <- colNormalize(srt)
+    gene <- selectTopFeatures(srt, vertices = c("OS", "RE", "CH"))
+    srt <- colNormalize(srt, scaleFactor = 1e4, log = TRUE)
     plotTernary(srt, features = geneSel, vertices = c("OS", "RE", "CH"))
+}
+
+# SingleCellExperiment example
+if (FALSE) {
+    library(SingleCellExperiment)
+    sce <- SingleCellExperiment(assays = list(counts = rnaRaw))
+    colLabels(sce) <- rnaCluster
+    sce <- colNormalize(sce)
+    gene <- selectTopFeatures(sce, vertices = c("OS", "RE", "CH"))
+    sce <- colNormalize(sce, scaleFactor = 1e4, log = TRUE)
+    plotTernary(sce, subset.row = gene, vertices = c("OS", "RE", "CH"))
 }
 }

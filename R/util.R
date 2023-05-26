@@ -59,7 +59,8 @@
         object,
         features = NULL,
         assay = NULL,
-        slot = "data"
+        slot = "data",
+        clusterVar = NULL
 ) {
     if (!requireNamespace("Seurat", quietly = TRUE)) {
         stop("Please install package 'Seurat' before interacting with a ",
@@ -67,8 +68,39 @@
     }
     mat <- Seurat::GetAssayData(object, slot = slot, assay = assay)
     if (!is.null(features)) mat <- mat[features,]
+    if (is.null(clusterVar)) clusterVar <- Seurat::Idents(object)
+    else if (length(clusterVar) == 1) {
+        clusterVar <- object[[clusterVar]]
+    }
+    return(list(mat, clusterVar))
+}
 
-    return(list(mat, Seurat::Idents(object)))
+.getSCEData <- function(
+        object,
+        subset.row = NULL,
+        clusterVar = NULL,
+        assay.type = "logcounts"
+) {
+    if (!requireNamespace("SingleCellExperiment", quietly = TRUE)) {
+        stop("Please install package 'SingleCellExperiment' before ",
+             "interacting with a SingleCellExperiment object.",
+             "\nBiocManager::install(\"SingleCellExperiment\")")
+    }
+    if (!requireNamespace("SummarizedExperiment", quietly = TRUE)) {
+        stop("Please install package 'SummarizedExperiment' before ",
+             "interacting with a SingleCellExperiment object.",
+             "\nBiocManager::install(\"SummarizedExperiment\")")
+    }
+    mat <- SummarizedExperiment::assay(object, assay.type)
+    if (!is.null(subset.row)) mat <- mat[subset.row,]
+    if (is.null(clusterVar)) {
+        if (inherits(object, "SummarizedExperiment")) {
+            clusterVar <- SingleCellExperiment::colLabels(object)
+        }
+    } else if (length(clusterVar) == 1) {
+        clusterVar <- SummarizedExperiment::colData(object)[[clusterVar]]
+    }
+    return(list(mat, clusterVar))
 }
 
 # .ligerPrepare <- function(
