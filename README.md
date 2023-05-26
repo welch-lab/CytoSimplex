@@ -30,15 +30,15 @@ For high dimensional single-cell transcriptomic data, reducing the dimensionalit
 
 ```R
 rnaNorm <- colNormalize(rnaRaw)
-gene <- selectTopFeatures(rnaNorm, clusterVar = rnaCluster, vertices = ("OS", "RE", "CH"))
+gene <- selectTopFeatures(rnaNorm, clusterVar = rnaCluster, vertices = c("OS", "RE", "CH"))
 ```
 
 Then we can create a demonstrative ternary plot with log-transformed data:
 
 ```R
 rnaLog <- colNormalize(rnaRaw, scaleFactor = 1e4, log = TRUE)
-plotTernary(rnaLog[gene,], clusterVar = rnaCluster, vertices = ("OS", "RE", "CH"))
+plotTernary(rnaLog[gene,], clusterVar = rnaCluster, vertices = c("OS", "RE", "CH"))
 ```
-
-![Ternary Example](https://github.com/mvfki/scPlotSimplex/raw/main/man/figures/ternary_example.png)
-
+<p align="center">
+  <img src="https://github.com/mvfki/scPlotSimplex/raw/main/man/figures/ternary_example.png" alt="Ternary Example"/>
+</p>
