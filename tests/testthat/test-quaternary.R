@@ -49,6 +49,9 @@ test_that("Test quaternary GIF", {
                      B = c("RE", "OS"),
                      C = "CH",
                      D = "Stem")
+    expect_error(writeQuaternaryGIF(rnaLog[gene,], clusterVar = rnaCluster,
+                                    vertices = grouping, fps = 33),
+                 "FPS must be a factor of 100.")
     writeQuaternaryGIF(rnaLog[gene,], clusterVar = rnaCluster,
                        vertices = grouping,
                        gifPath = "test.gif", tmpDir = "testGif/")

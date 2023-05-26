@@ -332,6 +332,9 @@ writeQuaternaryGIF <- function(
              "See https://cran.r-project.org/web/packages/magick/vignettes/",
              "intro.html#Installing_magick for detail.")
     }
+    if (100 %% fps != 0) {
+        stop("FPS must be a factor of 100.")
+    }
     allImgPath <- c()
     if (!dir.exists(tmpDir)) dir.create(tmpDir)
 

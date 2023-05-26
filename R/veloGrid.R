@@ -81,7 +81,7 @@ calcGridVelo <- function(
                                   len = gridVelo[,i] * radius)
         colnames(ends) <- paste0(colnames(ends), "end")
         arrow.cart.sub <- cbind(gridCart, ends)
-        arrow.cart.sub <- arrow.cart.sub[gridVelo[,i] > 0.1,]
+        return(arrow.cart.sub)
     })
     return(arrow.cart)
 }
