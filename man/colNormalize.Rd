@@ -23,7 +23,9 @@ colNormalize(x, scaleFactor = NULL, log = FALSE, ...)
 \method{colNormalize}{SingleCellExperiment}(x, scaleFactor = NULL, log = FALSE, assay.type = "counts", ...)
 }
 \arguments{
-\item{x}{Feature by observation matrix.}
+\item{x}{Feature by observation matrix. Alternatively, \code{Seurat} object
+or \code{SingleCellExperiment} object with raw counts available are also
+supported.}
 
 \item{scaleFactor}{Multiplier on normalized data. Default \code{NULL}.}
 

@@ -8,6 +8,7 @@ using namespace std;
 using namespace Rcpp;
 using namespace arma;
 
+
 // Utilities %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 //[[Rcpp::export]]
@@ -19,8 +20,31 @@ arma::mat colNormalize_dense(arma::mat x, arma::vec colsums) {
     return output;
 }
 
-// Distance Calculation %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+// [[Rcpp::export]]
+bool is_rawCounts_sparse(const arma::sp_mat& x) {
+    for(arma::sp_mat::const_iterator it = x.begin(); it != x.end(); ++it)
+    {
+        double value = *it;
+        if (value != 0 && value != static_cast<int>(value)) {
+            return false;
+        }
+    }
+    return true;
+}
 
+// [[Rcpp::export]]
+bool is_rawCounts_dense(const arma::mat& x) {
+  for (arma::mat::const_iterator it = x.begin(); it != x.end(); ++it) {
+    double value = *it;
+    if (value != 0 && value != static_cast<int>(value)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+
+// Distance Calculation %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 //[[Rcpp::export]]
 arma::mat euclidean_dense(arma::mat& query, arma::mat& target) {
@@ -124,6 +148,7 @@ arma::mat cosine_sparse(arma::sp_mat query, arma::sp_mat target) {
     }
     return output;
 }
+
 
 // WILCOXON TEST %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

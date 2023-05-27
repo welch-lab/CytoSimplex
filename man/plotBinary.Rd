@@ -2,29 +2,20 @@
 % Please edit documentation in R/binary.R
 \name{plotBinary}
 \alias{plotBinary}
-\alias{plotBinary.simMat}
 \alias{plotBinary.default}
 \alias{plotBinary.Seurat}
 \alias{plotBinary.SingleCellExperiment}
+\alias{plotBinary.simMat}
 \title{Create binary plots}
 \usage{
-plotBinary(object, ...)
-
-\method{plotBinary}{simMat}(
-  object,
-  dotSize = 0.6,
-  dotColor = "grey60",
-  densLinewidth = 0.8,
-  labelColors = c("#3B4992FF", "#EE0000FF"),
-  distMethod = attributes(object)$method,
-  title = NULL,
-  ...
-)
+plotBinary(x, ...)
 
 \method{plotBinary}{default}(
-  object,
+  x,
   clusterVar,
   vertices,
+  features = NULL,
+  processed = FALSE,
   method = c("euclidean", "cosine", "pearson", "spearman"),
   force = FALSE,
   sigma = 0.08,
@@ -35,42 +26,60 @@ plotBinary(object, ...)
   ...
 )
 
-\method{plotBinary}{Seurat}(object, features = NULL, slot = "data", assay = NULL, ...)
+\method{plotBinary}{Seurat}(
+  x,
+  slot = c("counts", "data", "scale.data"),
+  assay = NULL,
+  clusterVar = NULL,
+  processed = FALSE,
+  ...
+)
 
-\method{plotBinary}{SingleCellExperiment}(object, subset.row = NULL, assay.type = "logcounts", ...)
+\method{plotBinary}{SingleCellExperiment}(x, assay.type = "counts", clusterVar = NULL, processed = FALSE, ...)
+
+\method{plotBinary}{simMat}(
+  x,
+  dotSize = 0.6,
+  dotColor = "grey60",
+  densLinewidth = 0.8,
+  labelColors = c("#3B4992FF", "#EE0000FF"),
+  title = NULL,
+  ...
+)
 }
 \arguments{
-\item{object}{An object}
+\item{x}{Input data. Can be a \code{matrix} or \code{dgCMatrix} object with
+cells as columns, a \code{Seurat} or \code{SingleCellExperiment} object.
+"simMat" method takes intermediate values.}
 
 \item{...}{Arguments passed to other methods.}
 
-\item{dotSize, dotColor}{Dot aesthetics passed to
-\code{\link[ggplot2]{geom_point}}. Default \code{0.6} and \code{"grey60"}.}
-
-\item{densLinewidth}{Density plot line aesthetic. Default \code{0.8}.}
-
-\item{labelColors}{Color of the axis lines and vertex labels. Default
-\code{c("#3B4992FF", "#EE0000FF")} (blue and red).}
-
-\item{distMethod}{Method name used for calculating the dist.matrix object.}
-
-\item{title}{Title text of the plot. Default \code{NULL}.}
-
 \item{clusterVar}{A vector/factor assigning the cluster variable to each
-column of the matrix object. For "Seurat" method, leave \code{NULL} for using
-default "Idents", or can also be a variable in \code{meta.data} slot. For
-"SingleCellExperiment" method, leave \code{NULL} for using "colLabels", or
-can be a variable in \code{colData} slot.}
+column of the matrix object. For "Seurat" method, \code{NULL} (default) for
+\code{Idents(x)}, or a variable name in \code{meta.data} slot. For
+"SingleCellExperiment" method, \code{NULL} (default) for \code{colLabels(x)},
+or a variable name in \code{colData} slot.}
 
-\item{vertices}{Vector of two unique cluster names that will be used for
-plotting. Or a named list that groups clusters as two terminal vertices.
+\item{vertices}{Vector of three unique cluster names that will be used for
+plotting. Or a named list that groups clusters as three terminal vertices.
 There must not be any overlap between groups.}
 
-\item{method}{Distance calculation method. Default \code{"euclidean"}.
+\item{features}{Valid matrix row subsetting index to select features for
+similarity calculation. Default \code{NULL} uses all available features.}
+
+\item{processed}{Logical. Whether the input matrix is already processed.
+\code{TRUE} will bypass internal preprocessing and input matrix will be
+directly used for similarity calculation. Default \code{FALSE} and raw count
+input is recommended. If missing in call, using \code{slot = "counts"} in
+"Seurat" method or using \code{assay.type = "counts"} in
+"SingleCellExperiment" method will force this argument to be \code{FALSE} and
+others for \code{TRUE}.}
+
+\item{method}{Similarity calculation method. Default \code{"euclidean"}.
 Choose from \code{"euclidean"}, \code{"cosine"}, \code{"pearson"},
 \code{"spearman"}.}
 
-\item{force}{Whether to force calculate the distance when more then 500
+\item{force}{Whether to force calculate the similarity when more then 500
 features are detected, which is generally not recommended. Default
 \code{FALSE}.}
 
@@ -88,20 +97,24 @@ contains cells belonging to only one cluster. Default \code{FALSE}.}
 \item{clusterTitle}{If \code{splitCluster = TRUE}, whether to title each
 subplot by the name of each cluster. Default \code{TRUE}.}
 
-\item{features}{For container object methods. Valid row subsetting index that
-selects features. Default \code{NULL} uses all available features.}
+\item{slot}{For "Seurat" method, choose from \code{"counts"},
+\code{"data"} or \code{"scale.data"}. Default \code{"counts"}.}
 
-\item{slot}{For Seurat method, choose from \code{"data"},
-\code{"scale.data"} or \code{"counts"}. Default \code{"data"}.}
-
-\item{assay}{For Seurat method, the specific assay to get data from. Default
-\code{NULL} to the default assay.}
-
-\item{subset.row}{For "SingleCellExperiment" methods. Valid row subsetting
-index that selects features. Default \code{NULL} uses all available features.}
+\item{assay}{For "Seurat" method, the specific assay to get data from.
+Default \code{NULL} to the default assay.}
 
 \item{assay.type}{For "SingleCellExperiment" methods. Which assay to use for
-calculating the similarity. Default \code{"logcounts"}.}
+calculating the similarity. Default \code{"counts"}.}
+
+\item{dotSize, dotColor}{Dot aesthetics passed to
+\code{\link[ggplot2]{geom_point}}. Default \code{0.6} and \code{"grey60"}.}
+
+\item{densLinewidth}{Density plot line aesthetic. Default \code{0.8}.}
+
+\item{labelColors}{Color of the axis lines and vertex labels. Default
+\code{c("#3B4992FF", "#EE0000FF")} (blue and red).}
+
+\item{title}{Title text of the plot. Default \code{NULL}.}
 }
 \value{
 For 'simMat' method, a ggplot object. For other methods, a ggplot
@@ -110,16 +123,16 @@ object when \code{splitCluster = FALSE}, or a list of ggplot objects when
 }
 \description{
 Create binary plots that show similarity between single cells and two
-selected terminals in a 2D space. The two vertices are placed at the left and
-right of a 2D plot where x-axis measures the similarity. Y-axis is jittered
-for a clear view. A density (histogram) curve is added for indicating the
-distribution.
+selected terminals in a barycentric coordinate. The two vertices are placed
+at the left and right of a 2D plot where x-axis measures the similarity.
+Y-axis is jittered for a clear view. A density (histogram) curve is added for
+indicating the distribution.
+
+See \code{\link{plotTernary}} manual for more details.
 }
 \examples{
-rnaNorm <- colNormalize(rnaRaw)
-gene <- selectTopFeatures(rnaNorm, rnaCluster, c("RE", "OS"))
-rnaLog <- colNormalize(rnaRaw, 1e4, TRUE)
-plotBinary(rnaLog[gene, ], rnaCluster, c("RE", "OS"))
+gene <- selectTopFeatures(rnaRaw, rnaCluster, c("RE", "OS"))
+plotBinary(rnaRaw, rnaCluster, c("RE", "OS"), gene)
 
 # Seurat example
 if (FALSE) {
@@ -136,9 +149,7 @@ if (FALSE) {
     library(SingleCellExperiment)
     sce <- SingleCellExperiment(assays = list(counts = rnaRaw))
     colLabels(sce) <- rnaCluster
-    sce <- colNormalize(sce)
     gene <- selectTopFeatures(sce, vertices = c("OS", "RE"))
-    sce <- colNormalize(sce, scaleFactor = 1e4, log = TRUE)
-    plotBinary(sce, subset.row = gene, vertices = c("OS", "RE"))
+    plotBinary(sce, features = gene, vertices = c("OS", "RE"))
 }
 }

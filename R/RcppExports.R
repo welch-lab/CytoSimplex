@@ -5,6 +5,14 @@ colNormalize_dense <- function(x, colsums) {
     .Call('_scPlotSimplex_colNormalize_dense', PACKAGE = 'scPlotSimplex', x, colsums)
 }
 
+is_rawCounts_sparse <- function(x) {
+    .Call('_scPlotSimplex_is_rawCounts_sparse', PACKAGE = 'scPlotSimplex', x)
+}
+
+is_rawCounts_dense <- function(x) {
+    .Call('_scPlotSimplex_is_rawCounts_dense', PACKAGE = 'scPlotSimplex', x)
+}
+
 euclidean_dense <- function(query, target) {
     .Call('_scPlotSimplex_euclidean_dense', PACKAGE = 'scPlotSimplex', query, target)
 }

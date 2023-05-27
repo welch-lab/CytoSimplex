@@ -11,6 +11,16 @@
     x / sum(x, na.rm = TRUE)
 }
 
+is.rawCounts <- function(x) {
+    if (inherits(x, "dgCMatrix")) {
+        is_rawCounts_sparse(x)
+    } else if (is.matrix(x)) {
+        is_rawCounts_dense(x)
+    } else {
+        FALSE
+    }
+}
+
 .checkVertex <- function(
         object,
         clusterVar,
@@ -57,44 +67,40 @@
 
 .getSeuratData <- function(
         object,
-        features = NULL,
         assay = NULL,
         slot = "data",
         clusterVar = NULL
 ) {
     if (!requireNamespace("Seurat", quietly = TRUE)) {
-        stop("Please install package 'Seurat' before interacting with a ",
-             "Seurat object.\ninstall.packages(\"Seurat\")")
+        stop("Please install package 'Seurat' before interacting with a ", # nocov
+             "Seurat object.\ninstall.packages(\"Seurat\")") # nocov
     }
     mat <- Seurat::GetAssayData(object, slot = slot, assay = assay)
-    if (!is.null(features)) mat <- mat[features,]
     if (is.null(clusterVar)) clusterVar <- Seurat::Idents(object)
     else if (length(clusterVar) == 1) {
-        clusterVar <- object[[clusterVar]]
+        clusterVar <- object[[clusterVar]][[1]]
     }
     return(list(mat, clusterVar))
 }
 
 .getSCEData <- function(
         object,
-        subset.row = NULL,
         clusterVar = NULL,
         assay.type = "logcounts"
 ) {
     if (!requireNamespace("SingleCellExperiment", quietly = TRUE)) {
-        stop("Please install package 'SingleCellExperiment' before ",
-             "interacting with a SingleCellExperiment object.",
-             "\nBiocManager::install(\"SingleCellExperiment\")")
+        stop("Please install package 'SingleCellExperiment' before ", # nocov
+             "interacting with a SingleCellExperiment object.", # nocov
+             "\nBiocManager::install(\"SingleCellExperiment\")") # nocov
     }
     if (!requireNamespace("SummarizedExperiment", quietly = TRUE)) {
-        stop("Please install package 'SummarizedExperiment' before ",
-             "interacting with a SingleCellExperiment object.",
-             "\nBiocManager::install(\"SummarizedExperiment\")")
+        stop("Please install package 'SummarizedExperiment' before ", # nocov
+             "interacting with a SingleCellExperiment object.", # nocov
+             "\nBiocManager::install(\"SummarizedExperiment\")") # nocov
     }
     mat <- SummarizedExperiment::assay(object, assay.type)
-    if (!is.null(subset.row)) mat <- mat[subset.row,]
     if (is.null(clusterVar)) {
-        if (inherits(object, "SummarizedExperiment")) {
+        if (inherits(object, "SingleCellExperiment")) {
             clusterVar <- SingleCellExperiment::colLabels(object)
         }
     } else if (length(clusterVar) == 1) {

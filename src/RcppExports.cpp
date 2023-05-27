@@ -23,6 +23,28 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// is_rawCounts_sparse
+bool is_rawCounts_sparse(const arma::sp_mat& x);
+RcppExport SEXP _scPlotSimplex_is_rawCounts_sparse(SEXP xSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::sp_mat& >::type x(xSEXP);
+    rcpp_result_gen = Rcpp::wrap(is_rawCounts_sparse(x));
+    return rcpp_result_gen;
+END_RCPP
+}
+// is_rawCounts_dense
+bool is_rawCounts_dense(const arma::mat& x);
+RcppExport SEXP _scPlotSimplex_is_rawCounts_dense(SEXP xSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type x(xSEXP);
+    rcpp_result_gen = Rcpp::wrap(is_rawCounts_dense(x));
+    return rcpp_result_gen;
+END_RCPP
+}
 // euclidean_dense
 arma::mat euclidean_dense(arma::mat& query, arma::mat& target);
 RcppExport SEXP _scPlotSimplex_euclidean_dense(SEXP querySEXP, SEXP targetSEXP) {
@@ -190,6 +212,8 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_scPlotSimplex_colNormalize_dense", (DL_FUNC) &_scPlotSimplex_colNormalize_dense, 2},
+    {"_scPlotSimplex_is_rawCounts_sparse", (DL_FUNC) &_scPlotSimplex_is_rawCounts_sparse, 1},
+    {"_scPlotSimplex_is_rawCounts_dense", (DL_FUNC) &_scPlotSimplex_is_rawCounts_dense, 1},
     {"_scPlotSimplex_euclidean_dense", (DL_FUNC) &_scPlotSimplex_euclidean_dense, 2},
     {"_scPlotSimplex_euclidean_sparse", (DL_FUNC) &_scPlotSimplex_euclidean_sparse, 2},
     {"_scPlotSimplex_cosine_dense", (DL_FUNC) &_scPlotSimplex_cosine_dense, 2},

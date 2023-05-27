@@ -7,36 +7,37 @@ data("rnaCluster", package = "scPlotSimplex")
 data("rnaVelo", package = "scPlotSimplex")
 vertices <- c("OS", "RE", "CH")
 gene <- selectTopFeatures(rnaRaw, rnaCluster, vertices)
-rnaLog <- colNormalize(rnaRaw, scaleFactor = 1e4, log = TRUE)
 
 test_that("Test ternary - sparse", {
-    expect_error(plotTernary(rnaLog[gene,], rnaCluster, "hi"),
+    expect_error(plotTernary(rnaRaw, rnaCluster, "hi"),
                  "Must specify 3 different vertices.")
-    expect_error(plotTernary(rnaLog[gene,], rnaCluster, c("hi", "hey", "yo")),
+    expect_error(plotTernary(rnaRaw, rnaCluster, c("hi", "hey", "yo")),
                  "Specified vertex clusters are not all found in the cluster ")
-    expect_error(plotTernary(rnaLog[gene,], rnaCluster, vertices,
+    expect_error(plotTernary(rnaRaw, rnaCluster, vertices,
                              dotColor = c("a", "b")),
                  "`dotColor` need to be either 1")
-    expect_error(plotTernary(rnaLog[gene,], rnaCluster, vertices,
+    expect_error(plotTernary(rnaRaw, rnaCluster, vertices, gene,
                              veloGraph = rnaVelo[1:10,]),
                  "`veloGraph must be of shape N x N and has dimnames covering ")
-    expect_warning(plotTernary(rnaLog[gene,], rnaCluster, c(vertices, "ORT")),
+    expect_warning(plotTernary(rnaRaw, rnaCluster, c(vertices, "ORT"), gene),
                    "3 vertices are expected while 4 are specified")
+    rnaNorm <- colNormalize(rnaRaw)
+    expect_warning(plotTernary(rnaNorm, rnaCluster, vertices, gene),
+                   "Input matrix is not raw counts")
 
-
-    p <- plotTernary(rnaLog[gene,], rnaCluster, vertices, veloGraph = rnaVelo)
+    p <- plotTernary(rnaRaw, rnaCluster, vertices, gene, veloGraph = rnaVelo)
     expect_s3_class(p, "ggplot")
 
-    pl <- plotTernary(rnaLog[gene,], rnaCluster, vertices, splitCluster = TRUE)
+    pl <- plotTernary(rnaRaw, rnaCluster, vertices, gene, splitCluster = TRUE)
     expect_identical(class(pl), "list")
 
-    pl <- plotTernary(rnaLog[gene,], rnaCluster, vertices, splitCluster = TRUE,
+    pl <- plotTernary(rnaRaw, rnaCluster, vertices, gene, splitCluster = TRUE,
                      clusterTitle = FALSE)
     expect_identical(class(pl), "list")
 })
 
 test_that("Test ternary - dense", {
-    rnaLogSub <- as.matrix(rnaLog[gene,])
-    p <- plotTernary(rnaLogSub, rnaCluster, vertices)
+    rnaRawSub <- as.matrix(rnaRaw[gene,])
+    p <- plotTernary(rnaRawSub, rnaCluster, vertices)
     expect_s3_class(p, "ggplot")
 })

@@ -1,31 +1,245 @@
 #' Create ternary plots
 #' @description
 #' Create ternary plots that show similarity between single cells and
-#' selected three terminals in a triangle 2D space.
-#' @param object An object
+#' selected three terminals in a ternary baricentric coordinate.
+#' @param x Input data. Can be a \code{matrix} or \code{dgCMatrix} object with
+#' cells as columns, a \code{Seurat} or \code{SingleCellExperiment} object.
+#' "simMat" method takes intermediate values.
 #' @param ... Arguments passed to other methods.
 #' @rdname plotTernary
 #' @export plotTernary
 #' @details
-#' \bold{Argument inheritance} - For matrix/dgCMatrix input object ("default"
-#' method), we first calculate the similarity matrix and obtain a "simMat"
-#' object. Then we call the "simMat" method. For data container objects
-#' (e.g. Seurat), we obtain the correct data matrix first and then call the
-#' "default" method. Therefore, the arguments inherits as the flow
-#' described above.
+#' \bold{Argument inheritance} - For matrix/dgCMatrix ("default" method), we
+#' first calculate the similarity matrix and obtain a "simMat" object. Then the
+#' "simMat" method is internally called. For data container objects (e.g.
+#' Seurat), we obtain the correct data matrix first and then call the "default"
+#' method. The arguments inherits as the flow described above.
 #'
-#' \bold{The calculation of similarity matrix} - TODO
+#' \bold{The calculation of similarity matrix} - The similarity is calculated
+#' either by converting a distance metric ("euclidean" or "cosine") with
+#' Gaussian kernel, or directly computed with correlation metrics ("pearson" or
+#' "spearman"). The centroid of each terminal is obtained first, and the
+#' specified metric from each cell to each terminal is calculated. The
+#' similarity matrix (n cells by v terminals) is lastly normalized to sum to 1
+#' for each cell, so it becomes a baricentric coordinate.
 #' @return For "simMat" method, a ggplot object. For other methods, a ggplot
 #' object when \code{splitCluster = FALSE}, or a list of ggplot objects when
 #' \code{splitCluster = TRUE}.
 #' @examples
-#' rnaNorm <- colNormalize(rnaRaw)
-#' gene <- selectTopFeatures(rnaNorm, rnaCluster, c("OS", "RE", "CH"))
-#' rnaLog <- colNormalize(rnaRaw, 1e4, TRUE)
-#' plotTernary(rnaLog[gene, ], rnaCluster, c("OS", "RE", "CH"))
-plotTernary <- function(object, ...) {
-    UseMethod('plotTernary', object)
+#' gene <- selectTopFeatures(rnaRaw, rnaCluster, c("OS", "RE", "CH"))
+#' plotTernary(rnaRaw, rnaCluster, c("OS", "RE", "CH"), gene)
+plotTernary <- function(x, ...) {
+    UseMethod('plotTernary', x)
 }
+
+#' @param clusterVar A vector/factor assigning the cluster variable to each
+#' column of the matrix object. For "Seurat" method, \code{NULL} (default) for
+#' \code{Idents(x)}, or a variable name in \code{meta.data} slot. For
+#' "SingleCellExperiment" method, \code{NULL} (default) for \code{colLabels(x)},
+#' or a variable name in \code{colData} slot.
+#' @param vertices Vector of three unique cluster names that will be used for
+#' plotting. Or a named list that groups clusters as three terminal vertices.
+#' There must not be any overlap between groups.
+#' @param features Valid matrix row subsetting index to select features for
+#' similarity calculation. Default \code{NULL} uses all available features.
+#' @param processed Logical. Whether the input matrix is already processed.
+#' \code{TRUE} will bypass internal preprocessing and input matrix will be
+#' directly used for similarity calculation. Default \code{FALSE} and raw count
+#' input is recommended. If missing in call, using \code{slot = "counts"} in
+#' "Seurat" method or using \code{assay.type = "counts"} in
+#' "SingleCellExperiment" method will force this argument to be \code{FALSE} and
+#' others for \code{TRUE}.
+#' @param veloGraph Cell x cell \code{dgCMatrix} object containing velocity
+#' information. Shows velocity grid-arrow layer when specified. Default
+#' \code{NULL} does not show velocity.
+#' @param method Similarity calculation method. Default \code{"euclidean"}.
+#' Choose from \code{"euclidean"}, \code{"cosine"}, \code{"pearson"},
+#' \code{"spearman"}.
+#' @param force Whether to force calculate the similarity when more then 500
+#' features are detected, which is generally not recommended. Default
+#' \code{FALSE}.
+#' @param sigma Gaussian kernel parameter that controls the effect of variance.
+#' Only effective when using a distance metric (i.e. \code{method} is
+#' \code{"euclidian"} or \code{"cosine"}). Larger values tighten the dot
+#' spreading on figure. Default \code{0.08}.
+#' @param scale Whether to min-max scale the distance matrix by clusters.
+#' Default \code{TRUE}.
+#' @param splitCluster Logical, whether to return a list of plots where each
+#' contains cells belonging to only one cluster. Default \code{FALSE}.
+#' @param clusterTitle If \code{splitCluster = TRUE}, whether to title each
+#' subplot by the name of each cluster. Default \code{TRUE}.
+#' @rdname plotTernary
+#' @export
+#' @method plotTernary default
+plotTernary.default <- function(
+        x,
+        clusterVar,
+        vertices,
+        features = NULL,
+        veloGraph = NULL,
+        processed = FALSE,
+        method = c("euclidean", "cosine", "pearson", "spearman"),
+        force = FALSE,
+        #distKernel = c("gaussian", "log"),
+        sigma = 0.08,
+        scale = TRUE,
+        splitCluster = FALSE,
+        clusterTitle = TRUE,
+        dotColor = "grey60",
+        ...
+) {
+    method <- match.arg(method)
+    vcheck <- .checkVertex(x, clusterVar, vertices, n = 3)
+    vertClust <- vcheck[[1]]
+    vertices <- vcheck[[2]]
+    if (length(dotColor) == 1) dotColor <- rep(dotColor, ncol(x))
+    if (length(dotColor) != ncol(x)) {
+        stop("`dotColor` need to be either 1 scalar or match the number of ",
+             "samples in `x`.")
+    }
+    if (isFALSE(processed) && !is.rawCounts(x)) {
+        warning("Input matrix is not raw counts (integers). ",
+                "Results may be affected.")
+    }
+    if (isFALSE(processed)) {
+        x <- colNormalize(x, scaleFactor = 1e4, log = TRUE)
+    }
+    if (!is.null(features)) x <- x[features,]
+    simMat <- calcSim(x, clusterVar = vertClust,
+                       vertices = vertices, method = method,
+                       scale = scale, force = force, sigma = sigma)
+    # simMat <- calcDist(x, clusterVar = vertClust,
+    #                     vertices = vertices, method = method,
+    #                     scale = scale, force = force)
+
+    veloMat <- NULL
+    if (!is.null(veloGraph)) {
+        if (ncol(veloGraph) != nrow(veloGraph) ||
+            !all(rownames(simMat) %in% rownames(veloGraph))) {
+            stop("`veloGraph must be of shape N x N and has dimnames covering ",
+                 "all cells in `x`.")
+        }
+        veloGraph <- veloGraph[rownames(simMat), rownames(simMat)]
+        veloMat <- aggrVeloGraph(veloGraph, clusterVar = vertClust,
+                                 vertices = vertices)
+    }
+
+    if (isFALSE(splitCluster)) plotTernary(x = simMat,
+                                           veloMat = veloMat,
+                                           dotColor = dotColor,
+                                           ...)
+    else {
+        if (isTRUE(clusterTitle)) {
+            plotList <- lapply(levels(clusterVar), function(clust) {
+                plotTernary(simMat[clusterVar == clust,],
+                            veloMat = veloMat[clusterVar == clust,],
+                            dotColor = dotColor[clusterVar == clust],
+                            title = clust, ...)
+            })
+            plotList$allCells <- plotTernary(simMat,
+                                             veloMat = veloMat,
+                                             dotColor = dotColor,
+                                             title = "All cells", ...)
+        } else {
+            plotList <- lapply(levels(clusterVar), function(clust) {
+                plotTernary(simMat[clusterVar == clust,],
+                            veloMat = veloMat[clusterVar == clust,],
+                            dotColor = dotColor[clusterVar == clust],
+                            ...)
+            })
+            plotList$allCells <- plotTernary(simMat,
+                                             veloMat = veloMat,
+                                             dotColor = dotColor, ...)
+        }
+        names(plotList) <- c(levels(clusterVar), "allCells")
+        return(plotList)
+    }
+}
+
+#' @param slot For "Seurat" method, choose from \code{"counts"},
+#' \code{"data"} or \code{"scale.data"}. Default \code{"counts"}.
+#' @param assay For "Seurat" method, the specific assay to get data from.
+#' Default \code{NULL} to the default assay.
+#' @rdname plotTernary
+#' @export
+#' @method plotTernary Seurat
+#' @examples
+#'
+#' # Seurat example
+#' if (FALSE) {
+#'     srt <- CreateSeuratObject(rnaRaw)
+#'     Idents(srt) <- rnaCluster
+#'     gene <- selectTopFeatures(srt, vertices = c("OS", "RE", "CH"))
+#'     plotTernary(srt, features = gene, vertices = c("OS", "RE", "CH"))
+#' }
+plotTernary.Seurat <- function(
+        x,
+        slot = c("counts", "data", "scale.data"),
+        assay = NULL,
+        clusterVar = NULL,
+        processed = FALSE,
+        ...
+) {
+    slot <- match.arg(slot)
+    values <- .getSeuratData(x, slot = slot, assay = assay,
+                             clusterVar = clusterVar)
+    if (missing(processed)) {
+        if (slot == "counts") processed <- FALSE
+        else processed <- TRUE
+    }
+    plotTernary(values[[1]], clusterVar = values[[2]], processed = processed,
+                ...)
+}
+
+#' @param assay.type For "SingleCellExperiment" methods. Which assay to use for
+#' calculating the similarity. Default \code{"counts"}.
+#' @rdname plotTernary
+#' @export
+#' @method plotTernary SingleCellExperiment
+#' @examples
+#'
+#' # SingleCellExperiment example
+#' if (FALSE) {
+#'     library(SingleCellExperiment)
+#'     sce <- SingleCellExperiment(assays = list(counts = rnaRaw))
+#'     colLabels(sce) <- rnaCluster
+#'     gene <- selectTopFeatures(sce, vertices = c("OS", "RE", "CH"))
+#'     plotTernary(sce, features = gene, vertices = c("OS", "RE", "CH"))
+#' }
+plotTernary.SingleCellExperiment <- function(
+        x,
+        assay.type = "counts",
+        clusterVar = NULL,
+        processed = FALSE,
+        ...
+) {
+    values <- .getSCEData(x, assay.type = assay.type, clusterVar = clusterVar)
+    if (missing(processed)) {
+        if (assay.type == "counts") processed <- FALSE
+        else processed <- TRUE
+    }
+    plotTernary(values[[1]], clusterVar = values[[2]], processed = processed,
+                ...)
+}
+
+#' #' @rdname plotTernary
+#' #' @param useDatasets For liger method, select datasets where the distance
+#' #' calculation should only be limited within this range. Default \code{NULL}
+#' #' uses all datasets.
+#' #' @param features For container object methods. Valid row subsetting index that
+#' #' selects features. Default \code{NULL}.
+#' #' @export
+#' #' @method plotTernary liger
+#' plotTernary.liger <- function(
+#'         x,
+#'         clusterVar,
+#'         features = NULL,
+#'         useDatasets = NULL,
+#'         ...
+#' ) {
+#'     values <- .ligerPrepare(x, clusterVar, features, useDatasets)
+#'     plotTernary(values[[1]], clusterVar = values[[2]], ...)
+#' }
 
 #' @rdname plotTernary
 #' @param title Title text of the plot. Default \code{NULL}.
@@ -57,7 +271,7 @@ plotTernary <- function(object, ...) {
 #' @export
 #' @method plotTernary simMat
 plotTernary.simMat <- function(
-        object,
+        x,
         title = NULL,
         veloMat = NULL,
         nGrid = 10,
@@ -78,7 +292,7 @@ plotTernary.simMat <- function(
         ...
 ) {
     # Convert barycentric coordinates (4D) to cartesian coordinates (3D)
-    df <- as.data.frame(as.matrix(object[,1:3]) %*% triangle)
+    df <- as.data.frame(as.matrix(x[,1:3]) %*% triangle)
     triangle <- as.data.frame(triangle)
     ternCoord <- ggplot(df, aes(x = .data$x, y = .data$y)) +
         annotate("segment", x = triangle$x[1], xend = triangle$x[2],
@@ -91,13 +305,13 @@ plotTernary.simMat <- function(
                           y = triangle$y[3], yend = triangle$y[1],
                           colour = labelColors[3]) +
         annotate("text", x = -0.01 - vertexLabelDrift,
-                 y = 0.01 - vertexLabelDrift, label = colnames(object)[1],
+                 y = 0.01 - vertexLabelDrift, label = colnames(x)[1],
                  colour = labelColors[1], size = vertexLabelSize) +
         annotate("text", x = 0.5, y = 3^0.5/2 + vertexLabelDrift,
-                 label = colnames(object)[2], colour = labelColors[2],
+                 label = colnames(x)[2], colour = labelColors[2],
                  size = vertexLabelSize) +
         annotate("text", x = 1.01 + vertexLabelDrift,
-                 y = 0.01 - vertexLabelDrift, label = colnames(object)[3],
+                 y = 0.01 - vertexLabelDrift, label = colnames(x)[3],
                  colour = labelColors[3], size = vertexLabelSize) +
         labs(title = title) +
         theme_void() +
@@ -152,7 +366,7 @@ plotTernary.simMat <- function(
     p <- ternCoord + geom_point(color = dotColor, size = dotSize)
 
     if (!is.null(veloMat)) {
-        arrowCoords <- calcGridVelo(simMat = object, veloMat = veloMat,
+        arrowCoords <- calcGridVelo(simMat = x, veloMat = veloMat,
                                     nGrid = nGrid, radius = radius)
         for (i in seq_along(arrowCoords)) {
             subcoords <- arrowCoords[[i]]
@@ -173,193 +387,3 @@ plotTernary.simMat <- function(
     }
     return(p)
 }
-
-#' @param clusterVar A vector/factor assigning the cluster variable to each
-#' column of the matrix object. For "Seurat" method, leave \code{NULL} for using
-#' default "Idents", or can also be a variable in \code{meta.data} slot. For
-#' "SingleCellExperiment" method, leave \code{NULL} for using "colLabels", or
-#' can be a variable in \code{colData} slot.
-#' @param vertices Vector of three unique cluster names that will be used for
-#' plotting. Or a named list that groups clusters as three terminal vertices.
-#' There must not be any overlap between groups.
-#' @param veloGraph Cell x cell dgCMatrix object containing velocity
-#' information. Shows velocity grid-arrow layer when specified. Default
-#' \code{NULL} does not show velocity.
-#' @param method Distance calculation method. Default \code{"euclidean"}.
-#' Choose from \code{"euclidean"}, \code{"cosine"}, \code{"pearson"},
-#' \code{"spearman"}.
-#' @param force Whether to force calculate the distance when more then 500
-#' features are detected, which is generally not recommended. Default
-#' \code{FALSE}.
-#' @param sigma Gaussian kernel parameter that controls the effect of variance.
-#' Only effective when using a distance metric (i.e. \code{method} is
-#' \code{"euclidian"} or \code{"cosine"}). Larger value tighten the dot
-#' spreading on figure. Default \code{0.08}.
-#' @param scale Whether to min-max scale the distance matrix by clusters.
-#' Default \code{TRUE}.
-#' @param splitCluster Logical, whether to return a list of plots where each
-#' contains cells belonging to only one cluster. Default \code{FALSE}.
-#' @param clusterTitle If \code{splitCluster = TRUE}, whether to title each
-#' subplot by the name of each cluster. Default \code{TRUE}.
-#' @rdname plotTernary
-#' @export
-#' @method plotTernary default
-plotTernary.default <- function(
-        object,
-        clusterVar,
-        vertices,
-        veloGraph = NULL,
-        method = c("euclidean", "cosine", "pearson", "spearman"),
-        force = FALSE,
-        #distKernel = c("gaussian", "log"),
-        sigma = 0.08,
-        scale = TRUE,
-        splitCluster = FALSE,
-        clusterTitle = TRUE,
-        dotColor = "grey60",
-        ...
-) {
-    method <- match.arg(method)
-    vcheck <- .checkVertex(object, clusterVar, vertices, n = 3)
-    vertClust <- vcheck[[1]]
-    vertices <- vcheck[[2]]
-    if (length(dotColor) == 1) dotColor <- rep(dotColor, ncol(object))
-    if (length(dotColor) != ncol(object)) {
-        stop("`dotColor` need to be either 1 scalar or match the number of ",
-             "samples in `object`.")
-    }
-    simMat <- calcSim(object, clusterVar = vertClust,
-                       vertices = vertices, method = method,
-                       scale = scale, force = force, sigma = sigma)
-    # simMat <- calcDist(object, clusterVar = vertClust,
-    #                     vertices = vertices, method = method,
-    #                     scale = scale, force = force)
-
-    veloMat <- NULL
-    if (!is.null(veloGraph)) {
-        if (ncol(veloGraph) != nrow(veloGraph) ||
-            !all(rownames(simMat) %in% rownames(veloGraph))) {
-            stop("`veloGraph must be of shape N x N and has dimnames covering ",
-                 "all cells in `object`.")
-        }
-        veloGraph <- veloGraph[rownames(simMat), rownames(simMat)]
-        veloMat <- aggrVeloGraph(veloGraph, clusterVar = vertClust,
-                                 vertices = vertices)
-    }
-
-    if (isFALSE(splitCluster)) plotTernary(object = simMat,
-                                           veloMat = veloMat,
-                                           dotColor = dotColor,
-                                           ...)
-    else {
-        if (isTRUE(clusterTitle)) {
-            plotList <- lapply(levels(clusterVar), function(clust) {
-                plotTernary(simMat[clusterVar == clust,],
-                            veloMat = veloMat[clusterVar == clust,],
-                            dotColor = dotColor[clusterVar == clust],
-                            title = clust, ...)
-            })
-            plotList$allCells <- plotTernary(simMat,
-                                             veloMat = veloMat,
-                                             dotColor = dotColor,
-                                             title = "All cells", ...)
-        } else {
-            plotList <- lapply(levels(clusterVar), function(clust) {
-                plotTernary(simMat[clusterVar == clust,],
-                            veloMat = veloMat[clusterVar == clust,],
-                            dotColor = dotColor[clusterVar == clust],
-                            ...)
-            })
-            plotList$allCells <- plotTernary(simMat,
-                                             veloMat = veloMat,
-                                             dotColor = dotColor, ...)
-        }
-        names(plotList) <- c(levels(clusterVar), "allCells")
-        return(plotList)
-    }
-}
-
-#' @param features For "Seurat" method. Valid row subsetting index that
-#' selects features. Default \code{NULL} uses all available features.
-#' @param slot For "Seurat" method, choose from \code{"data"},
-#' \code{"scale.data"} or \code{"counts"}. Default \code{"data"}.
-#' @param assay For "Seurat" method, the specific assay to get data from.
-#' Default \code{NULL} to the default assay.
-#' @rdname plotTernary
-#' @export
-#' @method plotTernary Seurat
-#' @examples
-#'
-#' # Seurat example
-#' if (FALSE) {
-#'     srt <- CreateSeuratObject(rnaRaw)
-#'     Idents(srt) <- rnaCluster
-#'     srt <- colNormalize(srt)
-#'     gene <- selectTopFeatures(srt, vertices = c("OS", "RE", "CH"))
-#'     srt <- colNormalize(srt, scaleFactor = 1e4, log = TRUE)
-#'     plotTernary(srt, features = geneSel, vertices = c("OS", "RE", "CH"))
-#' }
-plotTernary.Seurat <- function(
-        object,
-        features = NULL,
-        slot = "data",
-        assay = NULL,
-        clusterVar = NULL,
-        ...
-) {
-    values <- .getSeuratData(object, features = features,
-                             slot = slot, assay = assay,
-                             clusterVar = clusterVar)
-    plotTernary(values[[1]], clusterVar = values[[2]], ...)
-}
-
-#' @param subset.row For "SingleCellExperiment" methods. Valid row subsetting
-#' index that selects features. Default \code{NULL} uses all available features.
-#' @param assay.type For "SingleCellExperiment" methods. Which assay to use for
-#' calculating the similarity. Default \code{"logcounts"}.
-#' @rdname plotTernary
-#' @export
-#' @method plotTernary SingleCellExperiment
-#' @examples
-#'
-#' # SingleCellExperiment example
-#' if (FALSE) {
-#'     library(SingleCellExperiment)
-#'     sce <- SingleCellExperiment(assays = list(counts = rnaRaw))
-#'     colLabels(sce) <- rnaCluster
-#'     sce <- colNormalize(sce)
-#'     gene <- selectTopFeatures(sce, vertices = c("OS", "RE", "CH"))
-#'     sce <- colNormalize(sce, scaleFactor = 1e4, log = TRUE)
-#'     plotTernary(sce, subset.row = gene, vertices = c("OS", "RE", "CH"))
-#' }
-plotTernary.SingleCellExperiment <- function(
-        object,
-        assay.type = "logcounts",
-        subset.row = NULL,
-        clusterVar = NULL,
-        ...
-) {
-    values <- .getSCEData(object, subset.row = subset.row,
-                          assay.type = assay.type,
-                          clusterVar = clusterVar)
-    plotTernary(values[[1]], clusterVar = values[[2]], ...)
-}
-
-#' #' @rdname plotTernary
-#' #' @param useDatasets For liger method, select datasets where the distance
-#' #' calculation should only be limited within this range. Default \code{NULL}
-#' #' uses all datasets.
-#' #' @param features For container object methods. Valid row subsetting index that
-#' #' selects features. Default \code{NULL}.
-#' #' @export
-#' #' @method plotTernary liger
-#' plotTernary.liger <- function(
-#'         object,
-#'         clusterVar,
-#'         features = NULL,
-#'         useDatasets = NULL,
-#'         ...
-#' ) {
-#'     values <- .ligerPrepare(object, clusterVar, features, useDatasets)
-#'     plotTernary(values[[1]], clusterVar = values[[2]], ...)
-#' }

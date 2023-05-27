@@ -5,7 +5,7 @@
 \title{Create GIF image for dynamic rotating view of 3D quaternary simplex plot}
 \usage{
 writeQuaternaryGIF(
-  object,
+  x,
   ...,
   useCluster = NULL,
   gifPath = "quaternary.gif",
@@ -15,7 +15,7 @@ writeQuaternaryGIF(
 )
 }
 \arguments{
-\item{object}{Input object that \code{\link{plotQuaternary}} accepts.}
+\item{x}{Input object that \code{\link{plotQuaternary}} accepts.}
 
 \item{...}{All other arguments needed for \code{\link{plotQuaternary}},
 except \code{theta} which controls the rotation.}
@@ -29,7 +29,8 @@ need to view the plot for specific group. Default \code{NULL} plot all cells.}
 perspectives created. Default \code{file.path(getwd(),
 "quaternary_gif_tmp/")}.}
 
-\item{fps}{Number of frame per second. Default \code{10}.}
+\item{fps}{Number of frame per second, must be a factor of 100. Default
+\code{10}.}
 
 \item{degreePerFrame}{Number of degree that the tetrahedron is rotated per
 frame. Default \code{10}.}
@@ -43,7 +44,8 @@ created at \code{gifPath}.
 Create GIF image for dynamic rotating view of 3D quaternary simplex plot
 }
 \examples{
-rnaLog <- colNormalize(rnaRaw, 1e4, TRUE)
 gene <- selectTopFeatures(rnaRaw, rnaCluster, c("RE", "OS", "CH", "ORT"))
-writeQuaternaryGIF(rnaLog[gene, ], rnaCluster, c("RE", "OS", "CH", "ORT"))
+if (FALSE)
+    writeQuaternaryGIF(rnaRaw, clusterVar = rnaCluster, features = gene,
+                       vertices = c("RE", "OS", "CH", "ORT"))
 }

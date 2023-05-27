@@ -14,6 +14,7 @@ selectTopFeatures(x, clusterVar, vertices, ...)
   clusterVar,
   vertices,
   nTop = 30,
+  processed = FALSE,
   lfcThresh = 0.1,
   returnStats = FALSE,
   ...
@@ -24,29 +25,22 @@ selectTopFeatures(x, clusterVar, vertices, ...)
   clusterVar = NULL,
   vertices,
   assay = NULL,
-  slot = "data",
+  slot = c("counts", "data", "scale.data"),
   ...
 )
 
-\method{selectTopFeatures}{SingleCellExperiment}(
-  x,
-  clusterVar = NULL,
-  vertices,
-  assay.type = "normcounts",
-  ...
-)
+\method{selectTopFeatures}{SingleCellExperiment}(x, clusterVar = NULL, vertices, assay.type = "counts", ...)
 }
 \arguments{
-\item{x}{Dense or sparse matrix, observation per column. Must be library size
-normalized but not log-transformed. Alternatively, a \code{Seurat} object or
-a \code{SingleCellExperiment} object with library size normalized data
-available.}
+\item{x}{Dense or sparse matrix, observation per column. Preferrably a raw
+count matrix. Alternatively, a \code{Seurat} object or a
+\code{SingleCellExperiment} object.}
 
 \item{clusterVar}{A vector/factor assigning the cluster variable to each
-column of the matrix object. For "Seurat" method, leave \code{NULL} for using
-default "Idents", or can also be a variable in \code{meta.data} slot. For
-"SingleCellExperiment" method, leave \code{NULL} for using "colLabels", or
-can be a variable in \code{colData} slot.}
+column of the matrix object. For "Seurat" method, \code{NULL} (default) for
+\code{Idents(x)}, or a variable name in \code{meta.data} slot. For
+"SingleCellExperiment" method, \code{NULL} (default) for \code{colLabels(x)},
+or a variable name in \code{colData} slot.}
 
 \item{vertices}{Vector of cluster names that will be used for plotting. Or a
 named list that groups clusters as a terminal vertex. There must not be any
@@ -54,8 +48,13 @@ overlap between groups.}
 
 \item{...}{Arguments passed to methods.}
 
-\item{nTop}{Number of top differentially presented features per cluster.
+\item{nTop}{Number of top differentially presented features per terminal.
 Default \code{30}.}
+
+\item{processed}{Logical. Whether the input matrix is already processed.
+\code{TRUE} will bypass internal preprocessing and input matrix will be
+directly used for rank-sum calculation. Default \code{FALSE} and raw count
+input is recommended.}
 
 \item{lfcThresh}{Threshold on log fold-change to identify up-regulated
 features. Default \code{0.1}.}
@@ -65,9 +64,11 @@ rather then returning the selected genes. Default \code{FALSE}}
 
 \item{assay}{Assay name of the Seurat object to be used. Default \code{NULL}.}
 
-\item{slot}{Slot name of the Seurat object to be used. Default \code{"data"}.}
+\item{slot}{Slot name of the Seurat object to be used. Default
+\code{"counts"}.}
 
-\item{assay.type}{Assay name of the SingleCellExperiment object to be used.}
+\item{assay.type}{Assay name of the SingleCellExperiment object to be used.
+Default \code{"counts"}.}
 }
 \value{
 When \code{returnStats = FALSE} (default), a character vector of at
@@ -75,27 +76,27 @@ most \code{length(unique(vertices))*nTop} feature names. When
 \code{returnStats = TRUE}, a data.frame of wilcoxon rank sum test statistics.
 }
 \description{
-Performs wilcoxon rank sum test on input matrix. Comparisons are formed by
-observations in each group, as defined by \code{clusterVar}, against the
-other observations. The U-Statistics (\code{statistic}), p-value
-(\code{pval}) and adjusted p-value (\code{padj}), together with average
-presence in group (\code{avgExpr}), log fold-change (\code{logFC}), AUC
-(\code{auc}), percentage in group (\code{pct_in}) and percentage out of group
-(\code{pct_out}) will be calculated.
+Performs wilcoxon rank-sum test on input matrix. While \code{clusterVar} and
+\code{vertices} together defines the groups of cells to be set as terminals
+of the simplex, this function will test each of these groups against the rest
+of the cells. The U-Statistics (\code{statistic}), p-value (\code{pval}) and
+adjusted p-value (\code{padj}), together with average presence in group
+(\code{avgExpr}), log fold-change (\code{logFC}), AUC (\code{auc}),
+percentage in group (\code{pct_in}) and percentage out of group
+(\code{pct_out}) will be calculated. Set \code{returnStats = TRUE} to return
+the full statistics table.
 
 Top features are selected by sorting primarily on adjusted p-value, and
 secondarily on log fold-change, after filtering for up-regulated features.
 }
 \examples{
-rnaNorm <- colNormalize(rnaRaw)
-selectTopFeatures(rnaNorm, rnaCluster, c("OS", "RE"))
+selectTopFeatures(rnaRaw, rnaCluster, c("OS", "RE"))
 
 # Seurat example
 if (FALSE) {
     library(Seurat)
     srt <- CreateSeuratObject(rnaRaw)
     Idents(srt) <- rnaCluster
-    srt <- colNormalize(srt)
     gene <- selectTopFeatures(srt, vertices = c("OS", "RE"))
 }
 
@@ -104,7 +105,6 @@ if (FALSE) {
     library(SingleCellExperiment)
     sce <- SingleCellExperiment(assays = list(counts = rnaRaw))
     colLabels(sce) <- rnaCluster
-    sce <- colNormalize(sce)
     gene <- selectTopFeatures(sce, vertices = c("OS", "RE"))
 }
 }

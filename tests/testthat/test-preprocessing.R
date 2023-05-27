@@ -6,6 +6,15 @@ data("rnaRaw", package = "scPlotSimplex")
 data("rnaCluster", package = "scPlotSimplex")
 vertices <- c("OS", "RE")
 
+test_that("Raw count detection", {
+    m.double <- rnaRaw
+    m.double@x[1] <- m.double@x[1] + 0.1
+    expect_false(scPlotSimplex:::is.rawCounts(m.double))
+    m.double <- as.matrix(m.double)
+    expect_false(scPlotSimplex:::is.rawCounts(m.double))
+    expect_false(scPlotSimplex:::is.rawCounts("m.double"))
+})
+
 test_that("Test preprocessing - sparse", {
     expect_error(colNormalize("hello"), "Input matrix of class")
     rnaNorm <- colNormalize(rnaRaw)
@@ -31,6 +40,9 @@ test_that("Test wilcoxon - sparse", {
                                    vertices = list(a = c("OS", "RE"),
                                                    b = c("OS", "CH"))),
                  "Overlap found between elements in list")
+    rnaNorm <- colNormalize(rnaRaw)
+    expect_warning(selectTopFeatures(rnaNorm, rnaCluster, vertices),
+                   "Input matrix is not raw counts")
     gene <- selectTopFeatures(rnaRaw, rnaCluster, vertices)
     expect_equal(length(gene), 60)
 

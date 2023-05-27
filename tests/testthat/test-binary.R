@@ -6,58 +6,54 @@ data("rnaRaw", package = "scPlotSimplex")
 data("rnaCluster", package = "scPlotSimplex")
 vertices <- c("OS", "RE")
 gene <- selectTopFeatures(rnaRaw, rnaCluster, vertices)
-rnaLog <- colNormalize(rnaRaw, scaleFactor = 1e4, log = TRUE)
 
 test_that("Test binary - sparse", {
-    expect_error(plotBinary(rnaLog[gene,], rnaCluster[1:100], c("CH", "ORT")),
+    expect_error(plotBinary(rnaRaw, rnaCluster[1:100], c("CH", "ORT")),
                  "Length of `clusterVar` must match")
-    expect_error(plotBinary(rnaLog[gene,], rnaCluster, "hi"),
+    expect_error(plotBinary(rnaRaw, rnaCluster, "hi"),
                  "Must specify 2 different vertices.")
-    expect_error(plotBinary(rnaLog[gene,], rnaCluster, c("hi", "hey")),
+    expect_error(plotBinary(rnaRaw, rnaCluster, c("hi", "hey")),
                  "Specified vertex clusters are not all found in the cluster ")
-    expect_error(plotBinary(rnaLog[gene,], rnaCluster, vertices,
-                            dotColor = c("a", "b")),
+    expect_error(plotBinary(rnaRaw, rnaCluster, vertices, dotColor = c("a", "b")),
                  "`dotColor` need to be either 1")
-    expect_error(plotBinary(rnaLog, rnaCluster, vertices),
+    expect_error(plotBinary(rnaRaw, rnaCluster, vertices),
                  "Detected more than 500")
 
-    expect_warning(plotBinary(rnaLog[gene,], rnaCluster, c(vertices, "CH")),
+    expect_warning(plotBinary(rnaRaw, rnaCluster, c(vertices, "CH"), features = gene),
                    "2 vertices are expected while 3 are specified")
-
+    rnaNorm <- colNormalize(rnaRaw)
+    expect_warning(plotBinary(rnaNorm, rnaCluster, vertices, gene),
+                   "Input matrix is not raw counts")
     rnaCluster.char <- as.character(rnaCluster)
-    p <- plotBinary(rnaLog[gene,], rnaCluster.char, vertices)
+    p <- plotBinary(rnaRaw, rnaCluster.char, vertices, gene)
     expect_s3_class(p, "ggplot")
 
     expect_no_error(
-        plotBinary(rnaLog[gene,], rnaCluster, vertices, method = "cosine")
+        plotBinary(rnaRaw, rnaCluster, vertices, gene, method = "cosine")
     )
     expect_no_error(
-        plotBinary(rnaLog[gene,], rnaCluster, vertices, method = "pearson")
+        plotBinary(rnaRaw, rnaCluster, vertices, gene, method = "pearson")
     )
     expect_no_error(
-        plotBinary(rnaLog[gene,], rnaCluster, vertices, method = "spearman")
+        plotBinary(rnaRaw, rnaCluster, vertices, gene, method = "spearman")
     )
 
-    pl <- plotBinary(rnaLog[gene,], rnaCluster, vertices, splitCluster = TRUE)
+    pl <- plotBinary(rnaRaw, rnaCluster, vertices, gene, splitCluster = TRUE)
     expect_identical(class(pl), "list")
+    expect_s3_class(pl[[1]], "ggplot")
 
-    pl <- plotBinary(rnaLog[gene,], rnaCluster, vertices, splitCluster = TRUE,
+    pl <- plotBinary(rnaRaw, rnaCluster, vertices, gene, splitCluster = TRUE,
                      clusterTitle = FALSE)
     expect_identical(class(pl), "list")
+    expect_s3_class(pl[[1]], "ggplot")
 })
 
 test_that("Test binary - dense", {
-    rnaLogSub <- as.matrix(rnaLog[gene,])
-    p <- plotBinary(rnaLogSub, rnaCluster, vertices)
+    rnaRawSub <- as.matrix(rnaRaw[gene,])
+    p <- plotBinary(rnaRawSub, rnaCluster, vertices)
     expect_s3_class(p, "ggplot")
 
     expect_no_error(
-        plotBinary(rnaLogSub, rnaCluster, vertices, method = "cosine")
-    )
-    expect_no_error(
-        plotBinary(rnaLogSub, rnaCluster, vertices, method = "pearson")
-    )
-    expect_no_error(
-        plotBinary(rnaLogSub, rnaCluster, vertices, method = "spearman")
+        plotBinary(rnaRawSub, rnaCluster, vertices, method = "cosine")
     )
 })

@@ -2,16 +2,50 @@
 % Please edit documentation in R/ternary.R
 \name{plotTernary}
 \alias{plotTernary}
-\alias{plotTernary.simMat}
 \alias{plotTernary.default}
 \alias{plotTernary.Seurat}
 \alias{plotTernary.SingleCellExperiment}
+\alias{plotTernary.simMat}
 \title{Create ternary plots}
 \usage{
-plotTernary(object, ...)
+plotTernary(x, ...)
+
+\method{plotTernary}{default}(
+  x,
+  clusterVar,
+  vertices,
+  features = NULL,
+  veloGraph = NULL,
+  processed = FALSE,
+  method = c("euclidean", "cosine", "pearson", "spearman"),
+  force = FALSE,
+  sigma = 0.08,
+  scale = TRUE,
+  splitCluster = FALSE,
+  clusterTitle = TRUE,
+  dotColor = "grey60",
+  ...
+)
+
+\method{plotTernary}{Seurat}(
+  x,
+  slot = c("counts", "data", "scale.data"),
+  assay = NULL,
+  clusterVar = NULL,
+  processed = FALSE,
+  ...
+)
+
+\method{plotTernary}{SingleCellExperiment}(
+  x,
+  assay.type = "counts",
+  clusterVar = NULL,
+  processed = FALSE,
+  ...
+)
 
 \method{plotTernary}{simMat}(
-  object,
+  x,
   title = NULL,
   veloMat = NULL,
   nGrid = 10,
@@ -31,43 +65,69 @@ plotTernary(object, ...)
   margin = 0.1,
   ...
 )
-
-\method{plotTernary}{default}(
-  object,
-  clusterVar,
-  vertices,
-  veloGraph = NULL,
-  method = c("euclidean", "cosine", "pearson", "spearman"),
-  force = FALSE,
-  sigma = 0.08,
-  scale = TRUE,
-  splitCluster = FALSE,
-  clusterTitle = TRUE,
-  dotColor = "grey60",
-  ...
-)
-
-\method{plotTernary}{Seurat}(
-  object,
-  features = NULL,
-  slot = "data",
-  assay = NULL,
-  clusterVar = NULL,
-  ...
-)
-
-\method{plotTernary}{SingleCellExperiment}(
-  object,
-  assay.type = "logcounts",
-  subset.row = NULL,
-  clusterVar = NULL,
-  ...
-)
 }
 \arguments{
-\item{object}{An object}
+\item{x}{Input data. Can be a \code{matrix} or \code{dgCMatrix} object with
+cells as columns, a \code{Seurat} or \code{SingleCellExperiment} object.
+"simMat" method takes intermediate values.}
 
 \item{...}{Arguments passed to other methods.}
+
+\item{clusterVar}{A vector/factor assigning the cluster variable to each
+column of the matrix object. For "Seurat" method, \code{NULL} (default) for
+\code{Idents(x)}, or a variable name in \code{meta.data} slot. For
+"SingleCellExperiment" method, \code{NULL} (default) for \code{colLabels(x)},
+or a variable name in \code{colData} slot.}
+
+\item{vertices}{Vector of three unique cluster names that will be used for
+plotting. Or a named list that groups clusters as three terminal vertices.
+There must not be any overlap between groups.}
+
+\item{features}{Valid matrix row subsetting index to select features for
+similarity calculation. Default \code{NULL} uses all available features.}
+
+\item{veloGraph}{Cell x cell \code{dgCMatrix} object containing velocity
+information. Shows velocity grid-arrow layer when specified. Default
+\code{NULL} does not show velocity.}
+
+\item{processed}{Logical. Whether the input matrix is already processed.
+\code{TRUE} will bypass internal preprocessing and input matrix will be
+directly used for similarity calculation. Default \code{FALSE} and raw count
+input is recommended. If missing in call, using \code{slot = "counts"} in
+"Seurat" method or using \code{assay.type = "counts"} in
+"SingleCellExperiment" method will force this argument to be \code{FALSE} and
+others for \code{TRUE}.}
+
+\item{method}{Similarity calculation method. Default \code{"euclidean"}.
+Choose from \code{"euclidean"}, \code{"cosine"}, \code{"pearson"},
+\code{"spearman"}.}
+
+\item{force}{Whether to force calculate the similarity when more then 500
+features are detected, which is generally not recommended. Default
+\code{FALSE}.}
+
+\item{sigma}{Gaussian kernel parameter that controls the effect of variance.
+Only effective when using a distance metric (i.e. \code{method} is
+\code{"euclidian"} or \code{"cosine"}). Larger values tighten the dot
+spreading on figure. Default \code{0.08}.}
+
+\item{scale}{Whether to min-max scale the distance matrix by clusters.
+Default \code{TRUE}.}
+
+\item{splitCluster}{Logical, whether to return a list of plots where each
+contains cells belonging to only one cluster. Default \code{FALSE}.}
+
+\item{clusterTitle}{If \code{splitCluster = TRUE}, whether to title each
+subplot by the name of each cluster. Default \code{TRUE}.}
+
+\item{slot}{For "Seurat" method, choose from \code{"counts"},
+\code{"data"} or \code{"scale.data"}. Default \code{"counts"}.}
+
+\item{assay}{For "Seurat" method, the specific assay to get data from.
+Default \code{NULL} to the default assay.}
+
+\item{assay.type}{For "SingleCellExperiment" methods. Which assay to use for
+calculating the similarity. Default \code{"counts"}.}
 
 \item{title}{Title text of the plot. Default \code{NULL}.}
 
@@ -108,57 +168,6 @@ equilateral. Default \code{TRUE}.}
 
 \item{margin}{Margin allowed around of the triangle plotting region when
 \code{equilateral = TRUE}}
-
-\item{clusterVar}{A vector/factor assigning the cluster variable to each
-column of the matrix object. For "Seurat" method, leave \code{NULL} for using
-default "Idents", or can also be a variable in \code{meta.data} slot. For
-"SingleCellExperiment" method, leave \code{NULL} for using "colLabels", or
-can be a variable in \code{colData} slot.}
-
-\item{vertices}{Vector of three unique cluster names that will be used for
-plotting. Or a named list that groups clusters as three terminal vertices.
-There must not be any overlap between groups.}
-
-\item{veloGraph}{Cell x cell dgCMatrix object containing velocity
-information. Shows velocity grid-arrow layer when specified. Default
-\code{NULL} does not show velocity.}
-
-\item{method}{Distance calculation method. Default \code{"euclidean"}.
-Choose from \code{"euclidean"}, \code{"cosine"}, \code{"pearson"},
-\code{"spearman"}.}
-
-\item{force}{Whether to force calculate the distance when more then 500
-features are detected, which is generally not recommended. Default
-\code{FALSE}.}
-
-\item{sigma}{Gaussian kernel parameter that controls the effect of variance.
-Only effective when using a distance metric (i.e. \code{method} is
-\code{"euclidian"} or \code{"cosine"}). Larger value tighten the dot
-spreading on figure. Default \code{0.08}.}
-
-\item{scale}{Whether to min-max scale the distance matrix by clusters.
-Default \code{TRUE}.}
-
-\item{splitCluster}{Logical, whether to return a list of plots where each
-contains cells belonging to only one cluster. Default \code{FALSE}.}
-
-\item{clusterTitle}{If \code{splitCluster = TRUE}, whether to title each
-subplot by the name of each cluster. Default \code{TRUE}.}
-
-\item{features}{For "Seurat" method. Valid row subsetting index that
-selects features. Default \code{NULL} uses all available features.}
-
-\item{slot}{For "Seurat" method, choose from \code{"data"},
-\code{"scale.data"} or \code{"counts"}. Default \code{"data"}.}
-
-\item{assay}{For "Seurat" method, the specific assay to get data from.
-Default \code{NULL} to the default assay.}
-
-\item{assay.type}{For "SingleCellExperiment" methods. Which assay to use for
-calculating the similarity. Default \code{"logcounts"}.}
-
-\item{subset.row}{For "SingleCellExperiment" methods. Valid row subsetting
-index that selects features. Default \code{NULL} uses all available features.}
 }
 \value{
 For "simMat" method, a ggplot object. For other methods, a ggplot
@@ -167,32 +176,33 @@ object when \code{splitCluster = FALSE}, or a list of ggplot objects when
 }
 \description{
 Create ternary plots that show similarity between single cells and
-selected three terminals in a triangle 2D space.
+selected three terminals in a ternary baricentric coordinate.
 }
 \details{
-\bold{Argument inheritance} - For matrix/dgCMatrix input object ("default"
-method), we first calculate the similarity matrix and obtain a "simMat"
-object. Then we call the "simMat" method. For data container objects
-(e.g. Seurat), we obtain the correct data matrix first and then call the
-"default" method. Therefore, the arguments inherits as the flow
-described above.
+\bold{Argument inheritance} - For matrix/dgCMatrix ("default" method), we
+first calculate the similarity matrix and obtain a "simMat" object. Then the
+"simMat" method is internally called. For data container objects (e.g.
+Seurat), we obtain the correct data matrix first and then call the "default"
+method. The arguments inherits as the flow described above.
 
-\bold{The calculation of similarity matrix} - TODO
+\bold{The calculation of similarity matrix} - The similarity is calculated
+either by converting a distance metric ("euclidean" or "cosine") with
+Gaussian kernel, or directly computed with correlation metrics ("pearson" or
+"spearman"). The centroid of each terminal is obtained first, and the
+specified metric from each cell to each terminal is calculated. The
+similarity matrix (n cells by v terminals) is lastly normalized to sum to 1
+for each cell, so it becomes a baricentric coordinate.
 }
 \examples{
-rnaNorm <- colNormalize(rnaRaw)
-gene <- selectTopFeatures(rnaNorm, rnaCluster, c("OS", "RE", "CH"))
-rnaLog <- colNormalize(rnaRaw, 1e4, TRUE)
-plotTernary(rnaLog[gene, ], rnaCluster, c("OS", "RE", "CH"))
+gene <- selectTopFeatures(rnaRaw, rnaCluster, c("OS", "RE", "CH"))
+plotTernary(rnaRaw, rnaCluster, c("OS", "RE", "CH"), gene)
 
 # Seurat example
 if (FALSE) {
     srt <- CreateSeuratObject(rnaRaw)
     Idents(srt) <- rnaCluster
-    srt <- colNormalize(srt)
     gene <- selectTopFeatures(srt, vertices = c("OS", "RE", "CH"))
-    srt <- colNormalize(srt, scaleFactor = 1e4, log = TRUE)
-    plotTernary(srt, features = geneSel, vertices = c("OS", "RE", "CH"))
+    plotTernary(srt, features = gene, vertices = c("OS", "RE", "CH"))
 }
 
 # SingleCellExperiment example
@@ -200,9 +210,7 @@ if (FALSE) {
     library(SingleCellExperiment)
     sce <- SingleCellExperiment(assays = list(counts = rnaRaw))
     colLabels(sce) <- rnaCluster
-    sce <- colNormalize(sce)
     gene <- selectTopFeatures(sce, vertices = c("OS", "RE", "CH"))
-    sce <- colNormalize(sce, scaleFactor = 1e4, log = TRUE)
-    plotTernary(sce, subset.row = gene, vertices = c("OS", "RE", "CH"))
+    plotTernary(sce, features = gene, vertices = c("OS", "RE", "CH"))
 }
 }

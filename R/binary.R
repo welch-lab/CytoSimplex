@@ -1,11 +1,15 @@
 #' Create binary plots
 #' @description
 #' Create binary plots that show similarity between single cells and two
-#' selected terminals in a 2D space. The two vertices are placed at the left and
-#' right of a 2D plot where x-axis measures the similarity. Y-axis is jittered
-#' for a clear view. A density (histogram) curve is added for indicating the
-#' distribution.
-#' @param object An object
+#' selected terminals in a barycentric coordinate. The two vertices are placed
+#' at the left and right of a 2D plot where x-axis measures the similarity.
+#' Y-axis is jittered for a clear view. A density (histogram) curve is added for
+#' indicating the distribution.
+#'
+#' See \code{\link{plotTernary}} manual for more details.
+#' @param x Input data. Can be a \code{matrix} or \code{dgCMatrix} object with
+#' cells as columns, a \code{Seurat} or \code{SingleCellExperiment} object.
+#' "simMat" method takes intermediate values.
 #' @param ... Arguments passed to other methods.
 #' @rdname plotBinary
 #' @export plotBinary
@@ -13,13 +17,190 @@
 #' object when \code{splitCluster = FALSE}, or a list of ggplot objects when
 #' \code{splitCluster = TRUE}.
 #' @examples
-#' rnaNorm <- colNormalize(rnaRaw)
-#' gene <- selectTopFeatures(rnaNorm, rnaCluster, c("RE", "OS"))
-#' rnaLog <- colNormalize(rnaRaw, 1e4, TRUE)
-#' plotBinary(rnaLog[gene, ], rnaCluster, c("RE", "OS"))
-plotBinary <- function(object, ...) {
-    UseMethod('plotBinary', object)
+#' gene <- selectTopFeatures(rnaRaw, rnaCluster, c("RE", "OS"))
+#' plotBinary(rnaRaw, rnaCluster, c("RE", "OS"), gene)
+plotBinary <- function(x, ...) {
+    UseMethod('plotBinary', x)
 }
+
+#' @param clusterVar A vector/factor assigning the cluster variable to each
+#' column of the matrix object. For "Seurat" method, \code{NULL} (default) for
+#' \code{Idents(x)}, or a variable name in \code{meta.data} slot. For
+#' "SingleCellExperiment" method, \code{NULL} (default) for \code{colLabels(x)},
+#' or a variable name in \code{colData} slot.
+#' @param vertices Vector of three unique cluster names that will be used for
+#' plotting. Or a named list that groups clusters as three terminal vertices.
+#' There must not be any overlap between groups.
+#' @param features Valid matrix row subsetting index to select features for
+#' similarity calculation. Default \code{NULL} uses all available features.
+#' @param processed Logical. Whether the input matrix is already processed.
+#' \code{TRUE} will bypass internal preprocessing and input matrix will be
+#' directly used for similarity calculation. Default \code{FALSE} and raw count
+#' input is recommended. If missing in call, using \code{slot = "counts"} in
+#' "Seurat" method or using \code{assay.type = "counts"} in
+#' "SingleCellExperiment" method will force this argument to be \code{FALSE} and
+#' others for \code{TRUE}.
+#' @param method Similarity calculation method. Default \code{"euclidean"}.
+#' Choose from \code{"euclidean"}, \code{"cosine"}, \code{"pearson"},
+#' \code{"spearman"}.
+#' @param force Whether to force calculate the similarity when more then 500
+#' features are detected, which is generally not recommended. Default
+#' \code{FALSE}.
+#' @param sigma Gaussian kernel parameter that controls the effect of variance.
+#' Only effective when using a distance metric (i.e. \code{method} is
+#' \code{"euclidian"} or \code{"cosine"}). Larger value tighten the dot
+#' spreading on figure. Default \code{0.08}.
+#' @param scale Whether to min-max scale the distance matrix by clusters.
+#' Default \code{TRUE}.
+#' @param splitCluster Logical, whether to return a list of plots where each
+#' contains cells belonging to only one cluster. Default \code{FALSE}.
+#' @param clusterTitle If \code{splitCluster = TRUE}, whether to title each
+#' subplot by the name of each cluster. Default \code{TRUE}.
+#' @rdname plotBinary
+#' @export
+#' @method plotBinary default
+plotBinary.default <- function(
+        x,
+        clusterVar,
+        vertices,
+        features = NULL,
+        processed = FALSE,
+        method = c("euclidean", "cosine", "pearson", "spearman"),
+        force = FALSE,
+        sigma = 0.08,
+        scale = TRUE,
+        splitCluster = FALSE,
+        clusterTitle = TRUE,
+        dotColor = "grey60",
+        ...
+) {
+    method <- match.arg(method)
+    vcheck <- .checkVertex(x, clusterVar, vertices, n = 2)
+    vertClust <- vcheck[[1]]
+    vertices <- vcheck[[2]]
+    if (length(dotColor) == 1) dotColor <- rep(dotColor, ncol(x))
+    if (length(dotColor) != ncol(x)) {
+        stop("`dotColor` need to be either 1 scalar or match the number of ",
+             "samples in `x`.")
+    }
+    if (isFALSE(processed) && !is.rawCounts(x)) {
+        warning("Input matrix is not raw counts (integers). ",
+                "Results may be affected.")
+    }
+    if (isFALSE(processed)) {
+        x <- colNormalize(x, scaleFactor = 1e4, log = TRUE)
+    }
+    if (!is.null(features)) x <- x[features,]
+    simMat <- calcSim(x, clusterVar = vertClust,
+                      vertices = vertices, method = method,
+                      scale = scale, force = force, sigma = sigma)
+    if (isFALSE(splitCluster)) plotBinary(x = simMat,
+                                          dotColor = dotColor,
+                                          ...)
+    else {
+        if (isTRUE(clusterTitle)) {
+            plotList <- lapply(levels(clusterVar), function(clust) {
+                plotBinary(simMat[clusterVar == clust,], title = clust,
+                           dotColor = dotColor[clusterVar == clust],
+                           ...)
+            })
+        } else {
+            plotList <- lapply(levels(clusterVar), function(clust) {
+                plotBinary(simMat[clusterVar == clust,],
+                           dotColor = dotColor[clusterVar == clust], ...)
+            })
+        }
+        names(plotList) <- levels(clusterVar)
+        return(plotList)
+    }
+}
+
+#' @param slot For "Seurat" method, choose from \code{"counts"},
+#' \code{"data"} or \code{"scale.data"}. Default \code{"counts"}.
+#' @param assay For "Seurat" method, the specific assay to get data from.
+#' Default \code{NULL} to the default assay.
+#' @rdname plotBinary
+#' @export
+#' @method plotBinary Seurat
+#' @examples
+#'
+#' # Seurat example
+#' if (FALSE) {
+#'     srt <- CreateSeuratObject(rnaRaw)
+#'     Idents(srt) <- rnaCluster
+#'     srt <- colNormalize(srt)
+#'     gene <- selectTopFeatures(srt, vertices = c("OS", "RE"))
+#'     srt <- colNormalize(srt, scaleFactor = 1e4, log = TRUE)
+#'     plotBinary(srt, features = gene, vertices = c("OS", "RE"))
+#' }
+plotBinary.Seurat <- function(
+        x,
+        slot = c("counts", "data", "scale.data"),
+        assay = NULL,
+        clusterVar = NULL,
+        processed = FALSE,
+        ...
+) {
+    slot <- match.arg(slot)
+    values <- .getSeuratData(x, slot = slot, assay = assay,
+                             clusterVar = clusterVar)
+    if (missing(processed)) {
+        if (slot == "counts") processed <- FALSE
+        else processed <- TRUE
+    }
+    plotBinary(x = values[[1]], clusterVar = values[[2]], processed = processed,
+               ...)
+}
+
+#' @param assay.type For "SingleCellExperiment" methods. Which assay to use for
+#' calculating the similarity. Default \code{"counts"}.
+#' @rdname plotBinary
+#' @export
+#' @method plotBinary SingleCellExperiment
+#' @examples
+#'
+#' # SingleCellExperiment example
+#' if (FALSE) {
+#'     library(SingleCellExperiment)
+#'     sce <- SingleCellExperiment(assays = list(counts = rnaRaw))
+#'     colLabels(sce) <- rnaCluster
+#'     gene <- selectTopFeatures(sce, vertices = c("OS", "RE"))
+#'     plotBinary(sce, features = gene, vertices = c("OS", "RE"))
+#' }
+plotBinary.SingleCellExperiment <- function(
+        x,
+        assay.type = "counts",
+        clusterVar = NULL,
+        processed = FALSE,
+        ...
+) {
+    values <- .getSCEData(x, assay.type = assay.type, clusterVar = clusterVar)
+    if (missing(processed)) {
+        if (assay.type == "counts") processed <- FALSE
+        else processed <- TRUE
+    }
+    plotBinary(values[[1]], clusterVar = values[[2]], processed = processed,
+               ...)
+}
+
+#' #' @rdname plotBinary
+#' #' @param useDatasets For liger method, select datasets where the distance
+#' #' calculation should only be limited within this range. Default \code{NULL}
+#' #' uses all datasets.
+#' #' @param features For container object methods. Valid row subsetting index that
+#' #' selects features. Default \code{NULL}.
+#' #' @export
+#' #' @method plotBinary liger
+#' plotBinary.liger <- function(
+#'         x,
+#'         clusterVar,
+#'         features = NULL,
+#'         useDatasets = NULL,
+#'         ...
+#' ) {
+#'     values <- .ligerPrepare(x, clusterVar, features, useDatasets)
+#'     plotBinary(values[[1]], clusterVar = values[[2]], ...)
+#' }
 
 #' @rdname plotBinary
 #' @param dotSize,dotColor Dot aesthetics passed to
@@ -27,32 +208,30 @@ plotBinary <- function(object, ...) {
 #' @param densLinewidth Density plot line aesthetic. Default \code{0.8}.
 #' @param labelColors Color of the axis lines and vertex labels. Default
 #' \code{c("#3B4992FF", "#EE0000FF")} (blue and red).
-#' @param distMethod Method name used for calculating the dist.matrix object.
 #' @param title Title text of the plot. Default \code{NULL}.
 #' @export
 #' @method plotBinary simMat
 plotBinary.simMat <- function(
-        object,
+        x,
         dotSize = 0.6,
         dotColor = "grey60",
         densLinewidth = 0.8,
         labelColors = c("#3B4992FF", "#EE0000FF"),
-        distMethod = attributes(object)$method,
         title = NULL,
         ...
 ) {
-    topLAB <- colnames(object)[1]
-    bottomLAB <- colnames(object)[2]
-    object$Y <- stats::runif(nrow(object))
+    topLAB <- colnames(x)[1]
+    bottomLAB <- colnames(x)[2]
+    x$Y <- stats::runif(nrow(x))
 
-    object[,1] <- 100 * object[,1]
-    object[,2] <- 100 * object[,2]
+    x[,1] <- 100 * x[,1]
+    x[,2] <- 100 * x[,2]
     sumProp <- 100
 
     # top <- bottom <- NULL
     # NEVER REMOVE "ggplot2::", the imported namespace has problem with
     # rlang ".data" pronoun
-    p <- ggplot(object, ggplot2::aes(x = .data[[bottomLAB]],
+    p <- ggplot(x, ggplot2::aes(x = .data[[bottomLAB]],
                                      y = .data[["Y"]])) +
         geom_point(color = dotColor, size = dotSize, stroke = 0.2) +
         geom_density(
@@ -84,162 +263,3 @@ plotBinary.simMat <- function(
                                                 linetype = 3))
     return(p)
 }
-
-#' @param clusterVar A vector/factor assigning the cluster variable to each
-#' column of the matrix object. For "Seurat" method, leave \code{NULL} for using
-#' default "Idents", or can also be a variable in \code{meta.data} slot. For
-#' "SingleCellExperiment" method, leave \code{NULL} for using "colLabels", or
-#' can be a variable in \code{colData} slot.
-#' @param vertices Vector of two unique cluster names that will be used for
-#' plotting. Or a named list that groups clusters as two terminal vertices.
-#' There must not be any overlap between groups.
-#' @param method Distance calculation method. Default \code{"euclidean"}.
-#' Choose from \code{"euclidean"}, \code{"cosine"}, \code{"pearson"},
-#' \code{"spearman"}.
-#' @param force Whether to force calculate the distance when more then 500
-#' features are detected, which is generally not recommended. Default
-#' \code{FALSE}.
-#' @param sigma Gaussian kernel parameter that controls the effect of variance.
-#' Only effective when using a distance metric (i.e. \code{method} is
-#' \code{"euclidian"} or \code{"cosine"}). Larger value tighten the dot
-#' spreading on figure. Default \code{0.08}.
-#' @param scale Whether to min-max scale the distance matrix by clusters.
-#' Default \code{TRUE}.
-#' @param splitCluster Logical, whether to return a list of plots where each
-#' contains cells belonging to only one cluster. Default \code{FALSE}.
-#' @param clusterTitle If \code{splitCluster = TRUE}, whether to title each
-#' subplot by the name of each cluster. Default \code{TRUE}.
-#' @rdname plotBinary
-#' @export
-#' @method plotBinary default
-plotBinary.default <- function(
-        object,
-        clusterVar,
-        vertices,
-        method = c("euclidean", "cosine", "pearson", "spearman"),
-        force = FALSE,
-        sigma = 0.08,
-        scale = TRUE,
-        splitCluster = FALSE,
-        clusterTitle = TRUE,
-        dotColor = "grey60",
-        ...
-) {
-    method <- match.arg(method)
-    vcheck <- .checkVertex(object, clusterVar, vertices, n = 2)
-    vertClust <- vcheck[[1]]
-    vertices <- vcheck[[2]]
-    if (length(dotColor) == 1) dotColor <- rep(dotColor, ncol(object))
-    if (length(dotColor) != ncol(object)) {
-        stop("`dotColor` need to be either 1 scalar or match the number of ",
-             "samples in `object`.")
-    }
-    simMat <- calcSim(object, clusterVar = vertClust,
-                       vertices = vertices, method = method,
-                       scale = scale, force = force, sigma = sigma)
-    # simMat <- calcDist(object, clusterVar = vertClust,
-    #                     vertices = vertices, method = method,
-    #                     scale = scale, force = force)
-    if (isFALSE(splitCluster)) plotBinary(object = simMat,
-                                          dotColor = dotColor,
-                                          ...)
-    else {
-        if (isTRUE(clusterTitle)) {
-            plotList <- lapply(levels(clusterVar), function(clust) {
-                plotBinary(simMat[clusterVar == clust,], title = clust,
-                           dotColor = dotColor[clusterVar == clust],
-                           ...)
-            })
-        } else {
-            plotList <- lapply(levels(clusterVar), function(clust) {
-                plotBinary(simMat[clusterVar == clust,],
-                           dotColor = dotColor[clusterVar == clust], ...)
-            })
-        }
-        names(plotList) <- levels(clusterVar)
-        return(plotList)
-    }
-}
-
-#' @param features For container object methods. Valid row subsetting index that
-#' selects features. Default \code{NULL} uses all available features.
-#' @param slot For Seurat method, choose from \code{"data"},
-#' \code{"scale.data"} or \code{"counts"}. Default \code{"data"}.
-#' @param assay For Seurat method, the specific assay to get data from. Default
-#' \code{NULL} to the default assay.
-#' @rdname plotBinary
-#' @export
-#' @method plotBinary Seurat
-#' @examples
-#'
-#' # Seurat example
-#' if (FALSE) {
-#'     srt <- CreateSeuratObject(rnaRaw)
-#'     Idents(srt) <- rnaCluster
-#'     srt <- colNormalize(srt)
-#'     gene <- selectTopFeatures(srt, vertices = c("OS", "RE"))
-#'     srt <- colNormalize(srt, scaleFactor = 1e4, log = TRUE)
-#'     plotBinary(srt, features = gene, vertices = c("OS", "RE"))
-#' }
-plotBinary.Seurat <- function(
-        object,
-        features = NULL,
-        slot = "data",
-        assay = NULL,
-        ...
-) {
-    values <- .getSeuratData(object, features = features,
-                             slot = slot, assay = assay)
-    plotBinary(values[[1]], values[[2]], ...)
-}
-
-#' @param subset.row For "SingleCellExperiment" methods. Valid row subsetting
-#' index that selects features. Default \code{NULL} uses all available features.
-#' @param assay.type For "SingleCellExperiment" methods. Which assay to use for
-#' calculating the similarity. Default \code{"logcounts"}.
-#' @rdname plotBinary
-#' @export
-#' @method plotBinary SingleCellExperiment
-#' @examples
-#'
-#' # SingleCellExperiment example
-#' if (FALSE) {
-#'     library(SingleCellExperiment)
-#'     sce <- SingleCellExperiment(assays = list(counts = rnaRaw))
-#'     colLabels(sce) <- rnaCluster
-#'     sce <- colNormalize(sce)
-#'     gene <- selectTopFeatures(sce, vertices = c("OS", "RE"))
-#'     sce <- colNormalize(sce, scaleFactor = 1e4, log = TRUE)
-#'     plotBinary(sce, subset.row = gene, vertices = c("OS", "RE"))
-#' }
-plotBinary.SingleCellExperiment <- function(
-        object,
-        subset.row = NULL,
-        assay.type = "logcounts",
-        ...
-) {
-    values <- .getSCEData(object, subset.row = subset.row,
-                          assay.type = assay.type)
-    plotBinary(values[[1]], values[[2]], ...)
-}
-
-#' #' @rdname plotBinary
-#' #' @param useDatasets For liger method, select datasets where the distance
-#' #' calculation should only be limited within this range. Default \code{NULL}
-#' #' uses all datasets.
-#' #' @param features For container object methods. Valid row subsetting index that
-#' #' selects features. Default \code{NULL}.
-#' #' @export
-#' #' @method plotBinary liger
-#' plotBinary.liger <- function(
-#'         object,
-#'         clusterVar,
-#'         features = NULL,
-#'         useDatasets = NULL,
-#'         ...
-#' ) {
-#'     values <- .ligerPrepare(object, clusterVar, features, useDatasets)
-#'     plotBinary(values[[1]], clusterVar = values[[2]], ...)
-#' }
-
-

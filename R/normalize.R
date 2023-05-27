@@ -1,5 +1,7 @@
 #' Normalize each column of the input matrix by the column sum
-#' @param x Feature by observation matrix.
+#' @param x Feature by observation matrix. Alternatively, \code{Seurat} object
+#' or \code{SingleCellExperiment} object with raw counts available are also
+#' supported.
 #' @param scaleFactor Multiplier on normalized data. Default \code{NULL}.
 #' @param log Logical. Whether to take log1p transformation after scaling.
 #' Default \code{FALSE}
@@ -54,8 +56,7 @@ colNormalize.Seurat <- function(
     slot = "counts",
     ...
 ) {
-    value <- .getSeuratData(x, features = NULL, assay = NULL, slot = slot,
-                            clusterVar = NULL)
+    value <- .getSeuratData(x, assay = assay, slot = slot, clusterVar = NULL)
     mat <- value[[1]]
     norm <- colNormalize.default(mat, scaleFactor = scaleFactor, log = log)
     x <- Seurat::SetAssayData(x, slot = "data", assay = assay, new.data = norm)
@@ -85,8 +86,7 @@ colNormalize.SingleCellExperiment <- function(
     assay.type = "counts",
     ...
 ) {
-    value <- .getSCEData(x, subset.row = NULL, clusterVar = NULL,
-                         assay.type = assay.type)
+    value <- .getSCEData(x, clusterVar = NULL, assay.type = assay.type)
     mat <- value[[1]]
     norm <- colNormalize.default(mat, scaleFactor = scaleFactor, log = log)
     if (isTRUE(log)) SingleCellExperiment::logcounts(x) <- norm

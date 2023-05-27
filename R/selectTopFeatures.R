@@ -1,24 +1,25 @@
 #' Pick top differentially presented features for similarity calculation
 #' @description
-#' Performs wilcoxon rank sum test on input matrix. Comparisons are formed by
-#' observations in each group, as defined by \code{clusterVar}, against the
-#' other observations. The U-Statistics (\code{statistic}), p-value
-#' (\code{pval}) and adjusted p-value (\code{padj}), together with average
-#' presence in group (\code{avgExpr}), log fold-change (\code{logFC}), AUC
-#' (\code{auc}), percentage in group (\code{pct_in}) and percentage out of group
-#' (\code{pct_out}) will be calculated.
+#' Performs wilcoxon rank-sum test on input matrix. While \code{clusterVar} and
+#' \code{vertices} together defines the groups of cells to be set as terminals
+#' of the simplex, this function will test each of these groups against the rest
+#' of the cells. The U-Statistics (\code{statistic}), p-value (\code{pval}) and
+#' adjusted p-value (\code{padj}), together with average presence in group
+#' (\code{avgExpr}), log fold-change (\code{logFC}), AUC (\code{auc}),
+#' percentage in group (\code{pct_in}) and percentage out of group
+#' (\code{pct_out}) will be calculated. Set \code{returnStats = TRUE} to return
+#' the full statistics table.
 #'
 #' Top features are selected by sorting primarily on adjusted p-value, and
 #' secondarily on log fold-change, after filtering for up-regulated features.
-#' @param x Dense or sparse matrix, observation per column. Must be library size
-#' normalized but not log-transformed. Alternatively, a \code{Seurat} object or
-#' a \code{SingleCellExperiment} object with library size normalized data
-#' available.
+#' @param x Dense or sparse matrix, observation per column. Preferrably a raw
+#' count matrix. Alternatively, a \code{Seurat} object or a
+#' \code{SingleCellExperiment} object.
 #' @param clusterVar A vector/factor assigning the cluster variable to each
-#' column of the matrix object. For "Seurat" method, leave \code{NULL} for using
-#' default "Idents", or can also be a variable in \code{meta.data} slot. For
-#' "SingleCellExperiment" method, leave \code{NULL} for using "colLabels", or
-#' can be a variable in \code{colData} slot.
+#' column of the matrix object. For "Seurat" method, \code{NULL} (default) for
+#' \code{Idents(x)}, or a variable name in \code{meta.data} slot. For
+#' "SingleCellExperiment" method, \code{NULL} (default) for \code{colLabels(x)},
+#' or a variable name in \code{colData} slot.
 #' @param vertices Vector of cluster names that will be used for plotting. Or a
 #' named list that groups clusters as a terminal vertex. There must not be any
 #' overlap between groups.
@@ -29,8 +30,7 @@
 #' \code{returnStats = TRUE}, a data.frame of wilcoxon rank sum test statistics.
 #' @rdname selectTopFeatures
 #' @examples
-#' rnaNorm <- colNormalize(rnaRaw)
-#' selectTopFeatures(rnaNorm, rnaCluster, c("OS", "RE"))
+#' selectTopFeatures(rnaRaw, rnaCluster, c("OS", "RE"))
 selectTopFeatures <- function(
     x,
     clusterVar,
@@ -43,8 +43,12 @@ selectTopFeatures <- function(
 #' @rdname selectTopFeatures
 #' @export
 #' @method selectTopFeatures default
-#' @param nTop Number of top differentially presented features per cluster.
+#' @param nTop Number of top differentially presented features per terminal.
 #' Default \code{30}.
+#' @param processed Logical. Whether the input matrix is already processed.
+#' \code{TRUE} will bypass internal preprocessing and input matrix will be
+#' directly used for rank-sum calculation. Default \code{FALSE} and raw count
+#' input is recommended.
 #' @param lfcThresh Threshold on log fold-change to identify up-regulated
 #' features. Default \code{0.1}.
 #' @param returnStats Logical. Whether to return the full statistics table
@@ -54,6 +58,7 @@ selectTopFeatures.default <- function(
         clusterVar,
         vertices,
         nTop = 30,
+        processed = FALSE,
         lfcThresh = 0.1,
         returnStats = FALSE,
         ...
@@ -61,9 +66,9 @@ selectTopFeatures.default <- function(
     if (ncol(x) != length(clusterVar))
         stop("number of columns of x does not match length of clusterVar")
 
-    if (!all(abs(colSums(x) - 1) < 1e-10)) {
-        warning("Data being used does not seem to be library-size normalized.",
-                immediate. = TRUE)
+    if (isFALSE(processed) && !is.rawCounts(x)) {
+        warning("Input matrix is not raw counts (integers). ",
+                "Results may be affected.")
     }
 
     if (!is.factor(clusterVar)) clusterVar <- factor(clusterVar)
@@ -81,7 +86,9 @@ selectTopFeatures.default <- function(
         stop("Must have at least 2 non-empty groups defined.")
     }
 
-    statsTable <- wilcoxauc(log1p(1e10*x), clusters)
+    if (isFALSE(processed)) x <- colNormalize(x, scaleFactor = 1e10, log = TRUE)
+
+    statsTable <- wilcoxauc(x, clusters)
 
     if (isTRUE(returnStats)) return(statsTable)
 
@@ -104,7 +111,8 @@ selectTopFeatures.default <- function(
 #' @rdname selectTopFeatures
 #' @export
 #' @method selectTopFeatures Seurat
-#' @param slot Slot name of the Seurat object to be used. Default \code{"data"}.
+#' @param slot Slot name of the Seurat object to be used. Default
+#' \code{"counts"}.
 #' @param assay Assay name of the Seurat object to be used. Default \code{NULL}.
 #' @examples
 #'
@@ -113,7 +121,6 @@ selectTopFeatures.default <- function(
 #'     library(Seurat)
 #'     srt <- CreateSeuratObject(rnaRaw)
 #'     Idents(srt) <- rnaCluster
-#'     srt <- colNormalize(srt)
 #'     gene <- selectTopFeatures(srt, vertices = c("OS", "RE"))
 #' }
 selectTopFeatures.Seurat <- function(
@@ -121,20 +128,24 @@ selectTopFeatures.Seurat <- function(
     clusterVar = NULL,
     vertices,
     assay = NULL,
-    slot = "data",
+    slot = c("counts", "data", "scale.data"),
     ...
 ) {
+    slot <- match.arg(slot)
     value <- .getSeuratData(x, assay = assay, slot = slot,
                             clusterVar = clusterVar)
     mat <- value[[1]]
     clusterVar <- value[[2]]
-    selectTopFeatures(mat, clusterVar, vertices, ...)
+
+    processed <- ifelse(slot != "counts", TRUE, FALSE)
+    selectTopFeatures(mat, clusterVar, vertices, processed = processed, ...)
 }
 
 #' @rdname selectTopFeatures
 #' @export
 #' @method selectTopFeatures SingleCellExperiment
 #' @param assay.type Assay name of the SingleCellExperiment object to be used.
+#' Default \code{"counts"}.
 #' @examples
 #'
 #' # SingleCellExperiment example
@@ -142,20 +153,20 @@ selectTopFeatures.Seurat <- function(
 #'     library(SingleCellExperiment)
 #'     sce <- SingleCellExperiment(assays = list(counts = rnaRaw))
 #'     colLabels(sce) <- rnaCluster
-#'     sce <- colNormalize(sce)
 #'     gene <- selectTopFeatures(sce, vertices = c("OS", "RE"))
 #' }
 selectTopFeatures.SingleCellExperiment <- function(
     x,
     clusterVar = NULL,
     vertices,
-    assay.type = "normcounts",
+    assay.type = "counts",
     ...
 ) {
     value <- .getSCEData(x, assay.type = assay.type, clusterVar = clusterVar)
     mat <- value[[1]]
     clusterVar <- value[[2]]
-    selectTopFeatures(mat, clusterVar, vertices, ...)
+    processed <- ifelse(assay.type == "counts", FALSE, TRUE)
+    selectTopFeatures(mat, clusterVar, vertices, processed = processed, ...)
 }
 
 # By default, all group-against-rest tests are conducted all together.
@@ -174,7 +185,7 @@ wilcoxauc <- function(x, clusterVar) {
     n1n2 <- groupSize * (ncol(x) - groupSize)
     # rankRes - list(X_ranked, ties), where X_ranked is obs x feature
 
-    rankRes <- rankMatrix(x)
+    rankRes <- colRanking(x)
     ustat <- computeUstat(rankRes$X_ranked, clusterVar, n1n2, groupSize)
     auc <- t(ustat / n1n2)
     pvals <- computePval(ustat, rankRes$ties, ncol(x), n1n2)
@@ -248,7 +259,7 @@ computePval <- function(ustat, ties, N, n1n2) {
 
 # Utility function to rank columns of matrix
 # x - feature by observation matrix.
-rankMatrix <- function(x) {
+colRanking <- function(x) {
     if (inherits(x, "dgCMatrix")) {
         x <- Matrix::t(x)
         # This computes the ranking of non-zero values and the ties
