@@ -246,7 +246,7 @@ plotQuaternary.SingleCellExperiment <- function(
 #' @param title Title text of the plot. Default \code{NULL}.
 #' @param theta,phi Numeric scalar. The angles defining the viewing direction.
 #' \code{theta} gives the azimuthal direction and \code{phi} the colatitude.
-#' Default \code{-40} and \code{-10}.
+#' Default \code{20} and \code{0}.
 #' @export
 #' @method plotQuaternary simMat
 plotQuaternary.simMat <- function(
@@ -259,35 +259,39 @@ plotQuaternary.simMat <- function(
         labelColors = c("#3B4992FF", "#EE0000FF", "#008B45FF", "#631879FF"),
         arrowLinewidth = 0.6,
         title = NULL,
-        theta = 0,
+        theta = 20,
         phi = 0,
         ...
 ) {
     # Convert barycentric coordinates (4D) to cartesian coordinates (3D)
     df3D <- as.matrix(x) %*% tetra
 
+    tetraVertices <- rotateByZAxis(tetra, theta)
+    df3D <- rotateByZAxis(df3D, theta)
 
     # Plot data
     grDevices::pdf(nullfile())
     scatter3D(df3D[,1], df3D[,2], df3D[,3], main = title,
-              xlim = range(tetra[,1]),
-              ylim = range(tetra[,2]),
-              zlim = range(tetra[,3]), alpha = 0.8,
-              col = dotColor, cex = dotSize/2, pch = 16, d = 3,
+              xlim = c(-1.2, 1.2), ylim = c(-1.2, 1.2), zlim = c(0, 1.7),
+              alpha = 0.8, col = dotColor, cex = dotSize/2, pch = 16, d = 3,
               colkey = list(plot = FALSE),
-              box = FALSE, theta = theta, phi = phi, plot = FALSE)
-    lines3D(tetra[c(1,2,3,4,1,3,1,2,4),1],
-            tetra[c(1,2,3,4,1,3,1,2,4),2],
-            tetra[c(1,2,3,4,1,3,1,2,4),3],
+              box = FALSE, theta = 0, phi = phi, plot = FALSE)
+    lines3D(tetraVertices[c(1,2,3,4,1,3,1,2,4),1],
+            tetraVertices[c(1,2,3,4,1,3,1,2,4),2],
+            tetraVertices[c(1,2,3,4,1,3,1,2,4),3],
             col = "grey", add = TRUE, plot = FALSE)
-    text3D(tetra[,1], tetra[,2], tetra[,3],
+    text3D(tetraVertices[,1], tetraVertices[,2], tetraVertices[,3],
            colnames(x)[seq(4)], col = labelColors,
            add = TRUE, plot = FALSE)
+
     if (!is.null(veloMat)) {
         arrowCoords <- calcGridVelo(simMat = x, veloMat = veloMat,
                                     nGrid = nGrid, radius = radius)
+
         for (i in seq_along(arrowCoords)) {
             subcoord <- arrowCoords[[i]]
+            subcoord[,seq(3)] <- rotateByZAxis(subcoord[,seq(3)], theta)
+            subcoord[,seq(4,6)] <- rotateByZAxis(subcoord[,seq(4,6)], theta)
             arrows3D(subcoord[,1], subcoord[,2], subcoord[,3],
                      subcoord[,4], subcoord[,5], subcoord[,6],
                      angle = 20, lwd = arrowLinewidth, length = 0.1,
@@ -390,4 +394,25 @@ writeQuaternaryGIF <- function(
     message("Generate the GIF: ", gifPath)
     magick::image_write(image = imgAnimated,
                         path = gifPath)
+}
+
+
+# Rotate cartesien coordinate around Z-axis
+# coord - N x 3 matrix
+# theta - degree to rotate in azimuthal direction
+# Return - rotated N x 3 matrix
+rotateByZAxis <- function(coord, theta) {
+    if (theta %% 360 == 9) return(coord)
+    # Convert theta to radians
+    theta_rad <- theta * pi / 180
+
+    # Create rotation matrix
+    rotation_matrix <- matrix(c(cos(theta_rad), -sin(theta_rad), 0,
+                                sin(theta_rad), cos(theta_rad), 0,
+                                0, 0, 1), nrow = 3, ncol = 3, byrow = TRUE)
+
+    # Perform rotation
+    rotated_points <- as.matrix(coord) %*% t(rotation_matrix)
+
+    return(rotated_points)
 }

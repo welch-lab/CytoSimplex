@@ -54,7 +54,7 @@ plotQuaternary(x, ...)
   labelColors = c("#3B4992FF", "#EE0000FF", "#008B45FF", "#631879FF"),
   arrowLinewidth = 0.6,
   title = NULL,
-  theta = 0,
+  theta = 20,
   phi = 0,
   ...
 )
@@ -143,7 +143,7 @@ green and purple).}
 
 \item{theta, phi}{Numeric scalar. The angles defining the viewing direction.
 \code{theta} gives the azimuthal direction and \code{phi} the colatitude.
-Default \code{-40} and \code{-10}.}
+Default \code{20} and \code{0}.}
 }
 \value{
 For "simMat" method, a "plist" (plot3D package product) object. For
