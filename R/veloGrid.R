@@ -63,7 +63,7 @@ calcGridVelo <- function(
                 cellCart[,j] > (gridCart[i,j] - seg) &
                 cellCart[,j] < (gridCart[i,j] + seg)
         }
-        if (sum(bcIdx) > 4) {
+        if (sum(bcIdx, na.rm = TRUE) > 4) {
             # Get the velocity value presented as arrow length only when more
             # then 5 cells fall into a grid
             subVelo <- veloMat[bcIdx, , drop = FALSE]

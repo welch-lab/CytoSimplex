@@ -22,7 +22,9 @@ colNormalize.default <- function(x, scaleFactor = NULL, log = FALSE, ...) {
     if (inherits(x, "dgCMatrix")) {
         x@x <- x@x / rep.int(Matrix::colSums(x), diff(x@p))
     } else if (is.matrix(x)) {
+        dn <- dimnames(x)
         x <- colNormalize_dense(x, base::colSums(x))
+        dimnames(x) <- dn
     } else {
         stop("Input matrix of class ", class(x)[1], " is not yet supported.")
     }

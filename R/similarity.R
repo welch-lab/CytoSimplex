@@ -26,7 +26,7 @@ calcSim <- function(
     for (i in seq_along(vertices)) {
         centroid <- rowMeans(X[,clusterVar == vertices[i]])
         if (method %in% c("pearson", "spearman")) {
-            simMat[,i] <- stats::cor(as.matrix(X), matrix(centroid, ncol = 1))
+            simMat[,i] <- stats::cor(as.matrix(X), matrix(centroid, ncol = 1), method = method)
         } else if (method == "euclidean") {
             simMat[,i] <- euclideanDist(X, centroid)
         } else if (method == "cosine") {
@@ -37,7 +37,6 @@ calcSim <- function(
         simMat <- t(apply(simMat, 1, .normalize))
         simMat <- exp(-simMat^2 / sigma)
     }
-
     if (isTRUE(scale)) {
         simMat <- apply(simMat, 2, .scaleMinMax)
     }
