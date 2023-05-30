@@ -82,7 +82,7 @@ selectTopFeatures.default <- function(
     vertices <- vcheck[[2]]
 
     groupSize <- as.numeric(table(clusters))
-    if (length(groupSize[groupSize > 0]) < 2) {
+    if (sum(groupSize > 0) < 2) {
         stop("Must have at least 2 non-empty groups defined.")
     }
 

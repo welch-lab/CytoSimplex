@@ -4,7 +4,9 @@
 
 # scPlotSimplex
 
-"scPlotSimplex" is an R package the creates simplex plot showing similarity between single-cells and clusters.
+"scPlotSimplex" is an R package that creates simplex plot showing similarity between single-cells and terminals represented by clusters of cells. RNA velocity can be added as another layer of information.
+
+For Python users, we have a Python package [pyPlotSimplex](https://github.com/mvfki/pyPlotSimplex) that provides the same functionalities.
 
 ## Installation
 
@@ -29,15 +31,13 @@ data(rnaCluster)
 For high dimensional single-cell transcriptomic data, reducing the dimensionality by selecting top differentially expressed genes for each terminal cluster is recommended. The genes can be selected in the following way:
 
 ```R
-rnaNorm <- colNormalize(rnaRaw)
-gene <- selectTopFeatures(rnaNorm, clusterVar = rnaCluster, vertices = c("OS", "RE", "CH"))
+gene <- selectTopFeatures(rnaRaw, clusterVar = rnaCluster, vertices = c("OS", "RE", "CH"))
 ```
 
 Then we can create a demonstrative ternary plot with log-transformed data:
 
 ```R
-rnaLog <- colNormalize(rnaRaw, scaleFactor = 1e4, log = TRUE)
-plotTernary(rnaLog[gene,], clusterVar = rnaCluster, vertices = c("OS", "RE", "CH"))
+plotTernary(rnaRaw, clusterVar = rnaCluster, vertices = c("OS", "RE", "CH"), features = gene)
 ```
 <p align="center">
   <img src="https://github.com/mvfki/scPlotSimplex/raw/main/man/figures/ternary_example.png" alt="Ternary Example"/>
