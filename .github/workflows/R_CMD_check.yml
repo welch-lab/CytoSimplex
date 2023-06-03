@@ -72,6 +72,7 @@ jobs:
           Rscript -e 'rcmdcheck::rcmdcheck(args = "--no-manual", error_on = "warning")'
 
       - name: Test coverage
+        if: runner.os != 'Windows'
         run: |
           Rscript -e 'covr::codecov(token = "${{ secrets.CODECOV_TOKEN }}")'
 
