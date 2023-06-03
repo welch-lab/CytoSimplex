@@ -10,6 +10,8 @@ vignette: >
 ---
 
 ```{r setup, include=FALSE}
+library(rgl)
+knitr::knit_hooks$set(webgl = hook_webgl)
 knitr::opts_chunk$set(echo = TRUE, fig.align = 'center', message = FALSE)
 ```
 
@@ -83,7 +85,8 @@ An argument `splitCluster` is supported for all three plotting functions. By set
 ```{R splitCluster, fig.width = 7, fig.height = 7}
 library(patchwork)
 ternList <- plotTernary(rnaRaw, clusterVar = rnaCluster, vertices = vt.tern, 
-                        features = gene.tern, splitCluster = TRUE)
+                        features = gene.tern, 
+                        byCluster = c("Stem", "RE", "ORT", "OS"))
 print(names(ternList))
 (ternList$Stem + ternList$RE) / (ternList$ORT + ternList$OS)
 ```
@@ -95,7 +98,7 @@ Similarly, the velocity layer can also be splitted.
 ```{R ternVeloSplit, fig.width = 7, fig.height = 7}
 veloSplit <- plotTernary(rnaRaw, clusterVar = rnaCluster, vertices = vt.tern, 
                          features = gene.tern, veloGraph = rnaVelo, 
-                         splitCluster = TRUE)
+                         byCluster = c("Stem", "RE", "ORT", "OS"))
 (veloSplit$Stem + veloSplit$RE) / (veloSplit$ORT + veloSplit$OS)
 ```
 
@@ -103,7 +106,9 @@ As shown in the subplots, the OCT stem cells has the transitional potential towa
 
 ## Create quaternary simplex plot
 
-`plotQuaternary()` shows sample similarity in a quaternary simplex -- tetrahedron. The 3D visualization depends on package `plot3D`. For a quaternary simplex, we need one more cluster as a vertex. Here, we add the cells annotated as osteoblast-reticular transition cells (`"ORT"`) into the vertex list. We also add the velocity information in this example, as it will not be shown by default.
+`plotQuaternary()` shows sample similarity in a quaternary simplex -- tetrahedron. The 3D visualization depends on package `plot3D` for creating static figure, and `rgl` for creating interactive 3D display. (Linux users may refer to [`rgl` documentation](https://dmurdoch.github.io/rgl/#installing-opengl-support) for installation guide) 
+
+For a quaternary simplex, we need one more cluster as a vertex. Here, we add the cells annotated as osteoblast-reticular transition cells (`"ORT"`) into the vertex list. We also add the velocity information in this example, as it will not be shown by default.
 
 ```{R plotQuaternary, fig.height = 4, fig.width = 4}
 vt.quat <- c("OS", "RE", "CH", "ORT")
@@ -111,8 +116,14 @@ gene.quat <- selectTopFeatures(rnaRaw, clusterVar = rnaCluster, vertices = vt.qu
 plotQuaternary(rnaRaw, clusterVar = rnaCluster, vertices = vt.quat, 
                features = gene.quat, veloGraph = rnaVelo)
 ```
+To show a interactive 3D display, users can simply add the argument `interactive = TRUE`.
 
-Since the quaternary simplex can only be shown with a 3D plotting, we implemented of GIF image generator that rotates the tetrahedron horizontally. Note that package `magick` is required for this feature. (<a href="https://cran.r-project.org/web/packages/magick/vignettes/intro.html#Installing_magick" target="_blank">See here for how to install `magick` in detail</a>)
+```{R plotQuaternaryRGL, webgl=TRUE}
+plotQuaternary(rnaRaw, clusterVar = rnaCluster, vertices = vt.quat, 
+               features = gene.quat, veloGraph = rnaVelo, interactive = TRUE)
+```
+
+We have also implemented of GIF image generator that rotates the tetrahedron rounding the z-axis. Note that package `magick` is required for this feature. (<a href="https://cran.r-project.org/web/packages/magick/vignettes/intro.html#Installing_magick" target="_blank">See here for how to install `magick` in detail</a>)
 
 ```{R writeGIF, results="hide"}
 writeQuaternaryGIF(rnaRaw, clusterVar = rnaCluster, vertices = vt.quat, 
