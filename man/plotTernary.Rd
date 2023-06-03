@@ -16,14 +16,14 @@ plotTernary(x, ...)
   vertices,
   features = NULL,
   veloGraph = NULL,
+  byCluster = NULL,
   processed = FALSE,
   method = c("euclidean", "cosine", "pearson", "spearman"),
   force = FALSE,
   sigma = 0.08,
   scale = TRUE,
-  splitCluster = FALSE,
-  clusterTitle = TRUE,
   dotColor = "grey60",
+  returnData = FALSE,
   ...
 )
 
@@ -90,6 +90,12 @@ similarity calculation. Default \code{NULL} uses all available features.}
 information. Shows velocity grid-arrow layer when specified. Default
 \code{NULL} does not show velocity.}
 
+\item{byCluster}{Default \code{NULL} to generate one plot with all cells.
+Set \code{"all"} to split cells in plot by cluster and returns a list of
+subplots for each cluster as well as the plot including all cells. Otherwise,
+a vector of cluster names to generate a list of subplots for the specified
+clusters.}
+
 \item{processed}{Logical. Whether the input matrix is already processed.
 \code{TRUE} will bypass internal preprocessing and input matrix will be
 directly used for similarity calculation. Default \code{FALSE} and raw count
@@ -114,11 +120,8 @@ spreading on figure. Default \code{0.08}.}
 \item{scale}{Whether to min-max scale the distance matrix by clusters.
 Default \code{TRUE}.}
 
-\item{splitCluster}{Logical, whether to return a list of plots where each
-contains cells belonging to only one cluster. Default \code{FALSE}.}
-
-\item{clusterTitle}{If \code{splitCluster = TRUE}, whether to title each
-subplot by the name of each cluster. Default \code{TRUE}.}
+\item{returnData}{Logical. Whether to return similarity and aggregated
+velocity data if applicable instead of generating plot. Default \code{FALSE}.}
 
 \item{slot}{For "Seurat" method, choose from \code{"counts"},
 \code{"data"} or \code{"scale.data"}. Default \code{"counts"}.}

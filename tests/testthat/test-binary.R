@@ -38,14 +38,21 @@ test_that("Test binary - sparse", {
         plotBinary(rnaRaw, rnaCluster, vertices, gene, method = "spearman")
     )
 
-    pl <- plotBinary(rnaRaw, rnaCluster, vertices, gene, splitCluster = TRUE)
+    pl <- plotBinary(rnaRaw, rnaCluster, vertices, gene, byCluster = "all")
     expect_identical(class(pl), "list")
     expect_s3_class(pl[[1]], "ggplot")
 
-    pl <- plotBinary(rnaRaw, rnaCluster, vertices, gene, splitCluster = TRUE,
-                     clusterTitle = FALSE)
+    pl <- plotBinary(rnaRaw, rnaCluster, vertices, gene, byCluster = c("RE"))
     expect_identical(class(pl), "list")
     expect_s3_class(pl[[1]], "ggplot")
+
+    expect_error(plotBinary(rnaRaw, rnaCluster, vertices, gene,
+                            byCluster = "Hi"),
+                 "`byCluster` must be either a vector of cluster name ")
+
+    simData <- plotBinary(rnaRaw, rnaCluster, vertices, gene, returnData = TRUE)
+    expect_identical(class(simData), "list")
+    expect_s3_class(simData[[1]], "simMat")
 })
 
 test_that("Test binary - dense", {

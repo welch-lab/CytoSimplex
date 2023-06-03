@@ -28,15 +28,22 @@ test_that("Test quaternary - sparse", {
     p <- plotQuaternary(rnaRaw, rnaCluster, vertices, gene, veloGraph = rnaVelo)
     expect_s3_class(p, "plist")
 
-    pl <- plotQuaternary(rnaRaw, rnaCluster, vertices, gene, splitCluster = TRUE)
+    pl <- plotQuaternary(rnaRaw, rnaCluster, vertices, gene, byCluster = "all")
     expect_identical(class(pl), "list")
 
-    pl <- plotQuaternary(rnaRaw, rnaCluster, vertices, gene, splitCluster = TRUE,
+    pl <- plotQuaternary(rnaRaw, rnaCluster, vertices, gene, byCluster = "RE",
                       clusterTitle = FALSE)
     expect_identical(class(pl), "list")
 
     show(p)
     expect_gt(length(dev.list()), 0)
+
+    expect_error(plotQuaternary(rnaRaw, rnaCluster, vertices, gene,
+                                byCluster = "Hi"),
+                 "`byCluster` must be either a vector of cluster name ")
+    expect_no_error(plotQuaternary(rnaRaw, rnaCluster, vertices, gene,
+                                   veloGraph = rnaVelo, interactive = TRUE,
+                                   title = "All cells"))
 })
 
 test_that("Test quaternary - dense", {
@@ -50,10 +57,32 @@ test_that("Test quaternary GIF", {
                      B = c("RE", "OS"),
                      C = "CH",
                      D = "Stem")
+    expect_error(writeQuaternaryGIF(rnaRaw, rnaCluster),
+                 "Please set `...` arguments with explicit argument names")
+    expect_error(writeQuaternaryGIF(rnaRaw, clusterVar = rnaCluster,
+                                    vertices = grouping, features = gene,
+                                    cluster = letters),
+                 "Can only generate GIF for one cluster at a time")
+    expect_error(writeQuaternaryGIF(rnaRaw, clusterVar = rnaCluster,
+                                    vertices = grouping, features = gene,
+                                    cluster = "a"),
+                 "\"a\" is not an available cluster.")
     expect_error(writeQuaternaryGIF(rnaRaw, clusterVar = rnaCluster,
                                     features = gene, vertices = grouping,
                                     fps = 33),
                  "FPS must be a factor of 100.")
+
+    expect_warning(writeQuaternaryGIF(rnaRaw, clusterVar = rnaCluster,
+                                      vertices = grouping, features = gene,
+                                      cluster = "RE",
+                                      gifPath = "test.gif", tmpDir = "testGif/",
+                                      theta = 10),
+                   "Arguments ignored: theta")
+    expect_true(dir.exists("testGif"))
+    expect_true(file.exists("test.gif"))
+    unlink("testGif/", recursive = TRUE)
+    unlink("test.gif")
+
     writeQuaternaryGIF(rnaRaw, clusterVar = rnaCluster,
                        vertices = grouping, features = gene,
                        gifPath = "test.gif", tmpDir = "testGif/")

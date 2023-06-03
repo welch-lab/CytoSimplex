@@ -7,7 +7,7 @@
 writeQuaternaryGIF(
   x,
   ...,
-  useCluster = NULL,
+  cluster = NULL,
   gifPath = "quaternary.gif",
   tmpDir = file.path(getwd(), "quaternary_gif_tmp/"),
   fps = 10,
@@ -17,10 +17,10 @@ writeQuaternaryGIF(
 \arguments{
 \item{x}{Input object that \code{\link{plotQuaternary}} accepts.}
 
-\item{...}{All other arguments needed for \code{\link{plotQuaternary}},
-except \code{theta} which controls the rotation.}
+\item{...}{All other arguments needed for \code{\link{plotQuaternary}}. Must
+be specified with exact argument names instead of a positional manner.}
 
-\item{useCluster}{One cluster that exists in \code{clusterVar}, if users
+\item{cluster}{One cluster that exists in \code{clusterVar}, if users
 need to view the plot for specific group. Default \code{NULL} plot all cells.}
 
 \item{gifPath}{Output GIF image file path. Default \code{"quaternary.gif"}}

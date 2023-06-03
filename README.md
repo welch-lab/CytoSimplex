@@ -1,8 +1,6 @@
-<img src="https://github.com/mvfki/scPlotSimplex/raw/main/man/figures/logo.png" width="120">
+# scPlotSimplex <img src="man/figures/logo.png" align="right" width="120" />
 
 [![R_CMD_check](https://github.com/mvfki/scPlotSimplex/actions/workflows/R_CMD_check.yml/badge.svg?branch=main)](https://github.com/mvfki/scPlotSimplex/actions/workflows/R_CMD_check.yml)[![codecov](https://codecov.io/gh/mvfki/scPlotSimplex/branch/main/graph/badge.svg?token=AYU2AOE25I)](https://codecov.io/gh/mvfki/scPlotSimplex)[![Seurat](https://img.shields.io/badge/Seurat-4.3.0-green)](https://cran.r-project.org/web/packages/Seurat/index.html)[![sce](https://img.shields.io/badge/SingleCellExperiment-1.22.0-green)](https://bioconductor.org/packages/release/bioc/html/SingleCellExperiment.html)
-
-# scPlotSimplex
 
 "scPlotSimplex" is an R package that creates simplex plot showing similarity between single-cells and terminals represented by clusters of cells. RNA velocity can be added as another layer of information.
 

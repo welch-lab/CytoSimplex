@@ -33,6 +33,11 @@ plotBinary <- function(x, ...) {
 #' There must not be any overlap between groups.
 #' @param features Valid matrix row subsetting index to select features for
 #' similarity calculation. Default \code{NULL} uses all available features.
+#' @param byCluster Default \code{NULL} to generate one plot with all cells.
+#' Set \code{"all"} to split cells in plot by cluster and returns a list of
+#' subplots for each cluster as well as the plot including all cells. Otherwise,
+#' a vector of cluster names to generate a list of subplots for the specified
+#' clusters.
 #' @param processed Logical. Whether the input matrix is already processed.
 #' \code{TRUE} will bypass internal preprocessing and input matrix will be
 #' directly used for similarity calculation. Default \code{FALSE} and raw count
@@ -52,10 +57,8 @@ plotBinary <- function(x, ...) {
 #' spreading on figure. Default \code{0.08}.
 #' @param scale Whether to min-max scale the distance matrix by clusters.
 #' Default \code{TRUE}.
-#' @param splitCluster Logical, whether to return a list of plots where each
-#' contains cells belonging to only one cluster. Default \code{FALSE}.
-#' @param clusterTitle If \code{splitCluster = TRUE}, whether to title each
-#' subplot by the name of each cluster. Default \code{TRUE}.
+#' @param returnData Logical. Whether to return similarity data instead of
+#' generating plot. Default \code{FALSE}.
 #' @rdname plotBinary
 #' @export
 #' @method plotBinary default
@@ -64,14 +67,14 @@ plotBinary.default <- function(
         clusterVar,
         vertices,
         features = NULL,
+        byCluster = NULL,
         processed = FALSE,
         method = c("euclidean", "cosine", "pearson", "spearman"),
         force = FALSE,
         sigma = 0.08,
         scale = TRUE,
-        splitCluster = FALSE,
-        clusterTitle = TRUE,
         dotColor = "grey60",
+        returnData = FALSE,
         ...
 ) {
     method <- match.arg(method)
@@ -94,24 +97,33 @@ plotBinary.default <- function(
     simMat <- calcSim(x, clusterVar = vertClust,
                       vertices = vertices, method = method,
                       scale = scale, force = force, sigma = sigma)
-    if (isFALSE(splitCluster)) plotBinary(x = simMat,
-                                          dotColor = dotColor,
-                                          ...)
-    else {
-        if (isTRUE(clusterTitle)) {
-            plotList <- lapply(levels(clusterVar), function(clust) {
+
+    if (isTRUE(returnData)) return(list(sim = simMat))
+
+    if (is.null(byCluster)) {
+        return(plotBinary(x = simMat, dotColor = dotColor, ...))
+    } else {
+        if (identical(byCluster, "all")) {
+            pl <- lapply(levels(clusterVar), function(clust) {
                 plotBinary(simMat[clusterVar == clust,], title = clust,
-                           dotColor = dotColor[clusterVar == clust],
-                           ...)
-            })
-        } else {
-            plotList <- lapply(levels(clusterVar), function(clust) {
-                plotBinary(simMat[clusterVar == clust,],
                            dotColor = dotColor[clusterVar == clust], ...)
             })
+            pl$allCells <- plotBinary(simMat,
+                                      dotColor = dotColor,
+                                      title = "All cells", ...)
+            names(pl) <- c(levels(clusterVar), "allCells")
+        } else {
+            if (any(!byCluster %in% levels(clusterVar))) {
+                stop("`byCluster` must be either a vector of cluster name ",
+                     "or \"all\".")
+            }
+            pl <- lapply(byCluster, function(clust) {
+                plotBinary(simMat[clusterVar == clust,], title = clust,
+                           dotColor = dotColor[clusterVar == clust], ...)
+            })
+            names(pl) <- byCluster
         }
-        names(plotList) <- levels(clusterVar)
-        return(plotList)
+        return(pl)
     }
 }
 
@@ -192,7 +204,7 @@ plotBinary.SingleCellExperiment <- function(
 #' #' @export
 #' #' @method plotBinary liger
 #' plotBinary.liger <- function(
-#'         x,
+        #'         x,
 #'         clusterVar,
 #'         features = NULL,
 #'         useDatasets = NULL,
@@ -232,7 +244,7 @@ plotBinary.simMat <- function(
     # NEVER REMOVE "ggplot2::", the imported namespace has problem with
     # rlang ".data" pronoun
     p <- ggplot(x, ggplot2::aes(x = .data[[bottomLAB]],
-                                     y = .data[["Y"]])) +
+                                y = .data[["Y"]])) +
         geom_point(color = dotColor, size = dotSize, stroke = 0.2) +
         geom_density(
             ggplot2::aes(x = .data[[bottomLAB]],

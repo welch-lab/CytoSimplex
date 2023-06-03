@@ -42,6 +42,11 @@ plotTernary <- function(x, ...) {
 #' There must not be any overlap between groups.
 #' @param features Valid matrix row subsetting index to select features for
 #' similarity calculation. Default \code{NULL} uses all available features.
+#' @param byCluster Default \code{NULL} to generate one plot with all cells.
+#' Set \code{"all"} to split cells in plot by cluster and returns a list of
+#' subplots for each cluster as well as the plot including all cells. Otherwise,
+#' a vector of cluster names to generate a list of subplots for the specified
+#' clusters.
 #' @param processed Logical. Whether the input matrix is already processed.
 #' \code{TRUE} will bypass internal preprocessing and input matrix will be
 #' directly used for similarity calculation. Default \code{FALSE} and raw count
@@ -64,10 +69,8 @@ plotTernary <- function(x, ...) {
 #' spreading on figure. Default \code{0.08}.
 #' @param scale Whether to min-max scale the distance matrix by clusters.
 #' Default \code{TRUE}.
-#' @param splitCluster Logical, whether to return a list of plots where each
-#' contains cells belonging to only one cluster. Default \code{FALSE}.
-#' @param clusterTitle If \code{splitCluster = TRUE}, whether to title each
-#' subplot by the name of each cluster. Default \code{TRUE}.
+#' @param returnData Logical. Whether to return similarity and aggregated
+#' velocity data if applicable instead of generating plot. Default \code{FALSE}.
 #' @rdname plotTernary
 #' @export
 #' @method plotTernary default
@@ -77,15 +80,14 @@ plotTernary.default <- function(
         vertices,
         features = NULL,
         veloGraph = NULL,
+        byCluster = NULL,
         processed = FALSE,
         method = c("euclidean", "cosine", "pearson", "spearman"),
         force = FALSE,
-        #distKernel = c("gaussian", "log"),
         sigma = 0.08,
         scale = TRUE,
-        splitCluster = FALSE,
-        clusterTitle = TRUE,
         dotColor = "grey60",
+        returnData = FALSE,
         ...
 ) {
     method <- match.arg(method)
@@ -124,35 +126,38 @@ plotTernary.default <- function(
                                  vertices = vertices)
     }
 
-    if (isFALSE(splitCluster)) plotTernary(x = simMat,
-                                           veloMat = veloMat,
-                                           dotColor = dotColor,
-                                           ...)
-    else {
-        if (isTRUE(clusterTitle)) {
-            plotList <- lapply(levels(clusterVar), function(clust) {
+    if (isTRUE(returnData)) return(list(sim = simMat, velo = veloMat))
+
+    if (is.null(byCluster)) {
+        return(plotTernary(x = simMat, veloMat = veloMat,
+                              dotColor = dotColor, ...))
+    } else {
+        if (identical(byCluster, "all")) {
+            pl <- lapply(levels(clusterVar), function(clust) {
                 plotTernary(simMat[clusterVar == clust,],
-                            veloMat = veloMat[clusterVar == clust,],
-                            dotColor = dotColor[clusterVar == clust],
-                            title = clust, ...)
+                               veloMat = veloMat[clusterVar == clust,],
+                               title = clust,
+                               dotColor = dotColor[clusterVar == clust], ...)
             })
-            plotList$allCells <- plotTernary(simMat,
-                                             veloMat = veloMat,
-                                             dotColor = dotColor,
-                                             title = "All cells", ...)
+            pl$allCells <- plotTernary(simMat,
+                                          veloMat = veloMat,
+                                          dotColor = dotColor,
+                                          title = "All cells", ...)
+            names(pl) <- c(levels(clusterVar), "allCells")
         } else {
-            plotList <- lapply(levels(clusterVar), function(clust) {
+            if (any(!byCluster %in% levels(clusterVar))) {
+                stop("`byCluster` must be either a vector of cluster name ",
+                     "or \"all\".")
+            }
+            pl <- lapply(byCluster, function(clust) {
                 plotTernary(simMat[clusterVar == clust,],
-                            veloMat = veloMat[clusterVar == clust,],
-                            dotColor = dotColor[clusterVar == clust],
-                            ...)
+                               veloMat = veloMat[clusterVar == clust,],
+                               title = clust,
+                               dotColor = dotColor[clusterVar == clust], ...)
             })
-            plotList$allCells <- plotTernary(simMat,
-                                             veloMat = veloMat,
-                                             dotColor = dotColor, ...)
+            names(pl) <- byCluster
         }
-        names(plotList) <- c(levels(clusterVar), "allCells")
-        return(plotList)
+        return(pl)
     }
 }
 

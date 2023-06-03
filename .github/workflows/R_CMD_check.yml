@@ -71,12 +71,16 @@ jobs:
           sudo Xvfb -ac :99 -screen 0 1280x1024x24 > /dev/null 2>&1 &
           Rscript -e 'rcmdcheck::rcmdcheck(args = "--no-manual", error_on = "warning")'
 
-      - name: Run codecov
+      - name: Test coverage
         run: |
-          covr::codecov()
-        shell: Rscript {0}
+          Rscript -e 'covr::codecov(token = "${{ secrets.CODECOV_TOKEN }}")'
 
-      - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v3
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
+      # # - name: Run codecov
+      #   run: |
+      #     covr::codecov(token = "")
+      #   shell: Rscript {0}
+
+      # - name: Upload coverage reports to Codecov
+      #   uses: codecov/codecov-action@v3
+      #   with:
+      #     token: ${{ secrets.CODECOV_TOKEN }}

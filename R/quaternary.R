@@ -22,7 +22,8 @@
 #' variable name in interactive console.
 #' @examples
 #' gene <- selectTopFeatures(rnaRaw, rnaCluster, c("RE", "OS", "CH", "ORT"))
-#' plotQuaternary(rnaRaw, rnaCluster, c("RE", "OS", "CH", "ORT"), gene)
+#' plotQuaternary(rnaRaw, rnaCluster, c("RE", "OS", "CH", "ORT"), gene,
+#'                interactive = FALSE)
 plotQuaternary <- function(x, ...) {
     UseMethod('plotQuaternary', x)
 }
@@ -37,6 +38,11 @@ plotQuaternary <- function(x, ...) {
 #' There must not be any overlap between groups.
 #' @param features Valid matrix row subsetting index to select features for
 #' similarity calculation. Default \code{NULL} uses all available features.
+#' @param byCluster Default \code{NULL} to generate one plot with all cells.
+#' Set \code{"all"} to split cells in plot by cluster and returns a list of
+#' subplots for each cluster as well as the plot including all cells. Otherwise,
+#' a vector of cluster names to generate a list of subplots for the specified
+#' clusters.
 #' @param processed Logical. Whether the input matrix is already processed.
 #' \code{TRUE} will bypass internal preprocessing and input matrix will be
 #' directly used for similarity calculation. Default \code{FALSE} and raw count
@@ -59,10 +65,8 @@ plotQuaternary <- function(x, ...) {
 #' spreading on figure. Default \code{0.08}.
 #' @param scale Whether to min-max scale the distance matrix by clusters.
 #' Default \code{TRUE}.
-#' @param splitCluster Logical, whether to return a list of plots where each
-#' contains cells belonging to only one cluster. Default \code{FALSE}.
-#' @param clusterTitle If \code{splitCluster = TRUE}, whether to title each
-#' subplot by the name of each cluster. Default \code{TRUE}.
+#' @param returnData Logical. Whether to return similarity and aggregated
+#' velocity data if applicable instead of generating plot. Default \code{FALSE}.
 #' @rdname plotQuaternary
 #' @export
 #' @method plotQuaternary default
@@ -72,14 +76,14 @@ plotQuaternary.default <- function(
         vertices,
         features = NULL,
         veloGraph = NULL,
+        byCluster = NULL,
         processed = FALSE,
         method = c("euclidean", "cosine", "pearson", "spearman"),
         force = FALSE,
         sigma = 0.08,
         scale = TRUE,
-        splitCluster = FALSE,
-        clusterTitle = TRUE,
         dotColor = "grey60",
+        returnData = FALSE,
         ...
 ) {
     method <- match.arg(method)
@@ -114,33 +118,40 @@ plotQuaternary.default <- function(
                                  vertices = vertices)
     }
 
-    if (isFALSE(splitCluster)) plotQuaternary(x = simMat,
-                                              veloMat = veloMat,
-                                              dotColor = dotColor, ...)
-    else {
-        if (isTRUE(clusterTitle)) {
-            plotList <- lapply(levels(clusterVar), function(clust) {
+    if (isTRUE(returnData)) return(list(sim = simMat, velo = veloMat,
+                                        originalCluster = clusterVar,
+                                        mappedCluster = vertClust))
+
+    if (is.null(byCluster)) {
+        return(plotQuaternary(x = simMat, veloMat = veloMat,
+               dotColor = dotColor, ...))
+    } else {
+        if (identical(byCluster, "all")) {
+            pl <- lapply(levels(clusterVar), function(clust) {
                 plotQuaternary(simMat[clusterVar == clust,],
                                veloMat = veloMat[clusterVar == clust,],
                                title = clust,
                                dotColor = dotColor[clusterVar == clust], ...)
             })
-            plotList$allCells <- plotQuaternary(simMat,
-                                                veloMat = veloMat,
-                                                dotColor = dotColor,
-                                                title = "All cells", ...)
+            pl$allCells <- plotQuaternary(simMat,
+                                          veloMat = veloMat,
+                                          dotColor = dotColor,
+                                          title = "All cells", ...)
+            names(pl) <- c(levels(clusterVar), "allCells")
         } else {
-            plotList <- lapply(levels(clusterVar), function(clust) {
+            if (any(!byCluster %in% levels(clusterVar))) {
+                stop("`byCluster` must be either a vector of cluster name ",
+                     "or \"all\".")
+            }
+            pl <- lapply(byCluster, function(clust) {
                 plotQuaternary(simMat[clusterVar == clust,],
                                veloMat = veloMat[clusterVar == clust,],
+                               title = clust,
                                dotColor = dotColor[clusterVar == clust], ...)
             })
-            plotList$allCells <- plotQuaternary(simMat,
-                                                veloMat = veloMat,
-                                                dotColor = dotColor, ...)
+            names(pl) <- byCluster
         }
-        names(plotList) <- levels(clusterVar)
-        return(plotList)
+        return(pl)
     }
 }
 
@@ -247,6 +258,8 @@ plotQuaternary.SingleCellExperiment <- function(
 #' @param theta,phi Numeric scalar. The angles defining the viewing direction.
 #' \code{theta} gives the azimuthal direction and \code{phi} the colatitude.
 #' Default \code{20} and \code{0}.
+#' @param interactive Logical. Whether to use "rgl" library to create
+#' interactive device. Default \code{FALSE}.
 #' @export
 #' @method plotQuaternary simMat
 plotQuaternary.simMat <- function(
@@ -257,21 +270,51 @@ plotQuaternary.simMat <- function(
         dotSize = 0.6,
         dotColor = "grey60",
         labelColors = c("#3B4992FF", "#EE0000FF", "#008B45FF", "#631879FF"),
-        arrowLinewidth = 0.6,
+        arrowLinewidth = 0.3,
         title = NULL,
         theta = 20,
         phi = 0,
+        interactive = FALSE,
         ...
 ) {
+    if (isTRUE(interactive)) {
+        .plotQuatRGL(
+            simMat = x, veloMat = veloMat, nGrid = nGrid, radius = radius,
+            dotSize = dotSize, dotColor = dotColor, title = title,
+            labelColors = labelColors, arrowLinewidth = arrowLinewidth
+        )
+    } else {
+        .plotQuat(
+            simMat = x, veloMat = veloMat, nGrid = nGrid, radius = radius,
+            dotSize = dotSize, dotColor = dotColor, title = title,
+            labelColors = labelColors, arrowLinewidth = arrowLinewidth,
+            theta = theta, phi = phi
+        )
+    }
+}
+
+.plotQuat <- function(
+        simMat,
+        veloMat = NULL,
+        nGrid = 10,
+        radius = 0.2,
+        dotSize = 0.6,
+        dotColor = "grey60",
+        labelColors = c("#3B4992FF", "#EE0000FF", "#008B45FF", "#631879FF"),
+        arrowLinewidth = 0.6,
+        title = NULL,
+        theta = 20,
+        phi = 0
+) {
     # Convert barycentric coordinates (4D) to cartesian coordinates (3D)
-    df3D <- as.matrix(x) %*% tetra
+    cellCart <- as.matrix(simMat) %*% tetra
 
     tetraVertices <- rotateByZAxis(tetra, theta)
-    df3D <- rotateByZAxis(df3D, theta)
+    cellCart <- rotateByZAxis(cellCart, theta)
 
     # Plot data
     grDevices::pdf(nullfile())
-    scatter3D(df3D[,1], df3D[,2], df3D[,3], main = title,
+    scatter3D(cellCart[,1], cellCart[,2], cellCart[,3], main = title,
               xlim = c(-1.2, 1.2), ylim = c(-1.2, 1.2), zlim = c(0, 1.7),
               alpha = 0.8, col = dotColor, cex = dotSize/2, pch = 16, d = 3,
               colkey = list(plot = FALSE),
@@ -280,12 +323,12 @@ plotQuaternary.simMat <- function(
             tetraVertices[c(1,2,3,4,1,3,1,2,4),2],
             tetraVertices[c(1,2,3,4,1,3,1,2,4),3],
             col = "grey", add = TRUE, plot = FALSE)
-    text3D(tetraVertices[,1], tetraVertices[,2], tetraVertices[,3],
-           colnames(x)[seq(4)], col = labelColors,
+    text3D(tetraVertices[,1]*1.1, tetraVertices[,2]*1.1, tetraVertices[,3]*1.03,
+           colnames(simMat)[seq(4)], col = labelColors, adj = 0.5,
            add = TRUE, plot = FALSE)
 
     if (!is.null(veloMat)) {
-        arrowCoords <- calcGridVelo(simMat = x, veloMat = veloMat,
+        arrowCoords <- calcGridVelo(simMat = simMat, veloMat = veloMat,
                                     nGrid = nGrid, radius = radius)
 
         for (i in seq_along(arrowCoords)) {
@@ -323,11 +366,74 @@ print.plist <- function(x, ...) {
     plot(x, ...)
 }
 
+# Rotate cartesien coordinate around Z-axis
+# coord - N x 3 matrix
+# theta - degree to rotate in azimuthal direction
+# Return - rotated N x 3 matrix
+rotateByZAxis <- function(coord, theta) {
+    if (theta %% 360 == 0) return(coord)
+    # Convert theta to radians
+    theta_rad <- theta * pi / 180
+
+    # Create rotation matrix
+    rotation_matrix <- matrix(c(cos(theta_rad), -sin(theta_rad), 0,
+                                sin(theta_rad), cos(theta_rad), 0,
+                                0, 0, 1), nrow = 3, ncol = 3, byrow = TRUE)
+
+    # Perform rotation
+    rotated_points <- as.matrix(coord) %*% t(rotation_matrix)
+
+    return(rotated_points)
+}
+
+.plotQuatRGL <- function(
+    simMat,
+    veloMat = NULL,
+    nGrid = 10,
+    radius = 0.2,
+    dotSize = 0.6,
+    dotColor = "grey60",
+    labelColors = c("#3B4992FF", "#EE0000FF", "#008B45FF", "#631879FF"),
+    arrowLinewidth = 0.1,
+    title = NULL
+) {
+    # Convert barycentric coordinates (4D) to cartesian coordinates (3D)
+    cellCart <- as.matrix(simMat) %*% tetra
+
+    # Plot the tetrahedron edges with RGL
+    rgl::open3d()
+    rgl::bg3d("white")
+    rgl::points3d(cellCart, color = dotColor, size = dotSize)
+    rgl::lines3d(tetra[c(1,2,3,4,1,3,1,2,4),1],
+                 tetra[c(1,2,3,4,1,3,1,2,4),2],
+                 tetra[c(1,2,3,4,1,3,1,2,4),3])
+    rgl::text3d(tetra[,1]*1.1, tetra[,2]*1.1, tetra[,3]*1.1, colnames(simMat),
+                color = labelColors)
+    if (!is.null(veloMat)) {
+        arrowCoords <- calcGridVelo(simMat = simMat, veloMat = veloMat,
+                                    nGrid = nGrid, radius = radius)
+
+        for (i in seq_along(arrowCoords)) {
+            subcoord <- arrowCoords[[i]]
+            for (j in seq(nrow(subcoord))) {
+                rgl::arrow3d(c(subcoord[j,1], subcoord[j,2], subcoord[j,3]),
+                             c(subcoord[j,4], subcoord[j,5], subcoord[j,6]),
+                             barblen = 0.005, width = 0.01,
+                             theta = 70, lwd = arrowLinewidth,
+                             type = "line", color = labelColors[i],
+                             thickness = 1)
+            }
+        }
+    }
+    if (!is.null(title)) rgl::title3d(title)
+}
+
+
 #' Create GIF image for dynamic rotating view of 3D quaternary simplex plot
 #' @param x Input object that \code{\link{plotQuaternary}} accepts.
-#' @param ... All other arguments needed for \code{\link{plotQuaternary}},
-#' except \code{theta} which controls the rotation.
-#' @param useCluster One cluster that exists in \code{clusterVar}, if users
+#' @param ... All other arguments needed for \code{\link{plotQuaternary}}. Must
+#' be specified with exact argument names instead of a positional manner.
+#' @param cluster One cluster that exists in \code{clusterVar}, if users
 #' need to view the plot for specific group. Default \code{NULL} plot all cells.
 #' @param gifPath Output GIF image file path. Default \code{"quaternary.gif"}
 #' @param tmpDir A temprorary directory to store all PNG files for all
@@ -349,7 +455,7 @@ print.plist <- function(x, ...) {
 writeQuaternaryGIF <- function(
         x,
         ...,
-        useCluster = NULL,
+        cluster = NULL,
         gifPath = "quaternary.gif",
         tmpDir = file.path(getwd(), "quaternary_gif_tmp/"),
         fps = 10,
@@ -366,6 +472,34 @@ writeQuaternaryGIF <- function(
     allImgPath <- c()
     if (!dir.exists(tmpDir)) dir.create(tmpDir)
 
+    methodArgs <- list(...)
+    if (is.null(names(methodArgs)) || "" %in% names(methodArgs)) {
+        stop("Please set `...` arguments with explicit argument names")
+    }
+    ignore <- c("theta", "byCluster", "returnData", "interactive", "veloMat")
+    if (any(names(methodArgs) %in% ignore)) {
+        warning("Arguments ignored: ",
+                paste(names(methodArgs)[names(methodArgs) %in% ignore],
+                      collapse = ", "))
+    }
+    methodArgs[ignore] <- NULL
+
+    plotData <- do.call(plotQuaternary, c(list(x = x, returnData = TRUE),
+                                          methodArgs))
+    clusterVar <- plotData$originalCluster
+    if (!is.null(cluster)) {
+        if (length(cluster) > 1)
+            stop("Can only generate GIF for one cluster at a time")
+        if (!cluster %in% clusterVar)
+            stop("\"", cluster, "\" is not an available cluster.")
+        simMat <- plotData$sim[clusterVar == cluster,]
+        veloMat <- plotData$velo[clusterVar == cluster,]
+        if (!"title" %in% names(methodArgs)) methodArgs$title <- cluster
+    } else {
+        simMat <- plotData$sim
+        veloMat <- plotData$velo
+    }
+
     message("Generating quanternary simplex plots...")
     allTheta <- seq(0, 360, degreePerFrame)
     pb <- utils::txtProgressBar(1, length(allTheta), style = 3)
@@ -374,13 +508,10 @@ writeQuaternaryGIF <- function(
         filename <- paste0("quaternary_theta", theta, ".png")
         filename <- file.path(tmpDir, filename)
         allImgPath <- c(allImgPath, filename)
-        if (is.null(useCluster)) {
-            p <- plotQuaternary(x, ..., theta = theta)
-        } else {
-            pl <- plotQuaternary(x, ..., splitCluster = TRUE,
-                                 theta = theta)
-            p <- pl[[useCluster]]
-        }
+        p <- do.call(plotQuaternary,
+                     c(list(x = simMat, veloMat = veloMat, theta = theta,
+                            interactive = FALSE),
+                       methodArgs))
 
         grDevices::png(filename)
         print(p)
@@ -391,28 +522,7 @@ writeQuaternaryGIF <- function(
     imgList <- lapply(allImgPath, magick::image_read)
     imgJoined <- magick::image_join(imgList)
     imgAnimated <- magick::image_animate(imgJoined, fps = fps)
-    message("Generate the GIF: ", gifPath)
+    message("Generated the GIF: ", gifPath)
     magick::image_write(image = imgAnimated,
                         path = gifPath)
-}
-
-
-# Rotate cartesien coordinate around Z-axis
-# coord - N x 3 matrix
-# theta - degree to rotate in azimuthal direction
-# Return - rotated N x 3 matrix
-rotateByZAxis <- function(coord, theta) {
-    if (theta %% 360 == 9) return(coord)
-    # Convert theta to radians
-    theta_rad <- theta * pi / 180
-
-    # Create rotation matrix
-    rotation_matrix <- matrix(c(cos(theta_rad), -sin(theta_rad), 0,
-                                sin(theta_rad), cos(theta_rad), 0,
-                                0, 0, 1), nrow = 3, ncol = 3, byrow = TRUE)
-
-    # Perform rotation
-    rotated_points <- as.matrix(coord) %*% t(rotation_matrix)
-
-    return(rotated_points)
 }

@@ -28,12 +28,21 @@ test_that("Test ternary - sparse", {
     p <- plotTernary(rnaRaw, rnaCluster, vertices, gene, veloGraph = rnaVelo)
     expect_s3_class(p, "ggplot")
 
-    pl <- plotTernary(rnaRaw, rnaCluster, vertices, gene, splitCluster = TRUE)
+    pl <- plotTernary(rnaRaw, rnaCluster, vertices, gene, byCluster = "all")
     expect_identical(class(pl), "list")
 
-    pl <- plotTernary(rnaRaw, rnaCluster, vertices, gene, splitCluster = TRUE,
-                     clusterTitle = FALSE)
+    pl <- plotTernary(rnaRaw, rnaCluster, vertices, gene, byCluster = "RE")
     expect_identical(class(pl), "list")
+
+    expect_error(plotTernary(rnaRaw, rnaCluster, vertices, gene,
+                            byCluster = "Hi"),
+                 "`byCluster` must be either a vector of cluster name ")
+
+    plotData <- plotTernary(rnaRaw, rnaCluster, vertices, gene,
+                            veloGraph = rnaVelo, returnData = TRUE)
+    expect_identical(class(plotData), "list")
+    expect_s3_class(plotData[[1]], "simMat")
+    expect_identical(class(plotData[[2]]), c("matrix", "array"))
 })
 
 test_that("Test ternary - dense", {
