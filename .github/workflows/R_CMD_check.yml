@@ -45,9 +45,7 @@ jobs:
       - name: Install HDF5 library on Linux
         if: runner.os == 'Linux'
         run: |
-          sudo apt-get install libhdf5-dev
-          sudo apt-get install libglpk-dev
-          sudo apt-get install libmagick++-dev
+          sudo apt-get install libhdf5-dev libglpk-dev libgl1-mesa-dev libglu1-mesa-dev libmagick++-dev
 
       - name: Install XQuartz on macOS
         if: runner.os == 'macOS'
