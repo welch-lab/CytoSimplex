@@ -262,6 +262,7 @@ plotTernary.SingleCellExperiment <- function(
 #' center of the plot. Default size \code{5}, drifted distance \code{0.03}.
 #' @param axisBreak Number of breaks to be labeled along axis. Default
 #' \code{5}.
+#' @param axisTextShow Logical, whether to show axis text. Default \code{TRUE}.
 #' @param axisTextSize,axisTextDrift Similar to the vertex adjustment applied
 #' to the text label along the axis breaks. Default size \code{4}, drifted
 #' distance \code{0.02}.
@@ -287,6 +288,7 @@ plotTernary.simMat <- function(
         vertexLabelSize = 5,
         vertexLabelDrift = 0.03,
         axisBreak = 5,
+        axisTextShow = TRUE,
         axisTextSize = 4,
         axisTextDrift = 0.02,
         gridLineAlpha = 0.6,
@@ -309,15 +311,17 @@ plotTernary.simMat <- function(
         annotate("segment", x = triangle$x[3], xend = triangle$x[1],
                           y = triangle$y[3], yend = triangle$y[1],
                           colour = labelColors[3]) +
-        annotate("text", x = -0.01 - vertexLabelDrift,
+        annotate("text", x = -0.01 - vertexLabelDrift, hjust = 0,
                  y = 0.01 - vertexLabelDrift, label = colnames(x)[1],
-                 colour = labelColors[1], size = vertexLabelSize) +
-        annotate("text", x = 0.5, y = 3^0.5/2 + vertexLabelDrift,
+                 colour = labelColors[1], size = vertexLabelSize,
+                 fontface = "bold") +
+        annotate("text", x = 0.5, y = 3^0.5/2 + vertexLabelDrift, hjust = 0.5,
                  label = colnames(x)[2], colour = labelColors[2],
-                 size = vertexLabelSize) +
-        annotate("text", x = 1.01 + vertexLabelDrift,
+                 size = vertexLabelSize, fontface = "bold") +
+        annotate("text", x = 1.01 + vertexLabelDrift, hjust = 1,
                  y = 0.01 - vertexLabelDrift, label = colnames(x)[3],
-                 colour = labelColors[3], size = vertexLabelSize) +
+                 colour = labelColors[3], size = vertexLabelSize,
+                 fontface = "bold") +
         labs(title = title) +
         theme_void() +
         theme(plot.title = element_text(face = "bold", size = titleSize,
@@ -333,10 +337,7 @@ plotTernary.simMat <- function(
         perc <- round(100 / axisBreak * i, digits = 1)
         ternCoord <- ternCoord +
             # Adding axis break number label
-            annotate("text", label = perc,
-                     x = triangle$x[2] + vecTLBreak[1]*i - axisTextDrift,
-                     y = triangle$y[2] + vecTLBreak[2]*i + axisTextDrift,
-                     color = labelColors[1], size = axisTextSize) +
+
             # Adding grid line
             annotate("segment", x = triangle$x[2] + vecTLBreak[1]*i,
                      xend = triangle$x[3] - vecLRBreak[1]*i,
@@ -344,29 +345,35 @@ plotTernary.simMat <- function(
                      yend = triangle$y[3] - vecLRBreak[2]*i,
                      linetype = 4, color = labelColors[1],
                      alpha = gridLineAlpha) +
-
-            annotate("text", label = perc,
-                     x = triangle$x[3] + vecRTBreak[1]*i + axisTextDrift,
-                     y = triangle$y[3] + vecRTBreak[2]*i + axisTextDrift,
-                     color = labelColors[2], size = axisTextSize) +
             annotate("segment", x = triangle$x[3] + vecRTBreak[1]*i,
                      xend = triangle$x[1] - vecTLBreak[1]*i,
                      y = triangle$y[3] + vecRTBreak[2]*i,
                      yend = triangle$y[1] - vecTLBreak[2]*i,
                      linetype = 4, color = labelColors[2],
                      alpha = gridLineAlpha) +
-
-            annotate("text", label = perc,
-                     x = triangle$x[1] + vecLRBreak[1]*i,
-                     y = triangle$y[1] + vecLRBreak[2]*i - axisTextDrift,
-                     color = labelColors[3], size = axisTextSize) +
             annotate("segment", x = triangle$x[1] + vecLRBreak[1]*i,
                      xend = triangle$x[2] - vecRTBreak[1]*i,
                      y = triangle$y[1] + vecLRBreak[2]*i,
                      yend = triangle$y[2] - vecRTBreak[2]*i,
                      linetype = 4, color = labelColors[3],
                      alpha = gridLineAlpha)
+        if (axisTextShow) {
+            ternCoord <- ternCoord +
+                annotate("text", label = perc,
+                         x = triangle$x[2] + vecTLBreak[1]*i - axisTextDrift,
+                         y = triangle$y[2] + vecTLBreak[2]*i + axisTextDrift,
+                         color = labelColors[1], size = axisTextSize) +
 
+                annotate("text", label = perc,
+                         x = triangle$x[3] + vecRTBreak[1]*i + axisTextDrift,
+                         y = triangle$y[3] + vecRTBreak[2]*i + axisTextDrift,
+                         color = labelColors[2], size = axisTextSize) +
+
+                annotate("text", label = perc,
+                         x = triangle$x[1] + vecLRBreak[1]*i,
+                         y = triangle$y[1] + vecLRBreak[2]*i - axisTextDrift,
+                         color = labelColors[3], size = axisTextSize)
+        }
     }
     p <- ternCoord + geom_point(color = dotColor, size = dotSize)
 
@@ -378,7 +385,7 @@ plotTernary.simMat <- function(
             p <- p +
                 annotate("segment", x = subcoords[,1], y = subcoords[,2],
                          xend = subcoords[,3], yend = subcoords[,4],
-                         color = labelColors[i],
+                         color = labelColors[i], size = arrowLinewidth,
                          arrow = arrow(angle = 20, length = unit(.1, "cm"),
                                        type = "closed"))
         }

@@ -62,7 +62,7 @@ plotQuaternary <- function(x, ...) {
 #' @param sigma Gaussian kernel parameter that controls the effect of variance.
 #' Only effective when using a distance metric (i.e. \code{method} is
 #' \code{"euclidian"} or \code{"cosine"}). Larger values tighten the dot
-#' spreading on figure. Default \code{0.08}.
+#' spreading on figure. Default \code{0.05}.
 #' @param scale Whether to min-max scale the distance matrix by clusters.
 #' Default \code{TRUE}.
 #' @param returnData Logical. Whether to return similarity and aggregated
@@ -80,7 +80,7 @@ plotQuaternary.default <- function(
         processed = FALSE,
         method = c("euclidean", "cosine", "pearson", "spearman"),
         force = FALSE,
-        sigma = 0.08,
+        sigma = 0.05,
         scale = TRUE,
         dotColor = "grey60",
         returnData = FALSE,
@@ -254,6 +254,8 @@ plotQuaternary.SingleCellExperiment <- function(
 #' \code{c("#3B4992FF", "#EE0000FF", "#008B45FF", "#631879FF")} (blue, red,
 #' green and purple).
 #' @param arrowLinewidth Arrow aesthetics. Default \code{0.6}.
+#' @param vertexLabelSize Numeric, size of vertex text label relative to default
+#' size. Default \code{1}.
 #' @param title Title text of the plot. Default \code{NULL}.
 #' @param theta,phi Numeric scalar. The angles defining the viewing direction.
 #' \code{theta} gives the azimuthal direction and \code{phi} the colatitude.
@@ -271,6 +273,7 @@ plotQuaternary.simMat <- function(
         dotColor = "grey60",
         labelColors = c("#3B4992FF", "#EE0000FF", "#008B45FF", "#631879FF"),
         arrowLinewidth = 0.3,
+        vertexLabelSize = 1,
         title = NULL,
         theta = 20,
         phi = 0,
@@ -281,14 +284,15 @@ plotQuaternary.simMat <- function(
         .plotQuatRGL(
             simMat = x, veloMat = veloMat, nGrid = nGrid, radius = radius,
             dotSize = dotSize, dotColor = dotColor, title = title,
-            labelColors = labelColors, arrowLinewidth = arrowLinewidth
+            labelColors = labelColors, arrowLinewidth = arrowLinewidth,
+            vertexLabelSize = vertexLabelSize
         )
     } else {
         .plotQuat(
             simMat = x, veloMat = veloMat, nGrid = nGrid, radius = radius,
             dotSize = dotSize, dotColor = dotColor, title = title,
             labelColors = labelColors, arrowLinewidth = arrowLinewidth,
-            theta = theta, phi = phi
+            theta = theta, phi = phi, vertexLabelSize = vertexLabelSize
         )
     }
 }
@@ -302,6 +306,7 @@ plotQuaternary.simMat <- function(
         dotColor = "grey60",
         labelColors = c("#3B4992FF", "#EE0000FF", "#008B45FF", "#631879FF"),
         arrowLinewidth = 0.6,
+        vertexLabelSize = 1,
         title = NULL,
         theta = 20,
         phi = 0
@@ -311,21 +316,21 @@ plotQuaternary.simMat <- function(
 
     tetraVertices <- rotateByZAxis(tetra, theta)
     cellCart <- rotateByZAxis(cellCart, theta)
-
     # Plot data
     grDevices::pdf(nullfile())
+    graphics::par(xpd = FALSE)
     scatter3D(cellCart[,1], cellCart[,2], cellCart[,3], main = title,
               xlim = c(-1.2, 1.2), ylim = c(-1.2, 1.2), zlim = c(0, 1.7),
               alpha = 0.8, col = dotColor, cex = dotSize/2, pch = 16, d = 3,
-              colkey = list(plot = FALSE),
+              colkey = list(plot = FALSE), expand = 0.7,
               box = FALSE, theta = 0, phi = phi, plot = FALSE)
-    lines3D(tetraVertices[c(1,2,3,4,1,3,1,2,4),1],
-            tetraVertices[c(1,2,3,4,1,3,1,2,4),2],
-            tetraVertices[c(1,2,3,4,1,3,1,2,4),3],
+    lines3D(tetraVertices[c(1,2,3,4,1,3,1,2,4), 1],
+            tetraVertices[c(1,2,3,4,1,3,1,2,4), 2],
+            tetraVertices[c(1,2,3,4,1,3,1,2,4), 3],
             col = "grey", add = TRUE, plot = FALSE)
     text3D(tetraVertices[,1]*1.1, tetraVertices[,2]*1.1, tetraVertices[,3]*1.03,
-           colnames(simMat)[seq(4)], col = labelColors, adj = 0.5,
-           add = TRUE, plot = FALSE)
+           colnames(simMat)[seq(4)], col = labelColors, adj = 0.5, font = 2,
+           cex = vertexLabelSize, add = TRUE, plot = FALSE)
 
     if (!is.null(veloMat)) {
         arrowCoords <- calcGridVelo(simMat = simMat, veloMat = veloMat,
@@ -361,7 +366,7 @@ setMethod("show", "plist", function(object) {
 #' @method print plist
 #' @export
 print.plist <- function(x, ...) {
-    graphics::par(mar = c(1, 0, 1, 0), oma = c(0, 0, 0, 0),
+    graphics::par(mar = c(1, 1, 0, 1), oma = c(0, 0, 0, 0),
                   mgp = c(0, 0, 0), xpd = NA)
     plot(x, ...)
 }
@@ -395,6 +400,7 @@ rotateByZAxis <- function(coord, theta) {
     dotColor = "grey60",
     labelColors = c("#3B4992FF", "#EE0000FF", "#008B45FF", "#631879FF"),
     arrowLinewidth = 0.1,
+    vertexLabelSize = 1,
     title = NULL
 ) {
     # Convert barycentric coordinates (4D) to cartesian coordinates (3D)
@@ -408,7 +414,7 @@ rotateByZAxis <- function(coord, theta) {
                  tetra[c(1,2,3,4,1,3,1,2,4),2],
                  tetra[c(1,2,3,4,1,3,1,2,4),3])
     rgl::text3d(tetra[,1]*1.1, tetra[,2]*1.1, tetra[,3]*1.1, colnames(simMat),
-                color = labelColors)
+                color = labelColors, cex = vertexLabelSize)
     if (!is.null(veloMat)) {
         arrowCoords <- calcGridVelo(simMat = simMat, veloMat = veloMat,
                                     nGrid = nGrid, radius = radius)

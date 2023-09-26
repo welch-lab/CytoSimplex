@@ -1,8 +1,9 @@
 .scaleMinMax <- function(x) {
     if (all(x == 0)) return(x)
     else {
-        (x - min(x, na.rm = TRUE)) /
+        x <- (x - min(x, na.rm = TRUE)) /
             (max(x, na.rm = TRUE) - min(x, na.rm = TRUE))
+        return(x)
     }
 }
 

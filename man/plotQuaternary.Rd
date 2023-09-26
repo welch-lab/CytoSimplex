@@ -20,7 +20,7 @@ plotQuaternary(x, ...)
   processed = FALSE,
   method = c("euclidean", "cosine", "pearson", "spearman"),
   force = FALSE,
-  sigma = 0.08,
+  sigma = 0.05,
   scale = TRUE,
   dotColor = "grey60",
   returnData = FALSE,
@@ -53,6 +53,7 @@ plotQuaternary(x, ...)
   dotColor = "grey60",
   labelColors = c("#3B4992FF", "#EE0000FF", "#008B45FF", "#631879FF"),
   arrowLinewidth = 0.3,
+  vertexLabelSize = 1,
   title = NULL,
   theta = 20,
   phi = 0,
@@ -109,7 +110,7 @@ features are detected, which is generally not recommended. Default
 \item{sigma}{Gaussian kernel parameter that controls the effect of variance.
 Only effective when using a distance metric (i.e. \code{method} is
 \code{"euclidian"} or \code{"cosine"}). Larger values tighten the dot
-spreading on figure. Default \code{0.08}.}
+spreading on figure. Default \code{0.05}.}
 
 \item{scale}{Whether to min-max scale the distance matrix by clusters.
 Default \code{TRUE}.}
@@ -142,6 +143,9 @@ outside of the tetrahedron. Default \code{0.2}.}
 green and purple).}
 
 \item{arrowLinewidth}{Arrow aesthetics. Default \code{0.6}.}
+
+\item{vertexLabelSize}{Numeric, size of vertex text label relative to default
+size. Default \code{1}.}
 
 \item{title}{Title text of the plot. Default \code{NULL}.}
 

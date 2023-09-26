@@ -56,6 +56,7 @@ plotTernary(x, ...)
   vertexLabelSize = 5,
   vertexLabelDrift = 0.03,
   axisBreak = 5,
+  axisTextShow = TRUE,
   axisTextSize = 4,
   axisTextDrift = 0.02,
   gridLineAlpha = 0.6,
@@ -154,6 +155,8 @@ center of the plot. Default size \code{5}, drifted distance \code{0.03}.}
 
 \item{axisBreak}{Number of breaks to be labeled along axis. Default
 \code{5}.}
+
+\item{axisTextShow}{Logical, whether to show axis text. Default \code{TRUE}.}
 
 \item{axisTextSize, axisTextDrift}{Similar to the vertex adjustment applied
 to the text label along the axis breaks. Default size \code{4}, drifted
