@@ -2,66 +2,66 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 colNormalize_dense <- function(x, colsums) {
-    .Call('_scPlotSimplex_colNormalize_dense', PACKAGE = 'scPlotSimplex', x, colsums)
+    .Call('_CytoSimplex_colNormalize_dense', PACKAGE = 'CytoSimplex', x, colsums)
 }
 
 is_rawCounts_sparse <- function(x) {
-    .Call('_scPlotSimplex_is_rawCounts_sparse', PACKAGE = 'scPlotSimplex', x)
+    .Call('_CytoSimplex_is_rawCounts_sparse', PACKAGE = 'CytoSimplex', x)
 }
 
 is_rawCounts_dense <- function(x) {
-    .Call('_scPlotSimplex_is_rawCounts_dense', PACKAGE = 'scPlotSimplex', x)
+    .Call('_CytoSimplex_is_rawCounts_dense', PACKAGE = 'CytoSimplex', x)
 }
 
 euclidean_dense <- function(query, target) {
-    .Call('_scPlotSimplex_euclidean_dense', PACKAGE = 'scPlotSimplex', query, target)
+    .Call('_CytoSimplex_euclidean_dense', PACKAGE = 'CytoSimplex', query, target)
 }
 
 euclidean_sparse <- function(query, target) {
-    .Call('_scPlotSimplex_euclidean_sparse', PACKAGE = 'scPlotSimplex', query, target)
+    .Call('_CytoSimplex_euclidean_sparse', PACKAGE = 'CytoSimplex', query, target)
 }
 
 cosine_dense <- function(query, target) {
-    .Call('_scPlotSimplex_cosine_dense', PACKAGE = 'scPlotSimplex', query, target)
+    .Call('_CytoSimplex_cosine_dense', PACKAGE = 'CytoSimplex', query, target)
 }
 
 cosine_sparse <- function(query, target) {
-    .Call('_scPlotSimplex_cosine_sparse', PACKAGE = 'scPlotSimplex', query, target)
+    .Call('_CytoSimplex_cosine_sparse', PACKAGE = 'CytoSimplex', query, target)
 }
 
 rankMatrix_dense <- function(X) {
-    .Call('_scPlotSimplex_rankMatrix_dense', PACKAGE = 'scPlotSimplex', X)
+    .Call('_CytoSimplex_rankMatrix_dense', PACKAGE = 'CytoSimplex', X)
 }
 
 cpp_rank_matrix_dgc <- function(x, p, nrow, ncol) {
-    .Call('_scPlotSimplex_cpp_rank_matrix_dgc', PACKAGE = 'scPlotSimplex', x, p, nrow, ncol)
+    .Call('_CytoSimplex_cpp_rank_matrix_dgc', PACKAGE = 'CytoSimplex', x, p, nrow, ncol)
 }
 
 rowAggregateSum_dense <- function(X, groups, ngroups) {
-    .Call('_scPlotSimplex_rowAggregateSum_dense', PACKAGE = 'scPlotSimplex', X, groups, ngroups)
+    .Call('_CytoSimplex_rowAggregateSum_dense', PACKAGE = 'CytoSimplex', X, groups, ngroups)
 }
 
 rowAggregateSum_sparse <- function(X, groups, ngroups) {
-    .Call('_scPlotSimplex_rowAggregateSum_sparse', PACKAGE = 'scPlotSimplex', X, groups, ngroups)
+    .Call('_CytoSimplex_rowAggregateSum_sparse', PACKAGE = 'CytoSimplex', X, groups, ngroups)
 }
 
 colAggregateSum_dense <- function(X, groups, ngroups) {
-    .Call('_scPlotSimplex_colAggregateSum_dense', PACKAGE = 'scPlotSimplex', X, groups, ngroups)
+    .Call('_CytoSimplex_colAggregateSum_dense', PACKAGE = 'CytoSimplex', X, groups, ngroups)
 }
 
 colAggregateSum_sparse <- function(X, groups, ngroups) {
-    .Call('_scPlotSimplex_colAggregateSum_sparse', PACKAGE = 'scPlotSimplex', X, groups, ngroups)
+    .Call('_CytoSimplex_colAggregateSum_sparse', PACKAGE = 'CytoSimplex', X, groups, ngroups)
 }
 
 colNNZAggr_dense <- function(X, groups, ngroups) {
-    .Call('_scPlotSimplex_colNNZAggr_dense', PACKAGE = 'scPlotSimplex', X, groups, ngroups)
+    .Call('_CytoSimplex_colNNZAggr_dense', PACKAGE = 'CytoSimplex', X, groups, ngroups)
 }
 
 colNNZAggr_sparse <- function(X, groups, ngroups) {
-    .Call('_scPlotSimplex_colNNZAggr_sparse', PACKAGE = 'scPlotSimplex', X, groups, ngroups)
+    .Call('_CytoSimplex_colNNZAggr_sparse', PACKAGE = 'CytoSimplex', X, groups, ngroups)
 }
 
 rowNNZAggr_sparse <- function(X, groups, ngroups) {
-    .Call('_scPlotSimplex_rowNNZAggr_sparse', PACKAGE = 'scPlotSimplex', X, groups, ngroups)
+    .Call('_CytoSimplex_rowNNZAggr_sparse', PACKAGE = 'CytoSimplex', X, groups, ngroups)
 }
 

@@ -4,7 +4,7 @@ author: "Yichen Wang, Jialin Liu"
 date: "2023-05-15"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{scPlotSimplex}
+  %\VignetteIndexEntry{CytoSimplex}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -24,7 +24,7 @@ This package use simplex barycentric coordinate approach to assist exploration i
 In this vignette, we use data from <a href="https://www.nature.com/articles/s41467-023-38034-2" target="_blank">Matsushita and Liu, *Nat. Comm.* 2023</a>. The application of this method was originally used in this publicaiton as well. From the processed and annotated scRNA-seq data, we took the subset of 50 cells per major cell type from the raw count matrix and cell type annotation. These are embedded within this package.
 
 ```{R loadExampleData}
-library(scPlotSimplex)
+library(CytoSimplex)
 data("rnaRaw")
 print(paste0("Class of `rnaRaw`: ", class(rnaRaw), ", dimension of `rnaRaw`: ", nrow(rnaRaw), " genes x ", ncol(rnaRaw), " cells"))
 

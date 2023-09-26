@@ -1,18 +1,18 @@
 library(testthat)
-library(scPlotSimplex)
+library(CytoSimplex)
 library(Matrix)
 
-data("rnaRaw", package = "scPlotSimplex")
-data("rnaCluster", package = "scPlotSimplex")
+data("rnaRaw", package = "CytoSimplex")
+data("rnaCluster", package = "CytoSimplex")
 vertices <- c("OS", "RE")
 
 test_that("Raw count detection", {
     m.double <- rnaRaw
     m.double@x[1] <- m.double@x[1] + 0.1
-    expect_false(scPlotSimplex:::is.rawCounts(m.double))
+    expect_false(CytoSimplex:::is.rawCounts(m.double))
     m.double <- as.matrix(m.double)
-    expect_false(scPlotSimplex:::is.rawCounts(m.double))
-    expect_false(scPlotSimplex:::is.rawCounts("m.double"))
+    expect_false(CytoSimplex:::is.rawCounts(m.double))
+    expect_false(CytoSimplex:::is.rawCounts("m.double"))
 })
 
 test_that("Test preprocessing - sparse", {

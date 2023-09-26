@@ -1,4 +1,4 @@
-Package: scPlotSimplex
+Package: CytoSimplex
 Type: Package
 Title: Create Simplex Plot to Visualize Cell Fate Similarity of Single Cells
 Version: 0.1.0

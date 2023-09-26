@@ -7,6 +7,6 @@
 # * https://testthat.r-lib.org/reference/test_package.html#special-files
 
 library(testthat)
-library(scPlotSimplex)
+library(CytoSimplex)
 
-test_check("scPlotSimplex")
+test_check("CytoSimplex")

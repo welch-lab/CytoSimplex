@@ -1,9 +1,9 @@
 library(testthat)
-library(scPlotSimplex)
+library(CytoSimplex)
 library(Matrix)
 
-data("rnaRaw", package = "scPlotSimplex")
-data("rnaCluster", package = "scPlotSimplex")
+data("rnaRaw", package = "CytoSimplex")
+data("rnaCluster", package = "CytoSimplex")
 vertices <- c("OS", "RE")
 gene <- selectTopFeatures(rnaRaw, rnaCluster, vertices)
 

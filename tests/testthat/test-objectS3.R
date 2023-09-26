@@ -3,12 +3,12 @@ if (requireNamespace("Seurat", quietly = TRUE) &&
 {
 
     library(testthat)
-    library(scPlotSimplex)
+    library(CytoSimplex)
     library(Matrix)
 
-    data("rnaRaw", package = "scPlotSimplex")
-    data("rnaCluster", package = "scPlotSimplex")
-    data("rnaVelo", package = "scPlotSimplex")
+    data("rnaRaw", package = "CytoSimplex")
+    data("rnaCluster", package = "CytoSimplex")
+    data("rnaVelo", package = "CytoSimplex")
     vertices <- c("OS", "RE", "CH", "ORT")
 
     library(Seurat)

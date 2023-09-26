@@ -4,7 +4,7 @@
 #' @importFrom methods show setMethod setOldClass
 #' @importFrom Matrix t colSums rowMeans
 #' @importFrom Rcpp evalCpp
-#' @useDynLib scPlotSimplex
+#' @useDynLib CytoSimplex
 NULL
 
 sqrt3 <- sqrt(3)
