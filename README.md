@@ -4,7 +4,7 @@
 
 "CytoSimplex" is an R package that creates simplex plot showing similarity between single-cells and terminals represented by clusters of cells. RNA velocity can be added as another layer of information.
 
-For Python users, we have a Python package [pyPlotSimplex](https://github.com/mvfki/pyPlotSimplex) that provides the same functionalities.
+For Python users, we have a Python package [CytoSimplex](https://github.com/mvfki/pyCytoSimplex) that provides the same functionalities.
 
 ## Installation
 
