@@ -22,6 +22,14 @@
 #' specified metric from each cell to each terminal is calculated. The
 #' similarity matrix (n cells by v terminals) is lastly normalized to sum to 1
 #' for each cell, so it becomes a baricentric coordinate.
+#'
+#' \bold{Arrow aesthetics parameters} - The shape of arrows is controlled by 3
+#' arguments. Considering an arrow as the combination of a line segment and a
+#' triangle, \code{arrowLinewidth} controls the width of the line as well as
+#' the edge line of the triangle; \code{arrowAngle} equals to angle of the
+#' arrow-tip vertex of the triangle devided by 2 (e.g. the triangle is
+#' equilateral when \code{arrowAngle = 30}); \code{arrowLen} controls the
+#' absolute length from the arrow-tip vertex to its opposite edge.
 #' @return For "simMat" method, a ggplot object. For other methods, a ggplot
 #' object when \code{splitCluster = FALSE}, or a list of ggplot objects when
 #' \code{splitCluster = TRUE}.
@@ -227,24 +235,24 @@ plotTernary.SingleCellExperiment <- function(
                 ...)
 }
 
-#' #' @rdname plotTernary
-#' #' @param useDatasets For liger method, select datasets where the distance
-#' #' calculation should only be limited within this range. Default \code{NULL}
-#' #' uses all datasets.
-#' #' @param features For container object methods. Valid row subsetting index that
-#' #' selects features. Default \code{NULL}.
-#' #' @export
-#' #' @method plotTernary liger
-#' plotTernary.liger <- function(
-#'         x,
-#'         clusterVar,
-#'         features = NULL,
-#'         useDatasets = NULL,
-#'         ...
-#' ) {
-#'     values <- .ligerPrepare(x, clusterVar, features, useDatasets)
-#'     plotTernary(values[[1]], clusterVar = values[[2]], ...)
-#' }
+# #' @rdname plotTernary
+# #' @param useDatasets For liger method, select datasets where the distance
+# #' calculation should only be limited within this range. Default \code{NULL}
+# #' uses all datasets.
+# #' @param features For container object methods. Valid row subsetting index that
+# #' selects features. Default \code{NULL}.
+# #' @export
+# #' @method plotTernary liger
+# plotTernary.liger <- function(
+#         x,
+#         clusterVar,
+#         features = NULL,
+#         useDatasets = NULL,
+#         ...
+# ) {
+#     values <- .ligerPrepare(x, clusterVar, features, useDatasets)
+#     plotTernary(values[[1]], clusterVar = values[[2]], ...)
+# }
 
 #' @rdname plotTernary
 #' @param title Title text of the plot. Default \code{NULL}.
@@ -268,7 +276,7 @@ plotTernary.SingleCellExperiment <- function(
 #' distance \code{0.02}.
 #' @param gridLineAlpha Transparency of background grid lines. Default
 #' \code{0.6}.
-#' @param arrowLinewidth Arrow aesthetics. Default \code{0.25}.
+#' @param arrowLinewidth,arrowAngle,arrowLen Arrow aesthetics, see Details.
 #' @param titleSize Size of title text. Default \code{14}.
 #' @param equilateral Logical, whether to always display the triangle as
 #' equilateral. Default \code{TRUE}.
@@ -293,6 +301,8 @@ plotTernary.simMat <- function(
         axisTextDrift = 0.02,
         gridLineAlpha = 0.6,
         arrowLinewidth = 0.25,
+        arrowAngle = 30,
+        arrowLen = 0.6,
         titleSize = 14,
         equilateral = TRUE,
         margin = 0.1,
@@ -386,7 +396,7 @@ plotTernary.simMat <- function(
                 annotate("segment", x = subcoords[,1], y = subcoords[,2],
                          xend = subcoords[,3], yend = subcoords[,4],
                          color = labelColors[i], size = arrowLinewidth,
-                         arrow = arrow(angle = 20, length = unit(.1, "cm"),
+                         arrow = arrow(angle = arrowAngle, length = unit(arrowLen, "cm"),
                                        type = "closed"))
         }
     }

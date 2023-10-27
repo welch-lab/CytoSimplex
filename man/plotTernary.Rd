@@ -61,6 +61,8 @@ plotTernary(x, ...)
   axisTextDrift = 0.02,
   gridLineAlpha = 0.6,
   arrowLinewidth = 0.25,
+  arrowAngle = 30,
+  arrowLen = 0.6,
   titleSize = 14,
   equilateral = TRUE,
   margin = 0.1,
@@ -165,7 +167,7 @@ distance \code{0.02}.}
 \item{gridLineAlpha}{Transparency of background grid lines. Default
 \code{0.6}.}
 
-\item{arrowLinewidth}{Arrow aesthetics. Default \code{0.25}.}
+\item{arrowLinewidth, arrowAngle, arrowLen}{Arrow aesthetics, see Details.}
 
 \item{titleSize}{Size of title text. Default \code{14}.}
 
@@ -198,6 +200,14 @@ Gaussian kernel, or directly computed with correlation metrics ("pearson" or
 specified metric from each cell to each terminal is calculated. The
 similarity matrix (n cells by v terminals) is lastly normalized to sum to 1
 for each cell, so it becomes a baricentric coordinate.
+
+\bold{Arrow aesthetics parameters} - The shape of arrows is controlled by 3
+arguments. Considering an arrow as the combination of a line segment and a
+triangle, \code{arrowLinewidth} controls the width of the line as well as
+the edge line of the triangle; \code{arrowAngle} equals to angle of the
+arrow-tip vertex of the triangle devided by 2 (e.g. the triangle is
+equilateral when \code{arrowAngle = 30}); \code{arrowLen} controls the
+absolute length from the arrow-tip vertex to its opposite edge.
 }
 \examples{
 gene <- selectTopFeatures(rnaRaw, rnaCluster, c("OS", "RE", "CH"))

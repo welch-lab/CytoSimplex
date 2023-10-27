@@ -1,10 +1,10 @@
 ---
-title: "Simplex Analysis of Single-Cell Data"
+title: "CytoSimplex, Simplex Visualization of Cell Fate Similarity in Single-Cell Data"
 author: "Yichen Wang, Jialin Liu"
 date: "2023-05-15"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{CytoSimplex}
+  %\VignetteIndexEntry{CytoSimplex, Simplex Visualization of Cell Fate Similarity in Single-Cell Data}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
