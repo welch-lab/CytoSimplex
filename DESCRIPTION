@@ -3,7 +3,7 @@ Type: Package
 Title: Simplex Visualization of Cell Fate Similarity in Single-Cell Data
 Version: 0.1.0
 Author: Yichen Wang [aut, cre],
-        Jialin Liu [aut, cre],
+        Jialin Liu [aut],
         Joshua D. Welch [cph]
 Maintainer: Yichen Wang <wayichen@umich.edu>
 Description: Create simplex plot to visualize the similarity between 
@@ -23,12 +23,12 @@ Imports:
     Matrix,
     plot3D,
     Rcpp,
-    rgl,
     rlang,
 Suggests:
     knitr,
     magick,
     patchwork,
+    rgl,
     rmarkdown,
     Seurat,
     SingleCellExperiment,

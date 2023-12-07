@@ -52,9 +52,14 @@ plotQuaternary(x, ...)
   dotSize = 0.6,
   dotColor = "grey60",
   labelColors = c("#3B4992FF", "#EE0000FF", "#008B45FF", "#631879FF"),
-  arrowLinewidth = 0.3,
+  arrowLinewidth = 0.6,
+  arrowAngle = 20,
+  arrowLen = 0.1,
   vertexLabelSize = 1,
+  edgeLinewidth = 1,
   title = NULL,
+  titleSize = 1,
+  titleColor = "black",
   theta = 20,
   phi = 0,
   interactive = FALSE,
@@ -144,10 +149,20 @@ green and purple).}
 
 \item{arrowLinewidth}{Arrow aesthetics. Default \code{0.6}.}
 
+\item{arrowAngle, arrowLen}{Arrow aesthetics passed to
+\code{grid::\link[grid]{arrow}}. The length of the arrow will be internally
+converted to unit onject in inches. Default \code{20} and \code{0.1}.}
+
 \item{vertexLabelSize}{Numeric, size of vertex text label relative to default
 size. Default \code{1}.}
 
+\item{edgeLinewidth}{Controls the linewidth of the edges of the tetrahedron.
+Default \code{1}.}
+
 \item{title}{Title text of the plot. Default \code{NULL}.}
+
+\item{titleSize, titleColor}{Setting on the main title text. Default \code{1},
+and \code{"black"}.}
 
 \item{theta, phi}{Numeric scalar. The angles defining the viewing direction.
 \code{theta} gives the azimuthal direction and \code{phi} the colatitude.

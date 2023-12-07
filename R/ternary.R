@@ -28,7 +28,7 @@
 #' triangle, \code{arrowLinewidth} controls the width of the line as well as
 #' the edge line of the triangle; \code{arrowAngle} equals to angle of the
 #' arrow-tip vertex of the triangle devided by 2 (e.g. the triangle is
-#' equilateral when \code{arrowAngle = 30}); \code{arrowLen} controls the
+#' equilateral when \code{arrowAngle = 20}); \code{arrowLen} controls the
 #' absolute length from the arrow-tip vertex to its opposite edge.
 #' @return For "simMat" method, a ggplot object. For other methods, a ggplot
 #' object when \code{splitCluster = FALSE}, or a list of ggplot objects when
@@ -301,8 +301,8 @@ plotTernary.simMat <- function(
         axisTextDrift = 0.02,
         gridLineAlpha = 0.6,
         arrowLinewidth = 0.25,
-        arrowAngle = 30,
-        arrowLen = 0.6,
+        arrowAngle = 20,
+        arrowLen = 0.2,
         titleSize = 14,
         equilateral = TRUE,
         margin = 0.1,

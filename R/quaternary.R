@@ -254,9 +254,16 @@ plotQuaternary.SingleCellExperiment <- function(
 #' \code{c("#3B4992FF", "#EE0000FF", "#008B45FF", "#631879FF")} (blue, red,
 #' green and purple).
 #' @param arrowLinewidth Arrow aesthetics. Default \code{0.6}.
+#' @param arrowAngle,arrowLen Arrow aesthetics passed to
+#' \code{grid::\link[grid]{arrow}}. The length of the arrow will be internally
+#' converted to unit onject in inches. Default \code{20} and \code{0.1}.
+#' @param edgeLinewidth Controls the linewidth of the edges of the tetrahedron.
+#' Default \code{1}.
 #' @param vertexLabelSize Numeric, size of vertex text label relative to default
 #' size. Default \code{1}.
 #' @param title Title text of the plot. Default \code{NULL}.
+#' @param titleSize,titleColor Setting on the main title text. Default \code{1},
+#' and \code{"black"}.
 #' @param theta,phi Numeric scalar. The angles defining the viewing direction.
 #' \code{theta} gives the azimuthal direction and \code{phi} the colatitude.
 #' Default \code{20} and \code{0}.
@@ -272,9 +279,14 @@ plotQuaternary.simMat <- function(
         dotSize = 0.6,
         dotColor = "grey60",
         labelColors = c("#3B4992FF", "#EE0000FF", "#008B45FF", "#631879FF"),
-        arrowLinewidth = 0.3,
+        arrowLinewidth = 0.6,
+        arrowAngle = 20,
+        arrowLen = 0.1,
         vertexLabelSize = 1,
+        edgeLinewidth = 1,
         title = NULL,
+        titleSize = 1,
+        titleColor = "black",
         theta = 20,
         phi = 0,
         interactive = FALSE,
@@ -291,8 +303,11 @@ plotQuaternary.simMat <- function(
         .plotQuat(
             simMat = x, veloMat = veloMat, nGrid = nGrid, radius = radius,
             dotSize = dotSize, dotColor = dotColor, title = title,
+            titleSize = titleSize, titleColor = titleColor,
             labelColors = labelColors, arrowLinewidth = arrowLinewidth,
-            theta = theta, phi = phi, vertexLabelSize = vertexLabelSize
+            arrowAngle = arrowAngle, arrowLen = arrowLen,
+            theta = theta, phi = phi, vertexLabelSize = vertexLabelSize,
+            edgeLinewidth = edgeLinewidth
         )
     }
 }
@@ -306,8 +321,13 @@ plotQuaternary.simMat <- function(
         dotColor = "grey60",
         labelColors = c("#3B4992FF", "#EE0000FF", "#008B45FF", "#631879FF"),
         arrowLinewidth = 0.6,
+        arrowAngle = 20,
+        arrowLen = 0.1,
         vertexLabelSize = 1,
+        edgeLinewidth = 1,
         title = NULL,
+        titleSize = 1,
+        titleColor = "black",
         theta = 20,
         phi = 0
 ) {
@@ -319,7 +339,8 @@ plotQuaternary.simMat <- function(
     # Plot data
     grDevices::pdf(nullfile())
     graphics::par(xpd = FALSE)
-    scatter3D(cellCart[,1], cellCart[,2], cellCart[,3], main = title,
+    scatter3D(cellCart[,1], cellCart[,2], cellCart[,3],
+              main = list(title, cex = titleSize, col = titleColor),
               xlim = c(-1.2, 1.2), ylim = c(-1.2, 1.2), zlim = c(0, 1.7),
               alpha = 0.8, col = dotColor, cex = dotSize/2, pch = 16, d = 3,
               colkey = list(plot = FALSE), expand = 0.7,
@@ -327,7 +348,7 @@ plotQuaternary.simMat <- function(
     lines3D(tetraVertices[c(1,2,3,4,1,3,1,2,4), 1],
             tetraVertices[c(1,2,3,4,1,3,1,2,4), 2],
             tetraVertices[c(1,2,3,4,1,3,1,2,4), 3],
-            col = "grey", add = TRUE, plot = FALSE)
+            col = "grey", add = TRUE, plot = FALSE, lwd = edgeLinewidth)
     text3D(tetraVertices[,1]*1.1, tetraVertices[,2]*1.1, tetraVertices[,3]*1.03,
            colnames(simMat)[seq(4)], col = labelColors, adj = 0.5, font = 2,
            cex = vertexLabelSize, add = TRUE, plot = FALSE)
@@ -335,15 +356,15 @@ plotQuaternary.simMat <- function(
     if (!is.null(veloMat)) {
         arrowCoords <- calcGridVelo(simMat = simMat, veloMat = veloMat,
                                     nGrid = nGrid, radius = radius)
-
         for (i in seq_along(arrowCoords)) {
             subcoord <- arrowCoords[[i]]
             subcoord[,seq(3)] <- rotateByZAxis(subcoord[,seq(3)], theta)
             subcoord[,seq(4,6)] <- rotateByZAxis(subcoord[,seq(4,6)], theta)
             arrows3D(subcoord[,1], subcoord[,2], subcoord[,3],
                      subcoord[,4], subcoord[,5], subcoord[,6],
-                     angle = 20, lwd = arrowLinewidth, length = 0.1,
-                     col = labelColors[i], add = TRUE, plot = FALSE)
+                     lwd = arrowLinewidth, length = arrowLen,
+                     angle = arrowAngle, col = labelColors[i], add = TRUE,
+                     plot = FALSE)
         }
     }
     grDevices::dev.off()
@@ -403,6 +424,11 @@ rotateByZAxis <- function(coord, theta) {
     vertexLabelSize = 1,
     title = NULL
 ) {
+    if (!requireNamespace("rgl", quietly = TRUE)) {
+        stop("Package \"rgl\" is required for generating the interactive ",
+             "view of a quaternary simplex plot. Please install with running:",
+             "\ninstall.packages(\"rgl\")")
+    }
     # Convert barycentric coordinates (4D) to cartesian coordinates (3D)
     cellCart <- as.matrix(simMat) %*% tetra
 
@@ -443,8 +469,7 @@ rotateByZAxis <- function(coord, theta) {
 #' need to view the plot for specific group. Default \code{NULL} plot all cells.
 #' @param gifPath Output GIF image file path. Default \code{"quaternary.gif"}
 #' @param tmpDir A temprorary directory to store all PNG files for all
-#' perspectives created. Default \code{file.path(getwd(),
-#' "quaternary_gif_tmp/")}.
+#' perspectives created. Default \code{tempdir()}.
 #' @param fps Number of frame per second, must be a factor of 100. Default
 #' \code{10}.
 #' @param degreePerFrame Number of degree that the tetrahedron is rotated per
@@ -455,7 +480,7 @@ rotateByZAxis <- function(coord, theta) {
 #' @export
 #' @examples
 #' gene <- selectTopFeatures(rnaRaw, rnaCluster, c("RE", "OS", "CH", "ORT"))
-#' if (FALSE)
+#' if (requireNamespace("magick", quietly = TRUE))
 #'     writeQuaternaryGIF(rnaRaw, clusterVar = rnaCluster, features = gene,
 #'                        vertices = c("RE", "OS", "CH", "ORT"))
 writeQuaternaryGIF <- function(
@@ -463,7 +488,7 @@ writeQuaternaryGIF <- function(
         ...,
         cluster = NULL,
         gifPath = "quaternary.gif",
-        tmpDir = file.path(getwd(), "quaternary_gif_tmp/"),
+        tmpDir = tempdir(),
         fps = 10,
         degreePerFrame = 10
 ) {
@@ -531,4 +556,5 @@ writeQuaternaryGIF <- function(
     message("Generated the GIF: ", gifPath)
     magick::image_write(image = imgAnimated,
                         path = gifPath)
+    invisible()
 }

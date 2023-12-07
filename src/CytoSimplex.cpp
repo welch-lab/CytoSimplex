@@ -1,9 +1,5 @@
 #include <RcppArmadillo.h>
 
-#ifdef _OPENMP
-#include <omp.h>
-#endif
-
 using namespace std;
 using namespace Rcpp;
 using namespace arma;

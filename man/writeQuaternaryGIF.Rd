@@ -9,7 +9,7 @@ writeQuaternaryGIF(
   ...,
   cluster = NULL,
   gifPath = "quaternary.gif",
-  tmpDir = file.path(getwd(), "quaternary_gif_tmp/"),
+  tmpDir = tempdir(),
   fps = 10,
   degreePerFrame = 10
 )
@@ -26,8 +26,7 @@ need to view the plot for specific group. Default \code{NULL} plot all cells.}
 \item{gifPath}{Output GIF image file path. Default \code{"quaternary.gif"}}
 
 \item{tmpDir}{A temprorary directory to store all PNG files for all
-perspectives created. Default \code{file.path(getwd(),
-"quaternary_gif_tmp/")}.}
+perspectives created. Default \code{tempdir()}.}
 
 \item{fps}{Number of frame per second, must be a factor of 100. Default
 \code{10}.}
@@ -45,7 +44,7 @@ Create GIF image for dynamic rotating view of 3D quaternary simplex plot
 }
 \examples{
 gene <- selectTopFeatures(rnaRaw, rnaCluster, c("RE", "OS", "CH", "ORT"))
-if (FALSE)
+if (requireNamespace("magick", quietly = TRUE))
     writeQuaternaryGIF(rnaRaw, clusterVar = rnaCluster, features = gene,
                        vertices = c("RE", "OS", "CH", "ORT"))
 }

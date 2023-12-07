@@ -1,10 +1,10 @@
 ---
-title: "CytoSimplex, Simplex Visualization of Cell Fate Similarity in Single-Cell Data"
+title: "Simplex Visualization of Cell Fate Similarity in Single-Cell Data"
 author: "Yichen Wang, Jialin Liu"
 date: "2023-05-15"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{CytoSimplex, Simplex Visualization of Cell Fate Similarity in Single-Cell Data}
+  %\VignetteIndexEntry{Simplex Visualization of Cell Fate Similarity in Single-Cell Data}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -122,6 +122,8 @@ To show a interactive 3D display, users can simply add the argument `interactive
 plotQuaternary(rnaRaw, clusterVar = rnaCluster, vertices = vt.quat, 
                features = gene.quat, veloGraph = rnaVelo, interactive = TRUE)
 ```
+
+**↑↑↑Try drag it!**
 
 We have also implemented of GIF image generator that rotates the tetrahedron rounding the z-axis. Note that package `magick` is required for this feature. (<a href="https://cran.r-project.org/web/packages/magick/vignettes/intro.html#Installing_magick" target="_blank">See here for how to install `magick` in detail</a>)
 

@@ -1,3 +1,4 @@
-# Version 0.1.0 (2023-05-15)
+## CytoSimplex 0.1.0
 
-* Initial release version.
+- Initial release version.
+
