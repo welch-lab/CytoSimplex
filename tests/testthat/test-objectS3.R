@@ -28,7 +28,8 @@ if (requireNamespace("Seurat", quietly = TRUE) &&
 
     test_that("normalization", {
         srt <- colNormalize(srt)
-        expect_equal(sum(colSums(srt@assays$RNA@data)), ncol(rnaRaw))
+        expect_equal(sum(colSums(LayerData(srt, layer = "data", assay = "RNA"))),
+                     ncol(rnaRaw))
 
         sce <- colNormalize(sce)
         expect_true("normcounts" %in% assayNames(sce))

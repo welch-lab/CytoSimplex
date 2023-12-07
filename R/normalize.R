@@ -61,7 +61,7 @@ colNormalize.Seurat <- function(
     value <- .getSeuratData(x, assay = assay, layer = layer, clusterVar = NULL)
     mat <- value[[1]]
     norm <- colNormalize.default(mat, scaleFactor = scaleFactor, log = log)
-    x <- Seurat::SetAssayData(x, slot = "data", assay = assay, new.data = norm)
+    SeuratObject::LayerData(x, layer = "data", assay = assay) <- norm
     return(x)
 }
 
