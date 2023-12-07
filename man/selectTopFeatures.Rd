@@ -25,11 +25,19 @@ selectTopFeatures(x, clusterVar, vertices, ...)
   clusterVar = NULL,
   vertices,
   assay = NULL,
-  slot = c("counts", "data", "scale.data"),
+  layer = "counts",
+  processed = FALSE,
   ...
 )
 
-\method{selectTopFeatures}{SingleCellExperiment}(x, clusterVar = NULL, vertices, assay.type = "counts", ...)
+\method{selectTopFeatures}{SingleCellExperiment}(
+  x,
+  clusterVar = NULL,
+  vertices,
+  assay.type = "counts",
+  processed = FALSE,
+  ...
+)
 }
 \arguments{
 \item{x}{Dense or sparse matrix, observation per column. Preferrably a raw
@@ -64,8 +72,8 @@ rather then returning the selected genes. Default \code{FALSE}}
 
 \item{assay}{Assay name of the Seurat object to be used. Default \code{NULL}.}
 
-\item{slot}{Slot name of the Seurat object to be used. Default
-\code{"counts"}.}
+\item{layer}{For "Seurat" method, which layer of the assay to be used.
+Default \code{"counts"}.}
 
 \item{assay.type}{Assay name of the SingleCellExperiment object to be used.
 Default \code{"counts"}.}

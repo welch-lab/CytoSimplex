@@ -34,8 +34,8 @@ colNormalize.default <- function(x, scaleFactor = NULL, log = FALSE, ...) {
 }
 
 #' @rdname colNormalize
-#' @param slot For "Seurat" method, choose from \code{"counts"},
-#' \code{"data"} or \code{"scale.data"}. Default \code{"counts"}.
+#' @param layer For "Seurat" method, which layer of the assay to be used.
+#' Default \code{"counts"}.
 #' @param assay For "Seurat" method, the specific assay to get data from.
 #' Default \code{NULL} to the default assay.
 #' @return A Seurat object with normalized data in the specified slot of the
@@ -55,10 +55,10 @@ colNormalize.Seurat <- function(
     scaleFactor = NULL,
     log = FALSE,
     assay = NULL,
-    slot = "counts",
+    layer = "counts",
     ...
 ) {
-    value <- .getSeuratData(x, assay = assay, slot = slot, clusterVar = NULL)
+    value <- .getSeuratData(x, assay = assay, layer = layer, clusterVar = NULL)
     mat <- value[[1]]
     norm <- colNormalize.default(mat, scaleFactor = scaleFactor, log = log)
     x <- Seurat::SetAssayData(x, slot = "data", assay = assay, new.data = norm)

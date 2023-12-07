@@ -1,3 +1,8 @@
+`%||%` <- function(x, y) {
+    if (is.null(x)) y
+    else x
+}
+
 .scaleMinMax <- function(x) {
     if (all(x == 0)) return(x)
     else {
@@ -69,17 +74,24 @@ is.rawCounts <- function(x) {
 .getSeuratData <- function(
         object,
         assay = NULL,
-        slot = "data",
+        layer = "counts",
         clusterVar = NULL
 ) {
     if (!requireNamespace("Seurat", quietly = TRUE)) {
         stop("Please install package 'Seurat' before interacting with a ", # nocov
              "Seurat object.\ninstall.packages(\"Seurat\")") # nocov
     }
-    mat <- Seurat::GetAssayData(object, slot = slot, assay = assay)
-    if (is.null(clusterVar)) clusterVar <- Seurat::Idents(object)
-    else if (length(clusterVar) == 1) {
+    if (!requireNamespace("SeuratObject", quietly = TRUE)) {
+        stop("Please install package 'SeuratObject' before interacting with a ", # nocov
+             "Seurat object.\ninstall.packages(\"Seurat\")") # nocov
+    }
+    mat <- SeuratObject::LayerData(object, layer = layer, assay = assay)
+    clusterVar <- clusterVar %||% SeuratObject::Idents(object)
+    if (length(clusterVar) == 1) {
         clusterVar <- object[[clusterVar]][[1]]
+    }
+    if (length(clusterVar) != ncol(object)) {
+        stop("Invalid `clusterVar`.")
     }
     return(list(mat, clusterVar))
 }
@@ -100,12 +112,19 @@ is.rawCounts <- function(x) {
              "\nBiocManager::install(\"SummarizedExperiment\")") # nocov
     }
     mat <- SummarizedExperiment::assay(object, assay.type)
+
     if (is.null(clusterVar)) {
         if (inherits(object, "SingleCellExperiment")) {
             clusterVar <- SingleCellExperiment::colLabels(object)
+        } else {
+            stop("No default labels available for this SCE object.")
         }
-    } else if (length(clusterVar) == 1) {
+    }
+    if (length(clusterVar) == 1) {
         clusterVar <- SummarizedExperiment::colData(object)[[clusterVar]]
+    }
+    if (length(clusterVar) != ncol(object)) {
+        stop("Invalid `clusterVar`.")
     }
     return(list(mat, clusterVar))
 }

@@ -16,7 +16,7 @@ colNormalize(x, scaleFactor = NULL, log = FALSE, ...)
   scaleFactor = NULL,
   log = FALSE,
   assay = NULL,
-  slot = "counts",
+  layer = "counts",
   ...
 )
 
@@ -37,8 +37,8 @@ Default \code{FALSE}}
 \item{assay}{For "Seurat" method, the specific assay to get data from.
 Default \code{NULL} to the default assay.}
 
-\item{slot}{For "Seurat" method, choose from \code{"counts"},
-\code{"data"} or \code{"scale.data"}. Default \code{"counts"}.}
+\item{layer}{For "Seurat" method, which layer of the assay to be used.
+Default \code{"counts"}.}
 
 \item{assay.type}{For "SingleCellExperiment" method, the assay type to get
 data from. Default \code{"counts"}.}

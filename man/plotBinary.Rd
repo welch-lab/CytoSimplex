@@ -28,7 +28,7 @@ plotBinary(x, ...)
 
 \method{plotBinary}{Seurat}(
   x,
-  slot = c("counts", "data", "scale.data"),
+  layer = "counts",
   assay = NULL,
   clusterVar = NULL,
   processed = FALSE,
@@ -100,8 +100,8 @@ Default \code{TRUE}.}
 \item{returnData}{Logical. Whether to return similarity data instead of
 generating plot. Default \code{FALSE}.}
 
-\item{slot}{For "Seurat" method, choose from \code{"counts"},
-\code{"data"} or \code{"scale.data"}. Default \code{"counts"}.}
+\item{layer}{For "Seurat" method, which layer of the assay to be used.
+Default \code{"counts"}.}
 
 \item{assay}{For "Seurat" method, the specific assay to get data from.
 Default \code{NULL} to the default assay.}
@@ -141,9 +141,7 @@ plotBinary(rnaRaw, rnaCluster, c("RE", "OS"), gene)
 if (FALSE) {
     srt <- CreateSeuratObject(rnaRaw)
     Idents(srt) <- rnaCluster
-    srt <- colNormalize(srt)
     gene <- selectTopFeatures(srt, vertices = c("OS", "RE"))
-    srt <- colNormalize(srt, scaleFactor = 1e4, log = TRUE)
     plotBinary(srt, features = gene, vertices = c("OS", "RE"))
 }
 

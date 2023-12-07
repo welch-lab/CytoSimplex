@@ -169,8 +169,8 @@ plotTernary.default <- function(
     }
 }
 
-#' @param slot For "Seurat" method, choose from \code{"counts"},
-#' \code{"data"} or \code{"scale.data"}. Default \code{"counts"}.
+#' @param layer For "Seurat" method, which layer of the assay to be used.
+#' Default \code{"counts"}.
 #' @param assay For "Seurat" method, the specific assay to get data from.
 #' Default \code{NULL} to the default assay.
 #' @rdname plotTernary
@@ -187,18 +187,16 @@ plotTernary.default <- function(
 #' }
 plotTernary.Seurat <- function(
         x,
-        slot = c("counts", "data", "scale.data"),
+        layer = "counts",
         assay = NULL,
         clusterVar = NULL,
         processed = FALSE,
         ...
 ) {
-    slot <- match.arg(slot)
-    values <- .getSeuratData(x, slot = slot, assay = assay,
+    values <- .getSeuratData(x, layer = layer, assay = assay,
                              clusterVar = clusterVar)
     if (missing(processed)) {
-        if (slot == "counts") processed <- FALSE
-        else processed <- TRUE
+        processed <- layer != "counts"
     }
     plotTernary(values[[1]], clusterVar = values[[2]], processed = processed,
                 ...)
@@ -228,8 +226,7 @@ plotTernary.SingleCellExperiment <- function(
 ) {
     values <- .getSCEData(x, assay.type = assay.type, clusterVar = clusterVar)
     if (missing(processed)) {
-        if (assay.type == "counts") processed <- FALSE
-        else processed <- TRUE
+        processed <- assay.type != "counts"
     }
     plotTernary(values[[1]], clusterVar = values[[2]], processed = processed,
                 ...)
@@ -395,8 +392,9 @@ plotTernary.simMat <- function(
             p <- p +
                 annotate("segment", x = subcoords[,1], y = subcoords[,2],
                          xend = subcoords[,3], yend = subcoords[,4],
-                         color = labelColors[i], size = arrowLinewidth,
-                         arrow = arrow(angle = arrowAngle, length = unit(arrowLen, "cm"),
+                         color = labelColors[i], linewidth = arrowLinewidth,
+                         arrow = arrow(angle = arrowAngle,
+                                       length = unit(arrowLen, "cm"),
                                        type = "closed"))
         }
     }

@@ -111,8 +111,8 @@ selectTopFeatures.default <- function(
 #' @rdname selectTopFeatures
 #' @export
 #' @method selectTopFeatures Seurat
-#' @param slot Slot name of the Seurat object to be used. Default
-#' \code{"counts"}.
+#' @param layer For "Seurat" method, which layer of the assay to be used.
+#' Default \code{"counts"}.
 #' @param assay Assay name of the Seurat object to be used. Default \code{NULL}.
 #' @examples
 #'
@@ -128,16 +128,16 @@ selectTopFeatures.Seurat <- function(
     clusterVar = NULL,
     vertices,
     assay = NULL,
-    slot = c("counts", "data", "scale.data"),
+    layer = "counts",
+    processed = FALSE,
     ...
 ) {
-    slot <- match.arg(slot)
-    value <- .getSeuratData(x, assay = assay, slot = slot,
+    value <- .getSeuratData(x, assay = assay, layer = layer,
                             clusterVar = clusterVar)
     mat <- value[[1]]
     clusterVar <- value[[2]]
 
-    processed <- ifelse(slot != "counts", TRUE, FALSE)
+    if (missing(processed)) processed <- layer != "counts"
     selectTopFeatures(mat, clusterVar, vertices, processed = processed, ...)
 }
 
@@ -160,12 +160,13 @@ selectTopFeatures.SingleCellExperiment <- function(
     clusterVar = NULL,
     vertices,
     assay.type = "counts",
+    processed = FALSE,
     ...
 ) {
     value <- .getSCEData(x, assay.type = assay.type, clusterVar = clusterVar)
     mat <- value[[1]]
     clusterVar <- value[[2]]
-    processed <- ifelse(assay.type == "counts", FALSE, TRUE)
+    if (missing(processed)) processed <- assay.type != "counts"
     selectTopFeatures(mat, clusterVar, vertices, processed = processed, ...)
 }
 

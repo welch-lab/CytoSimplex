@@ -127,8 +127,8 @@ plotBinary.default <- function(
     }
 }
 
-#' @param slot For "Seurat" method, choose from \code{"counts"},
-#' \code{"data"} or \code{"scale.data"}. Default \code{"counts"}.
+#' @param layer For "Seurat" method, which layer of the assay to be used.
+#' Default \code{"counts"}.
 #' @param assay For "Seurat" method, the specific assay to get data from.
 #' Default \code{NULL} to the default assay.
 #' @rdname plotBinary
@@ -140,25 +140,21 @@ plotBinary.default <- function(
 #' if (FALSE) {
 #'     srt <- CreateSeuratObject(rnaRaw)
 #'     Idents(srt) <- rnaCluster
-#'     srt <- colNormalize(srt)
 #'     gene <- selectTopFeatures(srt, vertices = c("OS", "RE"))
-#'     srt <- colNormalize(srt, scaleFactor = 1e4, log = TRUE)
 #'     plotBinary(srt, features = gene, vertices = c("OS", "RE"))
 #' }
 plotBinary.Seurat <- function(
         x,
-        slot = c("counts", "data", "scale.data"),
+        layer = "counts",
         assay = NULL,
         clusterVar = NULL,
         processed = FALSE,
         ...
 ) {
-    slot <- match.arg(slot)
-    values <- .getSeuratData(x, slot = slot, assay = assay,
+    values <- .getSeuratData(x, layer = layer, assay = assay,
                              clusterVar = clusterVar)
     if (missing(processed)) {
-        if (slot == "counts") processed <- FALSE
-        else processed <- TRUE
+        processed <- layer != "counts"
     }
     plotBinary(x = values[[1]], clusterVar = values[[2]], processed = processed,
                ...)
@@ -188,8 +184,7 @@ plotBinary.SingleCellExperiment <- function(
 ) {
     values <- .getSCEData(x, assay.type = assay.type, clusterVar = clusterVar)
     if (missing(processed)) {
-        if (assay.type == "counts") processed <- FALSE
-        else processed <- TRUE
+        processed <- assay.type != "counts"
     }
     plotBinary(values[[1]], clusterVar = values[[2]], processed = processed,
                ...)
