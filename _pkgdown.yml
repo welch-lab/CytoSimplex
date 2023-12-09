@@ -1,3 +1,8 @@
 url: ~
 template:
   bootstrap: 5
+
+navbar:
+  right:
+    - icon: fab fa-github fa-lg
+      href: https://github.com/welch-lab/CytoSimplex
