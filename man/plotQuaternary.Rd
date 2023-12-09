@@ -187,7 +187,7 @@ See \code{\link{plotTernary}} for more details.
 A dynamic rotating view in a GIF image file can be created with
 \code{\link{writeQuaternaryGIF}}. Package \code{magick} must be installed in
 advance. Linux users may refer to this
-\href{https://cran.r-project.org/web/packages/magick/vignettes/intro.html#Build_from_source}{installation guide}.
+\href{https://cran.r-project.org/package=magick/vignettes/intro.html#Build_from_source}{installation guide}.
 }
 \examples{
 gene <- selectTopFeatures(rnaRaw, rnaCluster, c("RE", "OS", "CH", "ORT"))
