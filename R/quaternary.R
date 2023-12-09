@@ -8,7 +8,7 @@
 #' A dynamic rotating view in a GIF image file can be created with
 #' \code{\link{writeQuaternaryGIF}}. Package \code{magick} must be installed in
 #' advance. Linux users may refer to this
-#' \href{https://cran.r-project.org/web/packages/magick/vignettes/intro.html#Build_from_source}{installation guide}.
+#' \href{https://cran.r-project.org/package=magick/vignettes/intro.html#Build_from_source}{installation guide}.
 #' @param x Input data. Can be a \code{matrix} or \code{dgCMatrix} object with
 #' cells as columns, a \code{Seurat} or \code{SingleCellExperiment} object.
 #' "simMat" method takes intermediate values.
