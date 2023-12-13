@@ -182,7 +182,7 @@ variable name in interactive console.
 Create quaternary plots that show similarity between single cells and
 selected four terminals in a baricentric coordinate.
 
-See \code{\link{plotTernary}} for more details.
+See \code{\link{plotTernary}} for more details on methodologies.
 
 A dynamic rotating view in a GIF image file can be created with
 \code{\link{writeQuaternaryGIF}}. Package \code{magick} must be installed in
@@ -191,25 +191,23 @@ advance. Linux users may refer to this
 }
 \examples{
 gene <- selectTopFeatures(rnaRaw, rnaCluster, c("RE", "OS", "CH", "ORT"))
-plotQuaternary(rnaRaw, rnaCluster, c("RE", "OS", "CH", "ORT"), gene,
-               interactive = FALSE)
-
+plotQuaternary(rnaRaw, rnaCluster, c("RE", "OS", "CH", "ORT"), gene)
+\donttest{
 # Seurat example
-if (FALSE) {
-    srt <- CreateSeuratObject(rnaRaw)
-    Idents(srt) <- rnaCluster
-    gene <- selectTopFeatures(srt, vertices = c("OS", "RE", "CH", "ORT"))
-    plotQuaternary(srt, features = gene,
-                   vertices = c("OS", "RE", "CH", "ORT"))
+library(Seurat)
+srt <- CreateSeuratObject(rnaRaw)
+Idents(srt) <- rnaCluster
+gene <- selectTopFeatures(srt, vertices = c("OS", "RE", "CH", "ORT"))
+plotQuaternary(srt, features = gene,
+               vertices = c("OS", "RE", "CH", "ORT"))
 }
-
+\donttest{
 # SingleCellExperiment example
-if (FALSE) {
-    library(SingleCellExperiment)
-    sce <- SingleCellExperiment(assays = list(counts = rnaRaw))
-    colLabels(sce) <- rnaCluster
-    gene <- selectTopFeatures(sce, vertices = c("OS", "RE", "CH", "ORT"))
-    plotQuaternary(sce, features = gene,
-                   vertices = c("OS", "RE", "CH", "ORT"))
+library(SingleCellExperiment)
+sce <- SingleCellExperiment(assays = list(counts = rnaRaw))
+colLabels(sce) <- rnaCluster
+gene <- selectTopFeatures(sce, vertices = c("OS", "RE", "CH", "ORT"))
+plotQuaternary(sce, features = gene,
+               vertices = c("OS", "RE", "CH", "ORT"))
 }
 }

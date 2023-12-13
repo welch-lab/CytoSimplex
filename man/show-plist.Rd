@@ -12,8 +12,21 @@
 \arguments{
 \item{object, x}{plist object}
 
-\item{...}{Not used.}
+\item{...}{Graphic parameters passed to \code{\link{plot}}. \code{mar} is
+pre-specified.}
+}
+\value{
+No return value. It displays the plot described in a 'plist' object
+returned by \code{\link{plotQuaternary}}, internally created by package
+'plot3D'.
 }
 \description{
 Show plist object produced with plot3D package
+}
+\examples{
+gene <- selectTopFeatures(rnaRaw, rnaCluster, c("RE", "OS", "CH", "ORT"))
+plistObj <- plotQuaternary(rnaRaw, rnaCluster, c("RE", "OS", "CH", "ORT"), gene)
+print(plistObj)
+# equivalent to
+show(plistObj)
 }

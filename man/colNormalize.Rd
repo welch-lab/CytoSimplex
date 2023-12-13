@@ -3,6 +3,7 @@
 \name{colNormalize}
 \alias{colNormalize}
 \alias{colNormalize.default}
+\alias{colNormalize.dgCMatrix}
 \alias{colNormalize.Seurat}
 \alias{colNormalize.SingleCellExperiment}
 \title{Normalize each column of the input matrix by the column sum}
@@ -10,6 +11,8 @@
 colNormalize(x, scaleFactor = NULL, log = FALSE, ...)
 
 \method{colNormalize}{default}(x, scaleFactor = NULL, log = FALSE, ...)
+
+\method{colNormalize}{dgCMatrix}(x, scaleFactor = NULL, log = FALSE, ...)
 
 \method{colNormalize}{Seurat}(
   x,
@@ -58,18 +61,16 @@ Normalize each column of the input matrix by the column sum
 }
 \examples{
 rnaNorm <- colNormalize(rnaRaw)
-
+\donttest{
 # Seurat example
-if (FALSE) {
-    library(Seurat)
-    srt <- CreateSeuratObject(rnaRaw)
-    srt <- colNormalize(srt)
+library(Seurat)
+srt <- CreateSeuratObject(rnaRaw)
+srt <- colNormalize(srt)
 }
-
+\donttest{
 # SingleCellExperiment example
-if (FALSE) {
-    library(SingleCellExperiment)
-    sce <- SingleCellExperiment(assays = list(counts = rnaRaw))
-    sce <- colNormalize(sce)
+library(SingleCellExperiment)
+sce <- SingleCellExperiment(assays = list(counts = rnaRaw))
+sce <- colNormalize(sce)
 }
 }

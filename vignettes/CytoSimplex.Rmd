@@ -139,3 +139,7 @@ if (!knitr:::is_latex_output()) {
 }
 ```
 
+```{R unlinkFile, include=FALSE}
+unlink("rotating_tetra.gif")
+```
+

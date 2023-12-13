@@ -15,40 +15,44 @@ colNormalize <- function(x, scaleFactor = NULL, log = FALSE, ...) {
     UseMethod("colNormalize", x)
 }
 
+
 #' @rdname colNormalize
 #' @export
 #' @method colNormalize default
 colNormalize.default <- function(x, scaleFactor = NULL, log = FALSE, ...) {
-    if (inherits(x, "dgCMatrix")) {
-        x@x <- x@x / rep.int(Matrix::colSums(x), diff(x@p))
-    } else if (is.matrix(x)) {
-        dn <- dimnames(x)
-        x <- colNormalize_dense(x, base::colSums(x))
-        dimnames(x) <- dn
-    } else {
-        stop("Input matrix of class ", class(x)[1], " is not yet supported.")
-    }
+    dn <- dimnames(x)
+    x <- colNormalize_dense(x, base::colSums(x))
+    dimnames(x) <- dn
     if (!is.null(scaleFactor)) x <- x * scaleFactor
     if (isTRUE(log)) x <- log1p(x)
     return(x)
 }
 
 #' @rdname colNormalize
-#' @param layer For "Seurat" method, which layer of the assay to be used.
-#' Default \code{"counts"}.
+#' @export
+#' @method colNormalize dgCMatrix
+colNormalize.dgCMatrix <- function(x, scaleFactor = NULL, log = FALSE, ...) {
+    x@x <- x@x / rep.int(Matrix::colSums(x), diff(x@p))
+    if (!is.null(scaleFactor)) x <- x * scaleFactor
+    if (isTRUE(log)) x <- log1p(x)
+    return(x)
+}
+
+#' @rdname colNormalize
 #' @param assay For "Seurat" method, the specific assay to get data from.
 #' Default \code{NULL} to the default assay.
+#' @param layer For "Seurat" method, which layer of the assay to be used.
+#' Default \code{"counts"}.
 #' @return A Seurat object with normalized data in the specified slot of the
 #' specified assay.
 #' @export
 #' @method colNormalize Seurat
 #' @examples
-#'
+#' \donttest{
 #' # Seurat example
-#' if (FALSE) {
-#'     library(Seurat)
-#'     srt <- CreateSeuratObject(rnaRaw)
-#'     srt <- colNormalize(srt)
+#' library(Seurat)
+#' srt <- CreateSeuratObject(rnaRaw)
+#' srt <- colNormalize(srt)
 #' }
 colNormalize.Seurat <- function(
     x,
@@ -60,7 +64,7 @@ colNormalize.Seurat <- function(
 ) {
     value <- .getSeuratData(x, assay = assay, layer = layer, clusterVar = NULL)
     mat <- value[[1]]
-    norm <- colNormalize.default(mat, scaleFactor = scaleFactor, log = log)
+    norm <- colNormalize(mat, scaleFactor = scaleFactor, log = log)
     SeuratObject::LayerData(x, layer = "data", assay = assay) <- norm
     return(x)
 }
@@ -74,12 +78,11 @@ colNormalize.Seurat <- function(
 #' @export
 #' @method colNormalize SingleCellExperiment
 #' @examples
-#'
+#' \donttest{
 #' # SingleCellExperiment example
-#' if (FALSE) {
-#'     library(SingleCellExperiment)
-#'     sce <- SingleCellExperiment(assays = list(counts = rnaRaw))
-#'     sce <- colNormalize(sce)
+#' library(SingleCellExperiment)
+#' sce <- SingleCellExperiment(assays = list(counts = rnaRaw))
+#' sce <- colNormalize(sce)
 #' }
 colNormalize.SingleCellExperiment <- function(
     x,
@@ -90,7 +93,7 @@ colNormalize.SingleCellExperiment <- function(
 ) {
     value <- .getSCEData(x, clusterVar = NULL, assay.type = assay.type)
     mat <- value[[1]]
-    norm <- colNormalize.default(mat, scaleFactor = scaleFactor, log = log)
+    norm <- colNormalize(mat, scaleFactor = scaleFactor, log = log)
     if (isTRUE(log)) SingleCellExperiment::logcounts(x) <- norm
     else SingleCellExperiment::normcounts(x) <- norm
 

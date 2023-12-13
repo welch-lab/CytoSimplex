@@ -135,13 +135,13 @@ plotBinary.default <- function(
 #' @export
 #' @method plotBinary Seurat
 #' @examples
-#'
+#' \donttest{
 #' # Seurat example
-#' if (FALSE) {
-#'     srt <- CreateSeuratObject(rnaRaw)
-#'     Idents(srt) <- rnaCluster
-#'     gene <- selectTopFeatures(srt, vertices = c("OS", "RE"))
-#'     plotBinary(srt, features = gene, vertices = c("OS", "RE"))
+#' library(Seurat)
+#' srt <- CreateSeuratObject(rnaRaw)
+#' Idents(srt) <- rnaCluster
+#' gene <- selectTopFeatures(srt, vertices = c("OS", "RE"))
+#' plotBinary(srt, features = gene, vertices = c("OS", "RE"))
 #' }
 plotBinary.Seurat <- function(
         x,
@@ -166,14 +166,13 @@ plotBinary.Seurat <- function(
 #' @export
 #' @method plotBinary SingleCellExperiment
 #' @examples
-#'
+#' \donttest{
 #' # SingleCellExperiment example
-#' if (FALSE) {
-#'     library(SingleCellExperiment)
-#'     sce <- SingleCellExperiment(assays = list(counts = rnaRaw))
-#'     colLabels(sce) <- rnaCluster
-#'     gene <- selectTopFeatures(sce, vertices = c("OS", "RE"))
-#'     plotBinary(sce, features = gene, vertices = c("OS", "RE"))
+#' library(SingleCellExperiment)
+#' sce <- SingleCellExperiment(assays = list(counts = rnaRaw))
+#' colLabels(sce) <- rnaCluster
+#' gene <- selectTopFeatures(sce, vertices = c("OS", "RE"))
+#' plotBinary(sce, features = gene, vertices = c("OS", "RE"))
 #' }
 plotBinary.SingleCellExperiment <- function(
         x,

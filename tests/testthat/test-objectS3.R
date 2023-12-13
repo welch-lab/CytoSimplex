@@ -1,6 +1,7 @@
 if (requireNamespace("Seurat", quietly = TRUE) &&
     suppressWarnings(requireNamespace("SingleCellExperiment", quietly = TRUE)))
 {
+    Sys.setenv("OMP_THREAD_LIMIT" = 2)
 
     library(testthat)
     library(CytoSimplex)

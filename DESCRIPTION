@@ -2,14 +2,21 @@ Package: CytoSimplex
 Type: Package
 Title: Simplex Visualization of Cell Fate Similarity in Single-Cell Data
 Version: 0.1.0
-Author: Yichen Wang [aut, cre],
-        Jialin Liu [aut],
-        Joshua D. Welch [cph]
+Authors@R: c(
+    person(given = 'Yichen', family = 'Wang', email = 'wayichen@umich.edu', 
+           role = c('aut', 'cre'), comment = c(ORCID = "0000-0003-4347-5199")),
+    person(given = 'Jialin', family = 'Liu', email = 'alanliu@umich.edu', 
+           role = c('aut'), comment = c(ORCID = "0000-0002-9984-7695")),
+    person(given = 'Joshua', family = 'Welch', email = 'welchjd@umich.edu', 
+           role = c('cph'))
+  )
 Maintainer: Yichen Wang <wayichen@umich.edu>
-Description: Create simplex plot to visualize the similarity between 
+Description: Create simplex plots to visualize the similarity between 
     single-cells and selected clusters in a 1-/2-/3-simplex space.
-    Velocity information can be added as an additional layer.
-License: GPL-3 | file LICENSE
+    Velocity information can be added as an additional layer. 
+    See Liu J, Wang Y et al (2023) <doi:10.1101/2023.12.07.570655> for more details.
+URL: https://welch-lab.github.io/CytoSimplex/, https://github.com/welch-lab/CytoSimplex
+License: GPL-3
 Encoding: UTF-8
 LazyData: true
 Depends:

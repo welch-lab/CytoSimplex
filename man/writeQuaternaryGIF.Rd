@@ -44,7 +44,9 @@ Create GIF image for dynamic rotating view of 3D quaternary simplex plot
 }
 \examples{
 gene <- selectTopFeatures(rnaRaw, rnaCluster, c("RE", "OS", "CH", "ORT"))
-if (requireNamespace("magick", quietly = TRUE))
-    writeQuaternaryGIF(rnaRaw, clusterVar = rnaCluster, features = gene,
-                       vertices = c("RE", "OS", "CH", "ORT"))
+\donttest{
+writeQuaternaryGIF(rnaRaw, clusterVar = rnaCluster, features = gene,
+                   vertices = c("RE", "OS", "CH", "ORT"),
+                   gifPath = paste0(tempfile(), ".gif"))
+}
 }
