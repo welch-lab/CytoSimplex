@@ -29,3 +29,8 @@ devtools::install_github("welch-lab/CytoSimplex")
 
 We have created a [documentation website](https://welch-lab.github.io/CytoSimplex/) for posting [example tutorials](https://welch-lab.github.io/CytoSimplex/articles/CytoSimplex.html) walking through the process from loading the provided example data and creating different types of visualization.
 
+## Citation
+
+If you used CytoSimplex in your work, please cite the following work:
+
+>[Jialin Liu, Yichen Wang, Chen Li, Yichen Gu, Noriaki Ono and Joshua D. Welch, CytoSimplex: Visualizing Single-cell Fates and Transitions on a Simplex, 2023, bioRxiv](https://doi.org/10.1101/2023.12.07.570655)
