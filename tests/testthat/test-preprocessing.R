@@ -16,7 +16,7 @@ test_that("Raw count detection", {
 })
 
 test_that("Test preprocessing - sparse", {
-    expect_error(colNormalize("hello"), "Input matrix of class")
+    expect_error(colNormalize("hello"), "'x' must be an array of at least two dimensions")
     rnaNorm <- colNormalize(rnaRaw)
     expect_equal(sum(colSums(rnaNorm)), ncol(rnaRaw))
     rnaLog <- colNormalize(rnaRaw, scaleFactor = 1e4, log = TRUE)

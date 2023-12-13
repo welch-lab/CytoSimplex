@@ -2,6 +2,7 @@ library(testthat)
 library(CytoSimplex)
 library(Matrix)
 
+Sys.setenv("OMP_THREAD_LIMIT" = 2)
 data("rnaRaw", package = "CytoSimplex")
 data("rnaCluster", package = "CytoSimplex")
 data("rnaVelo", package = "CytoSimplex")
@@ -71,7 +72,7 @@ test_that("Test quaternary GIF", {
                                     features = gene, vertices = grouping,
                                     fps = 33),
                  "FPS must be a factor of 100.")
-
+    skip_on_cran()
     expect_warning(writeQuaternaryGIF(rnaRaw, clusterVar = rnaCluster,
                                       vertices = grouping, features = gene,
                                       cluster = "RE",

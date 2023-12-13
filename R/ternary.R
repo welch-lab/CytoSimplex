@@ -177,13 +177,13 @@ plotTernary.default <- function(
 #' @export
 #' @method plotTernary Seurat
 #' @examples
-#'
+#' \donttest{
 #' # Seurat example
-#' if (FALSE) {
-#'     srt <- CreateSeuratObject(rnaRaw)
-#'     Idents(srt) <- rnaCluster
-#'     gene <- selectTopFeatures(srt, vertices = c("OS", "RE", "CH"))
-#'     plotTernary(srt, features = gene, vertices = c("OS", "RE", "CH"))
+#' library(Seurat)
+#' srt <- CreateSeuratObject(rnaRaw)
+#' Idents(srt) <- rnaCluster
+#' gene <- selectTopFeatures(srt, vertices = c("OS", "RE", "CH"))
+#' plotTernary(srt, features = gene, vertices = c("OS", "RE", "CH"))
 #' }
 plotTernary.Seurat <- function(
         x,
@@ -208,14 +208,13 @@ plotTernary.Seurat <- function(
 #' @export
 #' @method plotTernary SingleCellExperiment
 #' @examples
-#'
+#' \donttest{
 #' # SingleCellExperiment example
-#' if (FALSE) {
-#'     library(SingleCellExperiment)
-#'     sce <- SingleCellExperiment(assays = list(counts = rnaRaw))
-#'     colLabels(sce) <- rnaCluster
-#'     gene <- selectTopFeatures(sce, vertices = c("OS", "RE", "CH"))
-#'     plotTernary(sce, features = gene, vertices = c("OS", "RE", "CH"))
+#' library(SingleCellExperiment)
+#' sce <- SingleCellExperiment(assays = list(counts = rnaRaw))
+#' colLabels(sce) <- rnaCluster
+#' gene <- selectTopFeatures(sce, vertices = c("OS", "RE", "CH"))
+#' plotTernary(sce, features = gene, vertices = c("OS", "RE", "CH"))
 #' }
 plotTernary.SingleCellExperiment <- function(
         x,

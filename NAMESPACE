@@ -3,6 +3,7 @@
 S3method(colNormalize,Seurat)
 S3method(colNormalize,SingleCellExperiment)
 S3method(colNormalize,default)
+S3method(colNormalize,dgCMatrix)
 S3method(plotBinary,Seurat)
 S3method(plotBinary,SingleCellExperiment)
 S3method(plotBinary,default)

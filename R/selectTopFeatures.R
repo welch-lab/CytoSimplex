@@ -115,13 +115,12 @@ selectTopFeatures.default <- function(
 #' Default \code{"counts"}.
 #' @param assay Assay name of the Seurat object to be used. Default \code{NULL}.
 #' @examples
-#'
+#' \donttest{
 #' # Seurat example
-#' if (FALSE) {
-#'     library(Seurat)
-#'     srt <- CreateSeuratObject(rnaRaw)
-#'     Idents(srt) <- rnaCluster
-#'     gene <- selectTopFeatures(srt, vertices = c("OS", "RE"))
+#' library(Seurat)
+#' srt <- CreateSeuratObject(rnaRaw)
+#' Idents(srt) <- rnaCluster
+#' gene <- selectTopFeatures(srt, vertices = c("OS", "RE"))
 #' }
 selectTopFeatures.Seurat <- function(
     x,
@@ -147,13 +146,12 @@ selectTopFeatures.Seurat <- function(
 #' @param assay.type Assay name of the SingleCellExperiment object to be used.
 #' Default \code{"counts"}.
 #' @examples
-#'
+#' \donttest{
 #' # SingleCellExperiment example
-#' if (FALSE) {
-#'     library(SingleCellExperiment)
-#'     sce <- SingleCellExperiment(assays = list(counts = rnaRaw))
-#'     colLabels(sce) <- rnaCluster
-#'     gene <- selectTopFeatures(sce, vertices = c("OS", "RE"))
+#' library(SingleCellExperiment)
+#' sce <- SingleCellExperiment(assays = list(counts = rnaRaw))
+#' colLabels(sce) <- rnaCluster
+#' gene <- selectTopFeatures(sce, vertices = c("OS", "RE"))
 #' }
 selectTopFeatures.SingleCellExperiment <- function(
     x,

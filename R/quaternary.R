@@ -3,7 +3,7 @@
 #' Create quaternary plots that show similarity between single cells and
 #' selected four terminals in a baricentric coordinate.
 #'
-#' See \code{\link{plotTernary}} for more details.
+#' See \code{\link{plotTernary}} for more details on methodologies.
 #'
 #' A dynamic rotating view in a GIF image file can be created with
 #' \code{\link{writeQuaternaryGIF}}. Package \code{magick} must be installed in
@@ -22,8 +22,7 @@
 #' variable name in interactive console.
 #' @examples
 #' gene <- selectTopFeatures(rnaRaw, rnaCluster, c("RE", "OS", "CH", "ORT"))
-#' plotQuaternary(rnaRaw, rnaCluster, c("RE", "OS", "CH", "ORT"), gene,
-#'                interactive = FALSE)
+#' plotQuaternary(rnaRaw, rnaCluster, c("RE", "OS", "CH", "ORT"), gene)
 plotQuaternary <- function(x, ...) {
     UseMethod('plotQuaternary', x)
 }
@@ -163,14 +162,14 @@ plotQuaternary.default <- function(
 #' @export
 #' @method plotQuaternary Seurat
 #' @examples
-#'
+#' \donttest{
 #' # Seurat example
-#' if (FALSE) {
-#'     srt <- CreateSeuratObject(rnaRaw)
-#'     Idents(srt) <- rnaCluster
-#'     gene <- selectTopFeatures(srt, vertices = c("OS", "RE", "CH", "ORT"))
-#'     plotQuaternary(srt, features = gene,
-#'                    vertices = c("OS", "RE", "CH", "ORT"))
+#' library(Seurat)
+#' srt <- CreateSeuratObject(rnaRaw)
+#' Idents(srt) <- rnaCluster
+#' gene <- selectTopFeatures(srt, vertices = c("OS", "RE", "CH", "ORT"))
+#' plotQuaternary(srt, features = gene,
+#'                vertices = c("OS", "RE", "CH", "ORT"))
 #' }
 plotQuaternary.Seurat <- function(
         x,
@@ -195,15 +194,14 @@ plotQuaternary.Seurat <- function(
 #' @export
 #' @method plotQuaternary SingleCellExperiment
 #' @examples
-#'
+#' \donttest{
 #' # SingleCellExperiment example
-#' if (FALSE) {
-#'     library(SingleCellExperiment)
-#'     sce <- SingleCellExperiment(assays = list(counts = rnaRaw))
-#'     colLabels(sce) <- rnaCluster
-#'     gene <- selectTopFeatures(sce, vertices = c("OS", "RE", "CH", "ORT"))
-#'     plotQuaternary(sce, features = gene,
-#'                    vertices = c("OS", "RE", "CH", "ORT"))
+#' library(SingleCellExperiment)
+#' sce <- SingleCellExperiment(assays = list(counts = rnaRaw))
+#' colLabels(sce) <- rnaCluster
+#' gene <- selectTopFeatures(sce, vertices = c("OS", "RE", "CH", "ORT"))
+#' plotQuaternary(sce, features = gene,
+#'                vertices = c("OS", "RE", "CH", "ORT"))
 #' }
 plotQuaternary.SingleCellExperiment <- function(
         x,
@@ -335,9 +333,8 @@ plotQuaternary.simMat <- function(
     cellCart <- rotateByZAxis(cellCart, theta)
     # Plot data
     grDevices::pdf(nullfile())
-    graphics::par(xpd = FALSE)
     scatter3D(cellCart[,1], cellCart[,2], cellCart[,3],
-              main = list(title, cex = titleSize, col = titleColor),
+              main = list(title, cex = titleSize, col = titleColor), outer = FALSE,
               xlim = c(-1.2, 1.2), ylim = c(-1.2, 1.2), zlim = c(0, 1.7),
               alpha = 0.8, col = dotColor, cex = dotSize/2, pch = 16, d = 3,
               colkey = list(plot = FALSE), expand = 0.7,
@@ -373,8 +370,18 @@ setOldClass("plist")
 #' @rdname show-plist
 #' @title Show plist object produced with plot3D package
 #' @param object,x plist object
-#' @param ... Not used.
+#' @param ... Graphic parameters passed to \code{\link{plot}}. \code{mar} is
+#' pre-specified.
 #' @export
+#' @return No return value. It displays the plot described in a 'plist' object
+#' returned by \code{\link{plotQuaternary}}, internally created by package
+#' 'plot3D'.
+#' @examples
+#' gene <- selectTopFeatures(rnaRaw, rnaCluster, c("RE", "OS", "CH", "ORT"))
+#' plistObj <- plotQuaternary(rnaRaw, rnaCluster, c("RE", "OS", "CH", "ORT"), gene)
+#' print(plistObj)
+#' # equivalent to
+#' show(plistObj)
 setMethod("show", "plist", function(object) {
     print(object)
 }
@@ -384,8 +391,9 @@ setMethod("show", "plist", function(object) {
 #' @method print plist
 #' @export
 print.plist <- function(x, ...) {
-    graphics::par(mar = c(1, 1, 0, 1), oma = c(0, 0, 0, 0),
-                  mgp = c(0, 0, 0), xpd = NA)
+    oldpar <- graphics::par(no.readonly = TRUE) # code line i
+    on.exit(graphics::par(oldpar))
+    graphics::par(mar = c(0, 0, 0, 0))
     plot(x, ...)
 }
 
@@ -477,9 +485,11 @@ rotateByZAxis <- function(coord, theta) {
 #' @export
 #' @examples
 #' gene <- selectTopFeatures(rnaRaw, rnaCluster, c("RE", "OS", "CH", "ORT"))
-#' if (requireNamespace("magick", quietly = TRUE))
-#'     writeQuaternaryGIF(rnaRaw, clusterVar = rnaCluster, features = gene,
-#'                        vertices = c("RE", "OS", "CH", "ORT"))
+#' \donttest{
+#' writeQuaternaryGIF(rnaRaw, clusterVar = rnaCluster, features = gene,
+#'                    vertices = c("RE", "OS", "CH", "ORT"),
+#'                    gifPath = paste0(tempfile(), ".gif"))
+#' }
 writeQuaternaryGIF <- function(
         x,
         ...,

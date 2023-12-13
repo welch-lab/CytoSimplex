@@ -14,14 +14,23 @@ The package is developed and tested under R>=4.2.0. Users can install R followin
 To install CytoSimplex in R, run the following command in an R console:
 
 ```R
+install.packages("CytoSimplex")
+```
+
+For the latest developmental version, run the following command in an R console:
+
+```R
 if (!requireNamespace("devtools", quietly = TRUE))
     install.packages("devtools")
 devtools::install_github("welch-lab/CytoSimplex")
 ```
 
-We will submit the package to CRAN soon to simplify the installation process.
-
 ## Tutorial
 
 We have created a [documentation website](https://welch-lab.github.io/CytoSimplex/) for posting [example tutorials](https://welch-lab.github.io/CytoSimplex/articles/CytoSimplex.html) walking through the process from loading the provided example data and creating different types of visualization.
 
+## Citation
+
+If you used CytoSimplex in your work, please cite the following work:
+
+>[Jialin Liu, Yichen Wang, Chen Li, Yichen Gu, Noriaki Ono and Joshua D. Welch, CytoSimplex: Visualizing Single-cell Fates and Transitions on a Simplex, 2023, bioRxiv](https://doi.org/10.1101/2023.12.07.570655)

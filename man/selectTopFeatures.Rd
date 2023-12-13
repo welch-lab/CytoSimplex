@@ -99,20 +99,18 @@ secondarily on log fold-change, after filtering for up-regulated features.
 }
 \examples{
 selectTopFeatures(rnaRaw, rnaCluster, c("OS", "RE"))
-
+\donttest{
 # Seurat example
-if (FALSE) {
-    library(Seurat)
-    srt <- CreateSeuratObject(rnaRaw)
-    Idents(srt) <- rnaCluster
-    gene <- selectTopFeatures(srt, vertices = c("OS", "RE"))
+library(Seurat)
+srt <- CreateSeuratObject(rnaRaw)
+Idents(srt) <- rnaCluster
+gene <- selectTopFeatures(srt, vertices = c("OS", "RE"))
 }
-
+\donttest{
 # SingleCellExperiment example
-if (FALSE) {
-    library(SingleCellExperiment)
-    sce <- SingleCellExperiment(assays = list(counts = rnaRaw))
-    colLabels(sce) <- rnaCluster
-    gene <- selectTopFeatures(sce, vertices = c("OS", "RE"))
+library(SingleCellExperiment)
+sce <- SingleCellExperiment(assays = list(counts = rnaRaw))
+colLabels(sce) <- rnaCluster
+gene <- selectTopFeatures(sce, vertices = c("OS", "RE"))
 }
 }

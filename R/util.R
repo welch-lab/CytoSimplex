@@ -116,14 +116,10 @@ is.rawCounts <- function(x) {
     if (is.null(clusterVar)) {
         if (inherits(object, "SingleCellExperiment")) {
             clusterVar <- SingleCellExperiment::colLabels(object)
-        } else {
-            stop("No default labels available for this SCE object.")
         }
-    }
-    if (length(clusterVar) == 1) {
+    } else if (length(clusterVar) == 1) {
         clusterVar <- SummarizedExperiment::colData(object)[[clusterVar]]
-    }
-    if (length(clusterVar) != ncol(object)) {
+    } else if (length(clusterVar) != ncol(object)) {
         stop("Invalid `clusterVar`.")
     }
     return(list(mat, clusterVar))

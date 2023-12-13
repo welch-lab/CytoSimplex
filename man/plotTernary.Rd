@@ -212,21 +212,20 @@ absolute length from the arrow-tip vertex to its opposite edge.
 \examples{
 gene <- selectTopFeatures(rnaRaw, rnaCluster, c("OS", "RE", "CH"))
 plotTernary(rnaRaw, rnaCluster, c("OS", "RE", "CH"), gene)
-
+\donttest{
 # Seurat example
-if (FALSE) {
-    srt <- CreateSeuratObject(rnaRaw)
-    Idents(srt) <- rnaCluster
-    gene <- selectTopFeatures(srt, vertices = c("OS", "RE", "CH"))
-    plotTernary(srt, features = gene, vertices = c("OS", "RE", "CH"))
+library(Seurat)
+srt <- CreateSeuratObject(rnaRaw)
+Idents(srt) <- rnaCluster
+gene <- selectTopFeatures(srt, vertices = c("OS", "RE", "CH"))
+plotTernary(srt, features = gene, vertices = c("OS", "RE", "CH"))
 }
-
+\donttest{
 # SingleCellExperiment example
-if (FALSE) {
-    library(SingleCellExperiment)
-    sce <- SingleCellExperiment(assays = list(counts = rnaRaw))
-    colLabels(sce) <- rnaCluster
-    gene <- selectTopFeatures(sce, vertices = c("OS", "RE", "CH"))
-    plotTernary(sce, features = gene, vertices = c("OS", "RE", "CH"))
+library(SingleCellExperiment)
+sce <- SingleCellExperiment(assays = list(counts = rnaRaw))
+colLabels(sce) <- rnaCluster
+gene <- selectTopFeatures(sce, vertices = c("OS", "RE", "CH"))
+plotTernary(sce, features = gene, vertices = c("OS", "RE", "CH"))
 }
 }
