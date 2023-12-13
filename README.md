@@ -14,12 +14,16 @@ The package is developed and tested under R>=4.2.0. Users can install R followin
 To install CytoSimplex in R, run the following command in an R console:
 
 ```R
+install.packages("CytoSimplex")
+```
+
+For the latest developmental version, run the following command in an R console:
+
+```R
 if (!requireNamespace("devtools", quietly = TRUE))
     install.packages("devtools")
 devtools::install_github("welch-lab/CytoSimplex")
 ```
-
-We will submit the package to CRAN soon to simplify the installation process.
 
 ## Tutorial
 
