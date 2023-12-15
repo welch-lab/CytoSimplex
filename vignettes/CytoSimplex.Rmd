@@ -127,7 +127,7 @@ plotQuaternary(rnaRaw, clusterVar = rnaCluster, vertices = vt.quat,
 
 We have also implemented of GIF image generator that rotates the tetrahedron rounding the z-axis. Note that package `magick` is required for this feature. (<a href="https://cran.r-project.org/package=magick/vignettes/intro.html#Installing_magick" target="_blank">See here for how to install `magick` in detail</a>)
 
-```{R writeGIF, results="hide"}
+```{R writeGIF, eval=FALSE, results="hide"}
 writeQuaternaryGIF(rnaRaw, clusterVar = rnaCluster, vertices = vt.quat, 
                    features = gene.quat, veloGraph = rnaVelo, 
                    gifPath = "rotating_tetra.gif")
@@ -135,11 +135,7 @@ writeQuaternaryGIF(rnaRaw, clusterVar = rnaCluster, vertices = vt.quat,
 
 ```{R showGIF, echo = FALSE}
 if (!knitr:::is_latex_output()) {
-  knitr::include_graphics("rotating_tetra.gif")
+  knitr::include_graphics(system.file("figure/rotating_tetra.gif", package = "CytoSimplex"))
 }
-```
-
-```{R unlinkFile, include=FALSE}
-unlink("rotating_tetra.gif")
 ```
 
