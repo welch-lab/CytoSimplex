@@ -1,6 +1,7 @@
 # CytoSimplex <img src="man/figures/logo.png" align="right" width="120" />
 
 [![R_CMD_check](https://github.com/welch-lab/CytoSimplex/actions/workflows/R_CMD_check.yml/badge.svg?branch=main)](https://github.com/welch-lab/CytoSimplex/actions/workflows/R_CMD_check.yml)[![codecov](https://codecov.io/gh/mvfki/CytoSimplex/branch/main/graph/badge.svg?token=AYU2AOE25I)](https://app.codecov.io/gh/mvfki/CytoSimplex)[![Seurat](https://img.shields.io/badge/Seurat-5.0.1-blue)](https://CRAN.R-project.org/package=Seurat)[![sce](https://img.shields.io/badge/SingleCellExperiment-1.22.0-blue)](https://bioconductor.org/packages/release/bioc/html/SingleCellExperiment.html)
+[![PyPI version](https://badge.fury.io/py/CytoSimplex.svg)](https://badge.fury.io/py/CytoSimplex)
 
 
 CytoSimplex is an R package that creates simplex plot showing similarity between single-cells and terminals represented by clusters of cells. RNA velocity can be added as another layer of information.
@@ -33,4 +34,10 @@ We have created a [documentation website](https://welch-lab.github.io/CytoSimple
 
 If you used CytoSimplex in your work, please cite the following work:
 
->[Jialin Liu, Yichen Wang, Chen Li, Yichen Gu, Noriaki Ono and Joshua D. Welch, CytoSimplex: Visualizing Single-cell Fates and Transitions on a Simplex, 2023, bioRxiv](https://doi.org/10.1101/2023.12.07.570655)
+>[Jialin Liu, Yichen Wang, Chen Li, Yichen Gu, Noriaki Ono and Joshua D. Welch, CytoSimplex: Visualizing Single-cell Fates and Transitions on a Simplex, 2023, bioRxiv](https://doi.org/10.1101/2023.12.07.570655
+        
+        
+        
+        
+        
+        )
