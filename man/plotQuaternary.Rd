@@ -3,9 +3,6 @@
 \name{plotQuaternary}
 \alias{plotQuaternary}
 \alias{plotQuaternary.default}
-\alias{plotQuaternary.Seurat}
-\alias{plotQuaternary.SingleCellExperiment}
-\alias{plotQuaternary.simMat}
 \title{Create quaternary simplex plots}
 \usage{
 plotQuaternary(x, ...)
@@ -22,56 +19,50 @@ plotQuaternary(x, ...)
   force = FALSE,
   sigma = 0.05,
   scale = TRUE,
-  dotColor = "grey60",
+  dotColorBy = NULL,
+  dotColor = NULL,
+  palette = "D",
+  direction = 1,
+  breaks = NULL,
+  legendTitle = NULL,
   returnData = FALSE,
-  ...
-)
-
-\method{plotQuaternary}{Seurat}(
-  x,
-  layer = "counts",
-  assay = NULL,
-  clusterVar = NULL,
-  processed = FALSE,
-  ...
-)
-
-\method{plotQuaternary}{SingleCellExperiment}(
-  x,
-  assay.type = "counts",
-  clusterVar = NULL,
-  processed = FALSE,
-  ...
-)
-
-\method{plotQuaternary}{simMat}(
-  x,
-  veloMat = NULL,
-  nGrid = 10,
-  radius = 0.2,
-  dotSize = 0.6,
-  dotColor = "grey60",
-  labelColors = c("#3B4992FF", "#EE0000FF", "#008B45FF", "#631879FF"),
-  arrowLinewidth = 0.6,
-  arrowAngle = 20,
-  arrowLen = 0.1,
-  vertexLabelSize = 1,
-  edgeLinewidth = 1,
-  title = NULL,
-  titleSize = 1,
-  titleColor = "black",
-  theta = 20,
-  phi = 0,
-  interactive = FALSE,
   ...
 )
 }
 \arguments{
 \item{x}{Input data. Can be a \code{matrix} or \code{dgCMatrix} object with
-cells as columns, a \code{Seurat} or \code{SingleCellExperiment} object.
-"simMat" method takes intermediate values.}
+cells as columns, a \code{Seurat} or \code{SingleCellExperiment} object.}
 
-\item{...}{Arguments passed to other methods.}
+\item{...}{
+  Arguments passed on to \code{\link[=plotQuaternary.simMat]{plotQuaternary.simMat}}
+  \describe{
+    \item{\code{nGrid}}{Number of grids along the x-axis of the tetrahedron. Default
+\code{10}.}
+    \item{\code{radius}}{Arrow length of unit velocity. Lower this when arrows point
+outside of the tetrahedron. Default \code{0.2}.}
+    \item{\code{dotSize}}{Size of each dot. Default \code{0.6} for static figure, and
+\code{4} for interactive view.}
+    \item{\code{labelColors}}{Colors of the vertex labels. Default
+\code{c("#3B4992FF", "#EE0000FF", "#008B45FF", "#631879FF")} (blue, red,
+green and purple).}
+    \item{\code{arrowLinewidth}}{Arrow aesthetics. Default \code{1.6} for interactive
+view, \code{0.6} for static figure.}
+    \item{\code{arrowAngle,arrowLen}}{Arrow aesthetics passed to TODOOOO
+\code{grid::\link[grid]{arrow}}. The length of the arrow will be internally
+converted to unit onject in inches. Default \code{20} and \code{0.1}.}
+    \item{\code{edgeLinewidth}}{Controls the linewidth of the edges of the tetrahedron.
+Default \code{1}.}
+    \item{\code{vertexLabelSize}}{Numeric, size of vertex text label relative to default
+size. Default \code{1}.}
+    \item{\code{title}}{Title text of the plot. Default \code{NULL}.}
+    \item{\code{titleSize,titleColor}}{Setting on the main title text. Default \code{1},
+and \code{"black"}.}
+    \item{\code{theta,phi}}{Numeric scalar. The angles defining the viewing direction.
+\code{theta} gives the azimuthal direction and \code{phi} the colatitude.
+Default \code{20} and \code{0}.}
+    \item{\code{interactive}}{Logical. Whether to display plotly interactive view.
+Default \code{TRUE}.}
+  }}
 
 \item{clusterVar}{A vector/factor assigning the cluster variable to each
 column of the matrix object. For "Seurat" method, \code{NULL} (default) for
@@ -120,63 +111,41 @@ spreading on figure. Default \code{0.05}.}
 \item{scale}{Whether to min-max scale the distance matrix by clusters.
 Default \code{TRUE}.}
 
+\item{dotColorBy}{A vector/factor for coloring dots, can be either categorical
+(must be character or factor) or continuous. Default \code{NULL}.}
+
+\item{dotColor}{Character vector of color codes. When \code{dotColorBy} is
+\code{NULL}, use one or as many colors as the number of cells. If
+\code{dotColorBy} is categorical, specify as many colors
+as the number of categories in \code{dotColorBy} or ggplot2 categorical
+color palette is used by default. If \code{dotColorBy} is continuous, specify
+together with \code{breaks} argument.}
+
+\item{palette}{Color palette to use when \code{dotColorBy} is given. Default
+\code{"D"} (viridis) for continuous value and ggplot2 default for categorical
+value. See detail for alternatives.}
+
+\item{direction}{Sets the order of colors in the scale. Default \code{1}
+orders as palette default. If \code{-1}, the order of colors is reversed.}
+
+\item{breaks}{Number of breaks for continuous color scale passed to
+non-interactive "plot3D::scatter3D" call. Default \code{NULL}.}
+
+\item{legendTitle}{Title on the legend/colorbar. Default \code{NULL} uses
+\code{"cluster"} if \code{dotColorBy} is missing (default); user-end variable
+expression if \code{dotColorBy} is directly specified from
+plotQuaternary.default method; variable name if \code{dotColorBy} is
+specified from Seurat or SingleCellExperiment method.}
+
 \item{returnData}{Logical. Whether to return similarity and aggregated
 velocity data if applicable instead of generating plot. Default \code{FALSE}.}
-
-\item{layer}{For "Seurat" method, which layer of the assay to be used.
-Default \code{"counts"}.}
-
-\item{assay}{For "Seurat" method, the specific assay to get data from.
-Default \code{NULL} to the default assay.}
-
-\item{assay.type}{For "SingleCellExperiment" methods. Which assay to use for
-calculating the similarity. Default \code{"counts"}.}
-
-\item{veloMat}{Aggregated velocity matrix. Output of \code{aggrVeloGraph}.}
-
-\item{nGrid}{Number of grids along the x-axis of the tetrahedron
-triangle. Default \code{10}.}
-
-\item{radius}{Arrow length of unit velocity. Lower this when arrows point
-outside of the tetrahedron. Default \code{0.2}.}
-
-\item{dotSize, dotColor}{Dot aesthetics. Default \code{0.6} and
-\code{"grey60"}.}
-
-\item{labelColors}{Colors of the vertex labels. Default
-\code{c("#3B4992FF", "#EE0000FF", "#008B45FF", "#631879FF")} (blue, red,
-green and purple).}
-
-\item{arrowLinewidth}{Arrow aesthetics. Default \code{0.6}.}
-
-\item{arrowAngle, arrowLen}{Arrow aesthetics passed to
-\code{grid::\link[grid]{arrow}}. The length of the arrow will be internally
-converted to unit onject in inches. Default \code{20} and \code{0.1}.}
-
-\item{vertexLabelSize}{Numeric, size of vertex text label relative to default
-size. Default \code{1}.}
-
-\item{edgeLinewidth}{Controls the linewidth of the edges of the tetrahedron.
-Default \code{1}.}
-
-\item{title}{Title text of the plot. Default \code{NULL}.}
-
-\item{titleSize, titleColor}{Setting on the main title text. Default \code{1},
-and \code{"black"}.}
-
-\item{theta, phi}{Numeric scalar. The angles defining the viewing direction.
-\code{theta} gives the azimuthal direction and \code{phi} the colatitude.
-Default \code{20} and \code{0}.}
-
-\item{interactive}{Logical. Whether to use "rgl" library to create
-interactive device. Default \code{FALSE}.}
 }
 \value{
-For "simMat" method, a "plist" (plot3D package product) object. For
-other methods, a "plist" object when \code{splitCluster = FALSE}, or a list
-of "plist" objects when \code{splitCluster = TRUE}. A "plist" object can be
-viewed with \code{print()}, \code{show()} or a direct run of the object
-variable name in interactive console.
+By default, a "plotly" object. When \code{interactive = FALSE}, a
+"quatPlot" object when \code{byCluster} is not specified, or a "list" of
+"quatPlot" objects when \code{byCluster} is specified. When
+\code{returnData = TRUE}, a list of similarity matrix and aggregated velocity
+matrix is returned.
 }
 \description{
 Create quaternary plots that show similarity between single cells and
@@ -190,24 +159,21 @@ advance. Linux users may refer to this
 \href{https://cran.r-project.org/package=magick/vignettes/intro.html#Build_from_source}{installation guide}.
 }
 \examples{
-gene <- selectTopFeatures(rnaRaw, rnaCluster, c("RE", "OS", "CH", "ORT"))
-plotQuaternary(rnaRaw, rnaCluster, c("RE", "OS", "CH", "ORT"), gene)
-\donttest{
-# Seurat example
-library(Seurat)
-srt <- CreateSeuratObject(rnaRaw)
-Idents(srt) <- rnaCluster
-gene <- selectTopFeatures(srt, vertices = c("OS", "RE", "CH", "ORT"))
-plotQuaternary(srt, features = gene,
-               vertices = c("OS", "RE", "CH", "ORT"))
+gene <- selectTopFeatures(
+    x = rnaRaw,
+    clusterVar = rnaCluster,
+    vertices = c("RE", "OS", "CH", "ORT")
+)
+plotQuaternary(
+    x = rnaRaw,
+    clusterVar = rnaCluster,
+    vertices = c("RE", "OS", "CH", "ORT"),
+    features = gene
+)
 }
-\donttest{
-# SingleCellExperiment example
-library(SingleCellExperiment)
-sce <- SingleCellExperiment(assays = list(counts = rnaRaw))
-colLabels(sce) <- rnaCluster
-gene <- selectTopFeatures(sce, vertices = c("OS", "RE", "CH", "ORT"))
-plotQuaternary(sce, features = gene,
-               vertices = c("OS", "RE", "CH", "ORT"))
+\seealso{
+Other plotQuaternary: 
+\code{\link{plotQuaternary.Seurat}()},
+\code{\link{plotQuaternary.SingleCellExperiment}()}
 }
-}
+\concept{plotQuaternary}

@@ -3,10 +3,7 @@
 \name{plotTernary}
 \alias{plotTernary}
 \alias{plotTernary.default}
-\alias{plotTernary.Seurat}
-\alias{plotTernary.SingleCellExperiment}
-\alias{plotTernary.simMat}
-\title{Create ternary plots}
+\title{Create ternary simplex plots}
 \usage{
 plotTernary(x, ...)
 
@@ -22,50 +19,13 @@ plotTernary(x, ...)
   force = FALSE,
   sigma = 0.08,
   scale = TRUE,
-  dotColor = "grey60",
+  dotColorBy = NULL,
+  dotColor = NULL,
+  palette = "D",
+  direction = 1,
+  breaks = NULL,
+  legendTitle = NULL,
   returnData = FALSE,
-  ...
-)
-
-\method{plotTernary}{Seurat}(
-  x,
-  layer = "counts",
-  assay = NULL,
-  clusterVar = NULL,
-  processed = FALSE,
-  ...
-)
-
-\method{plotTernary}{SingleCellExperiment}(
-  x,
-  assay.type = "counts",
-  clusterVar = NULL,
-  processed = FALSE,
-  ...
-)
-
-\method{plotTernary}{simMat}(
-  x,
-  title = NULL,
-  veloMat = NULL,
-  nGrid = 10,
-  radius = 0.1,
-  dotSize = 0.6,
-  dotColor = "grey60",
-  labelColors = c("#3B4992FF", "#EE0000FF", "#008B45FF"),
-  vertexLabelSize = 5,
-  vertexLabelDrift = 0.03,
-  axisBreak = 5,
-  axisTextShow = TRUE,
-  axisTextSize = 4,
-  axisTextDrift = 0.02,
-  gridLineAlpha = 0.6,
-  arrowLinewidth = 0.25,
-  arrowAngle = 20,
-  arrowLen = 0.2,
-  titleSize = 14,
-  equilateral = TRUE,
-  margin = 0.1,
   ...
 )
 }
@@ -74,7 +34,50 @@ plotTernary(x, ...)
 cells as columns, a \code{Seurat} or \code{SingleCellExperiment} object.
 "simMat" method takes intermediate values.}
 
-\item{...}{Arguments passed to other methods.}
+\item{...}{
+  Arguments passed on to \code{\link[=plotTernary.simMat]{plotTernary.simMat}}
+  \describe{
+    \item{\code{title}}{Title text of the plot. Default \code{NULL}.}
+    \item{\code{nGrid}}{Number of grids along the bottom side of the equilateral
+triangle. Default \code{10}.}
+    \item{\code{radius}}{Arrow length of unit velocity. Lower this when arrows point
+outside of the coordinate. Default \code{0.1}.}
+    \item{\code{dotSize}}{Dot aesthetics passed to \code{geom_point}. Default \code{0.6}
+when not interactive, \code{4} when interactive.}
+    \item{\code{dotShuffle}}{Whether to shuffle the order of dots being added to the
+plot, useful when categorical colors are used and mixing of categories is
+expected. Default \code{NULL} does shuffle when \code{dotColorBy} given is
+categorical and does not otherwise.}
+    \item{\code{labelColors}}{Colors of the axis lines and vertex labels.
+Default \code{c("#3B4992FF", "#EE0000FF", "#008B45FF")} (blue, red and green)}
+    \item{\code{vertexLabelSize}}{Size of vertex labels. Default \code{6} when not
+interactive, \code{16} when interactive.}
+    \item{\code{vertexLabelDrift}}{Position adjustment of the vertex labels, only
+applied to non-interactive view. Default \code{0.03}.}
+    \item{\code{axisBreak}}{Number of breaks to be labeled along axis. Default
+\code{5}.}
+    \item{\code{axisTextShow}}{Logical, whether to show axis text. Default \code{TRUE}.}
+    \item{\code{axisTextSize}}{Size of text along each axis break. Default \code{4} for
+non-interactive view, \code{12} for interactive view.}
+    \item{\code{axisTextDrift}}{Position adjustment of the axis text, only applied to
+non-interactive view. Default \code{0.01}.}
+    \item{\code{gridLineAlpha}}{Transparency of background grid lines. Default
+\code{0.6}.}
+    \item{\code{arrowLinewidth}}{Line width of the velocity arrows. Default \code{0.25}
+for non-interactive view, \code{2} for interactive view.}
+    \item{\code{arrowAngle}}{Controls the angle of the arrowhead, only applied to
+non-interactive view. Default \code{20}.}
+    \item{\code{arrowLen}}{Control length in centimetre from arrow tip to arrow tail,
+only applied to non-interactive view. Default \code{0.2}.}
+    \item{\code{titleSize}}{Size of title text. Default \code{14} for non-interactive
+view, \code{20} for interactive view.}
+    \item{\code{equilateral}}{Logical, whether to always display the triangle as
+equilateral. Default \code{TRUE}.}
+    \item{\code{margin}}{Margin allowed around of the triangle plotting region when
+\code{equilateral = TRUE}}
+    \item{\code{interactive}}{Logical. Whether to display plotly interactive view.
+Default \code{FALSE}.}
+  }}
 
 \item{clusterVar}{A vector/factor assigning the cluster variable to each
 column of the matrix object. For "Seurat" method, \code{NULL} (default) for
@@ -123,64 +126,41 @@ spreading on figure. Default \code{0.08}.}
 \item{scale}{Whether to min-max scale the distance matrix by clusters.
 Default \code{TRUE}.}
 
+\item{dotColorBy}{A vector/factor for coloring dots, can be either categorical
+(must be character or factor) or continuous. Default \code{NULL}.}
+
+\item{dotColor}{Character vector of color codes. When \code{dotColorBy} is
+\code{NULL}, use one or as many colors as the number of cells. If
+\code{dotColorBy} is categorical, specify as many colors
+as the number of categories in \code{dotColorBy} or ggplot2 categorical
+color palette is used by default. If \code{dotColorBy} is continuous, specify
+together with \code{breaks} argument.}
+
+\item{palette}{Color palette to use when \code{dotColorBy} is given. Default
+\code{"D"} (viridis) for continuous value and ggplot2 default for categorical
+value. See detail for alternatives.}
+
+\item{direction}{Sets the order of colors in the scale. Default \code{1}
+orders as palette default. If \code{-1}, the order of colors is reversed.}
+
+\item{breaks}{Number of breaks for continuous color scale passed to
+non-interactive "plot3D::scatter3D" call. Default \code{NULL}.}
+
+\item{legendTitle}{Title on the legend/colorbar. Default \code{NULL} uses
+\code{"cluster"} if \code{dotColorBy} is missing (default); user-end variable
+expression if \code{dotColorBy} is directly specified from
+plotQuaternary.default method; variable name if \code{dotColorBy} is
+specified from Seurat or SingleCellExperiment method.}
+
 \item{returnData}{Logical. Whether to return similarity and aggregated
 velocity data if applicable instead of generating plot. Default \code{FALSE}.}
-
-\item{layer}{For "Seurat" method, which layer of the assay to be used.
-Default \code{"counts"}.}
-
-\item{assay}{For "Seurat" method, the specific assay to get data from.
-Default \code{NULL} to the default assay.}
-
-\item{assay.type}{For "SingleCellExperiment" methods. Which assay to use for
-calculating the similarity. Default \code{"counts"}.}
-
-\item{title}{Title text of the plot. Default \code{NULL}.}
-
-\item{veloMat}{Aggregated velocity matrix. Output of \code{aggrVeloGraph}.}
-
-\item{nGrid}{Number of grids along the bottom side of the equilateral
-triangle. Default \code{10}.}
-
-\item{radius}{Arrow length of unit velocity. Lower this when arrows point
-outside of the coordinate. Default \code{0.1}.}
-
-\item{dotSize, dotColor}{Dot aesthetics passed to
-\code{\link[ggplot2]{geom_point}}. Default \code{0.6} and \code{"grey60"}.}
-
-\item{labelColors}{Colors of the axis lines and vertex labels.
-Default \code{c("#3B4992FF", "#EE0000FF", "#008B45FF")} (blue, red and green)}
-
-\item{vertexLabelSize, vertexLabelDrift}{Adjustment on the three vertex text
-labels. Drift means the distance that the labels should be moved against the
-center of the plot. Default size \code{5}, drifted distance \code{0.03}.}
-
-\item{axisBreak}{Number of breaks to be labeled along axis. Default
-\code{5}.}
-
-\item{axisTextShow}{Logical, whether to show axis text. Default \code{TRUE}.}
-
-\item{axisTextSize, axisTextDrift}{Similar to the vertex adjustment applied
-to the text label along the axis breaks. Default size \code{4}, drifted
-distance \code{0.02}.}
-
-\item{gridLineAlpha}{Transparency of background grid lines. Default
-\code{0.6}.}
-
-\item{arrowLinewidth, arrowAngle, arrowLen}{Arrow aesthetics, see Details.}
-
-\item{titleSize}{Size of title text. Default \code{14}.}
-
-\item{equilateral}{Logical, whether to always display the triangle as
-equilateral. Default \code{TRUE}.}
-
-\item{margin}{Margin allowed around of the triangle plotting region when
-\code{equilateral = TRUE}}
 }
 \value{
-For "simMat" method, a ggplot object. For other methods, a ggplot
-object when \code{splitCluster = FALSE}, or a list of ggplot objects when
-\code{splitCluster = TRUE}.
+By default, a "ggplot" object when \code{byCluster} is not specified,
+a list of "ggplot" object when \code{byCluster} is specified. When
+\code{interactive = TRUE}, a "plotly" object is returned. When
+\code{returnData = TRUE}, a list of similarity matrix and aggregated velocity
+matrix is returned.
 }
 \description{
 Create ternary plots that show similarity between single cells and
@@ -200,32 +180,14 @@ Gaussian kernel, or directly computed with correlation metrics ("pearson" or
 specified metric from each cell to each terminal is calculated. The
 similarity matrix (n cells by v terminals) is lastly normalized to sum to 1
 for each cell, so it becomes a baricentric coordinate.
-
-\bold{Arrow aesthetics parameters} - The shape of arrows is controlled by 3
-arguments. Considering an arrow as the combination of a line segment and a
-triangle, \code{arrowLinewidth} controls the width of the line as well as
-the edge line of the triangle; \code{arrowAngle} equals to angle of the
-arrow-tip vertex of the triangle devided by 2 (e.g. the triangle is
-equilateral when \code{arrowAngle = 20}); \code{arrowLen} controls the
-absolute length from the arrow-tip vertex to its opposite edge.
 }
 \examples{
 gene <- selectTopFeatures(rnaRaw, rnaCluster, c("OS", "RE", "CH"))
 plotTernary(rnaRaw, rnaCluster, c("OS", "RE", "CH"), gene)
-\donttest{
-# Seurat example
-library(Seurat)
-srt <- CreateSeuratObject(rnaRaw)
-Idents(srt) <- rnaCluster
-gene <- selectTopFeatures(srt, vertices = c("OS", "RE", "CH"))
-plotTernary(srt, features = gene, vertices = c("OS", "RE", "CH"))
 }
-\donttest{
-# SingleCellExperiment example
-library(SingleCellExperiment)
-sce <- SingleCellExperiment(assays = list(counts = rnaRaw))
-colLabels(sce) <- rnaCluster
-gene <- selectTopFeatures(sce, vertices = c("OS", "RE", "CH"))
-plotTernary(sce, features = gene, vertices = c("OS", "RE", "CH"))
+\seealso{
+Other plotTernary: 
+\code{\link{plotTernary.Seurat}()},
+\code{\link{plotTernary.SingleCellExperiment}()}
 }
-}
+\concept{plotTernary}
