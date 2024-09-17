@@ -1,5 +1,4 @@
 library(testthat)
-library(CytoSimplex)
 library(Matrix)
 
 data("rnaRaw", package = "CytoSimplex")
@@ -9,7 +8,7 @@ gene <- selectTopFeatures(rnaRaw, rnaCluster, vertices)
 
 test_that("Test binary - sparse", {
     expect_error(plotBinary(rnaRaw, rnaCluster[1:100], c("CH", "ORT")),
-                 "Length of `clusterVar` must match")
+                 "Length of `clusterVar` must be 250")
     expect_error(plotBinary(rnaRaw, rnaCluster, "hi"),
                  "Must specify 2 different vertices.")
     expect_error(plotBinary(rnaRaw, rnaCluster, c("hi", "hey")),
@@ -19,7 +18,7 @@ test_that("Test binary - sparse", {
     expect_error(plotBinary(rnaRaw, rnaCluster, vertices),
                  "Detected more than 500")
 
-    expect_warning(plotBinary(rnaRaw, rnaCluster, c(vertices, "CH"), features = gene),
+    expect_message(plotBinary(rnaRaw, rnaCluster, c(vertices, "CH"), features = gene),
                    "2 vertices are expected while 3 are specified")
     rnaNorm <- colNormalize(rnaRaw)
     expect_warning(plotBinary(rnaNorm, rnaCluster, vertices, gene),

@@ -8,10 +8,12 @@ writeQuaternaryGIF(
   x,
   ...,
   cluster = NULL,
-  gifPath = "quaternary.gif",
-  tmpDir = tempdir(),
+  filename = NULL,
   fps = 10,
-  degreePerFrame = 10
+  degreePerFrame = 10,
+  width = 5,
+  height = 5,
+  res = 100
 )
 }
 \arguments{
@@ -20,24 +22,27 @@ writeQuaternaryGIF(
 \item{...}{All other arguments needed for \code{\link{plotQuaternary}}. Must
 be specified with exact argument names instead of a positional manner.}
 
-\item{cluster}{One cluster that exists in \code{clusterVar}, if users
-need to view the plot for specific group. Default \code{NULL} plot all cells.}
+\item{cluster}{One cluster that exists in \code{clusterVar} if users
+need to view the plot for a specific group. Default \code{NULL} plot all
+cells.}
 
-\item{gifPath}{Output GIF image file path. Default \code{"quaternary.gif"}}
-
-\item{tmpDir}{A temprorary directory to store all PNG files for all
-perspectives created. Default \code{tempdir()}.}
+\item{filename}{Output GIF image file path. Default \code{NULL} does not
+write to file.}
 
 \item{fps}{Number of frame per second, must be a factor of 100. Default
 \code{10}.}
 
 \item{degreePerFrame}{Number of degree that the tetrahedron is rotated per
 frame. Default \code{10}.}
+
+\item{width, height, res}{\code{grDevices::\link[grDevices]{png}} parameters to
+set figure size and resolutation. Width and Height are in inches. Default
+\code{5}, \code{5}, \code{100}.}
 }
 \value{
-No object is returned. The \code{tmpDir} folder will be created with
-\code{360 / degreePerFrame} PNG image files in it. A GIF image file will be
-created at \code{gifPath}.
+A object of class \code{magick-image} that can be shown in the Viewer
+panel in RStudio or equivalent display device. If \code{filename} is
+specified, the GIF image will be written to the file path.
 }
 \description{
 Create GIF image for dynamic rotating view of 3D quaternary simplex plot
@@ -47,6 +52,6 @@ gene <- selectTopFeatures(rnaRaw, rnaCluster, c("RE", "OS", "CH", "ORT"))
 \donttest{
 writeQuaternaryGIF(rnaRaw, clusterVar = rnaCluster, features = gene,
                    vertices = c("RE", "OS", "CH", "ORT"),
-                   gifPath = paste0(tempfile(), ".gif"))
+                   gifPath = tempfile(fileext = ".gif"))
 }
 }
