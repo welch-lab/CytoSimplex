@@ -3,6 +3,18 @@ template:
   bootstrap: 5
 
 navbar:
+  title: CytoSimplex
+  left:
+    - text: Tutorials
+      menu:
+        - text: HSPC analysis
+          href: articles/HSPC_example.html
+        - text: General usage with BMSC subset
+          href: articles/CytoSimplex.html
+    - text: API
+      href: reference/index.html
+    - text: Changelog
+      href: NEWS.html
   right:
     - icon: fab fa-github fa-lg
       href: https://github.com/welch-lab/CytoSimplex
