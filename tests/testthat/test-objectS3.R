@@ -4,7 +4,6 @@ if (requireNamespace("Seurat", quietly = TRUE) &&
     Sys.setenv("OMP_THREAD_LIMIT" = 2)
 
     library(testthat)
-    library(CytoSimplex)
     library(Matrix)
 
     data("rnaRaw", package = "CytoSimplex")
@@ -81,8 +80,8 @@ if (requireNamespace("Seurat", quietly = TRUE) &&
         gene <- selectTopFeatures(rnaRaw, rnaCluster, vertices)
         p1 <- plotQuaternary(srt, vertices = vertices, features = gene)
         p2 <- plotQuaternary(sce, vertices = vertices, features = gene)
-        expect_s3_class(p1, "plist")
-        expect_s3_class(p2, "plist")
+        expect_s3_class(p1, "plotly")
+        expect_s3_class(p2, "plotly")
         expect_no_warning(plotQuaternary(srt, slot = "data", vertices = vertices,
                                          features = gene))
         expect_no_warning(plotQuaternary(sce, assay.type = "normcounts",

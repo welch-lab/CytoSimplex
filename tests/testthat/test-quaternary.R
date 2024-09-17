@@ -1,5 +1,4 @@
 library(testthat)
-library(CytoSimplex)
 library(Matrix)
 
 Sys.setenv("OMP_THREAD_LIMIT" = 2)
@@ -16,32 +15,31 @@ test_that("Test quaternary - sparse", {
                  "Specified vertex clusters are not all found in the cluster ")
     expect_error(plotQuaternary(rnaRaw, rnaCluster, vertices,
                              dotColor = c("a", "b")),
-                 "`dotColor` need to be either 1")
+                 "Length of `dotColor` must be 1 for all dots")
     expect_error(plotQuaternary(rnaRaw, rnaCluster, vertices, gene,
                              veloGraph = rnaVelo[1:10,]),
-                 "`veloGraph must be of shape N x N and has dimnames covering ")
-    expect_warning(plotQuaternary(rnaRaw, rnaCluster, c(vertices, "Stem"), gene),
+                 "`veloGraph` must have dimension of 250 x 250 and has dimnames covering all")
+    expect_message(plotQuaternary(rnaRaw, rnaCluster, c(vertices, "Stem"), gene),
                    "4 vertices are expected while 5 are specified.")
     rnaNorm <- colNormalize(rnaRaw)
-    expect_warning(plotQuaternary(rnaNorm, rnaCluster, vertices, gene),
+    expect_message(plotQuaternary(rnaNorm, rnaCluster, vertices, gene),
                    "Input matrix is not raw counts")
 
     p <- plotQuaternary(rnaRaw, rnaCluster, vertices, gene, veloGraph = rnaVelo)
-    expect_s3_class(p, "plist")
+    expect_s3_class(p, "plotly")
 
-    pl <- plotQuaternary(rnaRaw, rnaCluster, vertices, gene, byCluster = "all")
+    pl <- plotQuaternary(rnaRaw, rnaCluster, vertices, gene, byCluster = "all", interactive = FALSE)
     expect_identical(class(pl), "list")
 
     pl <- plotQuaternary(rnaRaw, rnaCluster, vertices, gene, byCluster = "RE",
-                      clusterTitle = FALSE)
+                      clusterTitle = FALSE, interactive = FALSE)
     expect_identical(class(pl), "list")
 
-    show(p)
-    expect_gt(length(dev.list()), 0)
+    expect_no_error(show(p))
 
     expect_error(plotQuaternary(rnaRaw, rnaCluster, vertices, gene,
-                                byCluster = "Hi"),
-                 "`byCluster` must be either a vector of cluster name ")
+                                byCluster = "Hi", interactive = FALSE),
+                 "`byCluster` must be either a vector of cluster names or just")
     expect_no_error(plotQuaternary(rnaRaw, rnaCluster, vertices, gene,
                                    veloGraph = rnaVelo, interactive = TRUE,
                                    title = "All cells"))
@@ -50,7 +48,7 @@ test_that("Test quaternary - sparse", {
 test_that("Test quaternary - dense", {
     rnaRawSub <- as.matrix(rnaRaw[gene,])
     p <- plotQuaternary(rnaRawSub, rnaCluster, vertices)
-    expect_s3_class(p, "plist")
+    expect_s3_class(p, "plotly")
 })
 
 test_that("Test quaternary GIF", {
@@ -67,36 +65,33 @@ test_that("Test quaternary GIF", {
     expect_error(writeQuaternaryGIF(rnaRaw, clusterVar = rnaCluster,
                                     vertices = grouping, features = gene,
                                     cluster = "a"),
-                 "\"a\" is not an available cluster.")
+                 "Specified `cluster`")
     expect_error(writeQuaternaryGIF(rnaRaw, clusterVar = rnaCluster,
                                     features = gene, vertices = grouping,
                                     fps = 33),
-                 "FPS must be a factor of 100.")
-    skip_on_cran()
-    expect_warning(writeQuaternaryGIF(rnaRaw, clusterVar = rnaCluster,
-                                      vertices = grouping, features = gene,
-                                      cluster = "RE",
-                                      gifPath = "test.gif", tmpDir = "testGif/",
-                                      theta = 10),
-                   "Arguments ignored: theta")
-    expect_true(dir.exists("testGif"))
-    expect_true(file.exists("test.gif"))
-    unlink("testGif/", recursive = TRUE)
-    unlink("test.gif")
+                 "`FPS` must be a factor of 100")
 
+    skip_on_cran()
+    tmpgif <- tempfile(pattern = "test_", fileext = ".gif")
+    expect_message(writeQuaternaryGIF(rnaRaw, clusterVar = rnaCluster,
+                                      vertices = grouping, features = gene,
+                                      cluster = "RE", filename = tmpgif,
+                                      theta = 10),
+                   "These arguments are ignored")
+    expect_true(file.exists(tmpgif))
+    unlink(tmpgif)
+
+    tmpgif <- tempfile(pattern = "test2_", fileext = ".gif")
     writeQuaternaryGIF(rnaRaw, clusterVar = rnaCluster,
                        vertices = grouping, features = gene,
-                       gifPath = "test.gif", tmpDir = "testGif/")
-    expect_true(dir.exists("testGif"))
-    expect_true(file.exists("test.gif"))
-    unlink("testGif/", recursive = TRUE)
-    unlink("test.gif")
+                       filename = tmpgif)
+    expect_true(file.exists(tmpgif))
+    unlink(tmpgif)
 
+    tmpgif <- tempfile(pattern = "test3_", fileext = ".gif")
     writeQuaternaryGIF(rnaRaw, clusterVar = rnaCluster, features = gene,
                        vertices = grouping, useCluster = "Stem",
-                       gifPath = "test2.gif", tmpDir = "testGif2/")
-    expect_true(dir.exists("testGif2"))
-    expect_true(file.exists("test2.gif"))
-    unlink("testGif2/", recursive = TRUE)
-    unlink("test2.gif")
+                       filename = tmpgif)
+    expect_true(file.exists(tmpgif))
+    unlink(tmpgif)
 })

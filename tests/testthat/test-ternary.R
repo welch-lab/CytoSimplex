@@ -1,5 +1,4 @@
 library(testthat)
-library(CytoSimplex)
 library(Matrix)
 
 data("rnaRaw", package = "CytoSimplex")
@@ -15,11 +14,11 @@ test_that("Test ternary - sparse", {
                  "Specified vertex clusters are not all found in the cluster ")
     expect_error(plotTernary(rnaRaw, rnaCluster, vertices,
                              dotColor = c("a", "b")),
-                 "`dotColor` need to be either 1")
+                 "Length of `dotColor` must be 1 for all dots")
     expect_error(plotTernary(rnaRaw, rnaCluster, vertices, gene,
                              veloGraph = rnaVelo[1:10,]),
                  "`veloGraph must be of shape N x N and has dimnames covering ")
-    expect_warning(plotTernary(rnaRaw, rnaCluster, c(vertices, "ORT"), gene),
+    expect_message(plotTernary(rnaRaw, rnaCluster, c(vertices, "ORT"), gene),
                    "3 vertices are expected while 4 are specified")
     rnaNorm <- colNormalize(rnaRaw)
     expect_warning(plotTernary(rnaNorm, rnaCluster, vertices, gene),

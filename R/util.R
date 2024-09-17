@@ -121,7 +121,9 @@ is.rawCounts <- function(x) {
     mat <- SummarizedExperiment::assay(object, assay.type)
 
     clusterVar <- clusterVar %||% SingleCellExperiment::colLabels(object)
-    if (length(clusterVar) == 1) {
+    if (length(clusterVar) == 0) {
+        clusterVar <- NULL
+    } else if (length(clusterVar) == 1) {
         clusterVar <- SummarizedExperiment::colData(object)[[clusterVar]]
     } else if (length(clusterVar) != ncol(object)) {
         stop("Invalid `clusterVar`.")

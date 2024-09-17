@@ -132,7 +132,6 @@ plotQuaternary.default <- function(
         breaks = breaks,
         legendTitle = legendTitle
     )
-
     if (isFALSE(processed) && !is.rawCounts(x)) {
         cli::cli_alert_warning(
             "Input matrix is not raw counts (integers). Results may be affected."
@@ -292,7 +291,7 @@ plotQuaternary.Seurat <- function(
 #' @examples
 #' \donttest{
 #' # SingleCellExperiment example
-#' if (requreNamespace("SingleCellExperiment", quietly = TRUE)) {
+#' if (requireNamespace("SingleCellExperiment", quietly = TRUE)) {
 #'   require(SingleCellExperiment)
 #'   sce <- SingleCellExperiment(assays = list(counts = rnaRaw))
 #'   colLabels(sce) <- rnaCluster
@@ -428,7 +427,6 @@ plotQuaternary.simMat <- function(
         theta = 20,
         phi = 0
 ) {
-    # print(colorArg)
     dotSize <- dotSize %||% 0.6
     vertexLabelSize <- vertexLabelSize %||% 1
     arrowLinewidth <- arrowLinewidth %||% 0.6
@@ -482,7 +480,6 @@ plotQuaternary.simMat <- function(
         colvar <- NULL
         col <- colorArg$colors
     }
-
     # Plot data
     grDevices::pdf(nullfile())
     scatter3D(x = cellCart[,1], y = cellCart[,2], z = cellCart[,3],
@@ -885,8 +882,7 @@ writeQuaternaryGIF <- function(
     plotData <- do.call(plotQuaternary, c(list(x = x, returnData = TRUE),
                                           methodArgs))
     clusterVar <- plotData$originalCluster
-    methodArgs$dotColorBy <- plotData$dotColorBy
-    methodArgs$dotColor <- plotData$dotColor
+    methodArgs$colorArg <- plotData$colorArg
     if (!is.null(cluster)) {
         if (length(cluster) != 1)
             cli::cli_abort("Can only generate GIF for one cluster at a time")
@@ -898,6 +894,7 @@ writeQuaternaryGIF <- function(
         simMat <- plotData$sim[clusterVar == cluster,]
         veloMat <- plotData$velo[clusterVar == cluster,]
         if (!"title" %in% names(methodArgs)) methodArgs$title <- cluster
+        if ("colorArg" %in% names(methodArgs)) methodArgs$colorArg <- methodArgs$colorArg[clusterVar == cluster]
     } else {
         simMat <- plotData$sim
         veloMat <- plotData$velo
@@ -930,7 +927,7 @@ writeQuaternaryGIF <- function(
     imgJoined <- magick::image_join(imgList)
     imgAnimated <- magick::image_animate(imgJoined, fps = fps)
     if (!is.null(filename)) {
-        filename <- normalizePath(filename, mustWork = TRUE)
+        filename <- normalizePath(filename, mustWork = FALSE)
         magick::image_write(image = imgAnimated,
                             path = filename)
         cli::cli_process_done(msg_done = "GIF written to file: {.file {filename}}")

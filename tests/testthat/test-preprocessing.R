@@ -1,5 +1,4 @@
 library(testthat)
-library(CytoSimplex)
 library(Matrix)
 
 data("rnaRaw", package = "CytoSimplex")

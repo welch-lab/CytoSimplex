@@ -132,7 +132,7 @@ advance. Linux users may refer to this
 \examples{
 \donttest{
 # SingleCellExperiment example
-if (requreNamespace("SingleCellExperiment", quietly = TRUE)) {
+if (requireNamespace("SingleCellExperiment", quietly = TRUE)) {
   require(SingleCellExperiment)
   sce <- SingleCellExperiment(assays = list(counts = rnaRaw))
   colLabels(sce) <- rnaCluster
