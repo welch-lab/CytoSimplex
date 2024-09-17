@@ -10,6 +10,9 @@
     <loc>/articles/CytoSimplex.html</loc>
   </url>
   <url>
+    <loc>/articles/hspc_example.html</loc>
+  </url>
+  <url>
     <loc>/articles/index.html</loc>
   </url>
   <url>
@@ -31,10 +34,43 @@
     <loc>/reference/plotBinary.html</loc>
   </url>
   <url>
+    <loc>/reference/plotQuaternary.Seurat.html</loc>
+  </url>
+  <url>
+    <loc>/reference/plotQuaternary.SingleCellExperiment.html</loc>
+  </url>
+  <url>
     <loc>/reference/plotQuaternary.html</loc>
   </url>
   <url>
+    <loc>/reference/plotQuaternary.simMat.html</loc>
+  </url>
+  <url>
+    <loc>/reference/plotTernary.Seurat.html</loc>
+  </url>
+  <url>
+    <loc>/reference/plotTernary.SingleCellExperiment.html</loc>
+  </url>
+  <url>
     <loc>/reference/plotTernary.html</loc>
+  </url>
+  <url>
+    <loc>/reference/plotTernary.simMat.html</loc>
+  </url>
+  <url>
+    <loc>/reference/print-quatPlot.html</loc>
+  </url>
+  <url>
+    <loc>/reference/readH5ADObsNames.html</loc>
+  </url>
+  <url>
+    <loc>/reference/readH5ADObsVar.html</loc>
+  </url>
+  <url>
+    <loc>/reference/readH5ADUnsSpMat.html</loc>
+  </url>
+  <url>
+    <loc>/reference/readVelocytoLoom.html</loc>
   </url>
   <url>
     <loc>/reference/rnaCluster.html</loc>
