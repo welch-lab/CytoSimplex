@@ -8,7 +8,7 @@ navbar:
     - text: Tutorials
       menu:
         - text: HSPC analysis
-          href: articles/HSPC_example.html
+          href: articles/hspc_example.html
         - text: General usage with BMSC subset
           href: articles/CytoSimplex.html
     - text: API
