@@ -181,7 +181,7 @@ plotQuaternary.default <- function(
             )
             return(plotQuaternary(
                 x = simMat, veloMat = veloMat, colorArg = colorArg,
-                interactove = TRUE, ...
+                interactive = TRUE, ...
             ))
         }
         if (identical(byCluster, "all")) {
