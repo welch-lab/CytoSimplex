@@ -43,6 +43,9 @@ test_that("Test quaternary - sparse", {
     expect_no_error(plotQuaternary(rnaRaw, rnaCluster, vertices, gene,
                                    veloGraph = rnaVelo, interactive = TRUE,
                                    title = "All cells"))
+    expect_message(plotQuaternary(rnaRaw, rnaCluster, vertices, gene, byCluster = TRUE,
+                                  interactive = TRUE),
+                   "can show desired cluster\\(s\\) by clicking on the legend")
 })
 
 test_that("Test quaternary - dense", {
