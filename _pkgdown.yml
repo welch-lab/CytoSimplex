@@ -14,7 +14,11 @@ navbar:
     - text: API
       href: reference/index.html
     - text: Changelog
-      href: NEWS.html
+      href: news/index.html
   right:
+    - text: Welch Lab
+      href: https://welch-lab.github.io/
     - icon: fab fa-github fa-lg
       href: https://github.com/welch-lab/CytoSimplex
+    - icon: fab fa-twitter fa-lg
+      href: https://twitter.com/LabWelch

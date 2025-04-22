@@ -380,6 +380,7 @@ plotTernary.SingleCellExperiment <- function(
 #' Default \code{FALSE}.
 #' @param ... Not used
 #' @method plotTernary simMat
+#' @export
 plotTernary.simMat <- function(
         x,
         title = NULL,
@@ -655,13 +656,14 @@ plotTernary.simMat <- function(
     dotSize <- dotSize %||% 4
     arrowLinewidth <- arrowLinewidth %||% 2
     df <- as.data.frame(as.matrix(x[,1:3]))
+    hoverDF <- cbind(ID = rownames(x), df)
     legendTitle <- colorArg$palette$legendTitle
     if (colorArg$type == "categorical") {
         df[[legendTitle]] <- colorArg$colorBy
         fig <- plotly::plot_ly(
             data = df, type = "scatterternary", mode = "markers",
             a = I(df[[1]]), b = I(df[[2]]), c = I(df[[3]]),
-            hovertemplate = .plotly_formatCustomData(df),
+            hovertemplate = .plotly_formatCustomData(hoverDF),
             color = stats::formula(paste0("~", legendTitle)),
             colors = colorArg$palette$colors,
             marker = list(
@@ -674,7 +676,7 @@ plotTernary.simMat <- function(
         fig <- plotly::plot_ly(
             data = df, type = "scatterternary", mode = "markers",
             a = I(df[[1]]), b = I(df[[2]]), c = I(df[[3]]),
-            hovertemplate = .plotly_formatCustomData(df),
+            hovertemplate = .plotly_formatCustomData(hoverDF),
             marker = list(
                 color = stats::formula(paste0("~", legendTitle)),
                 autocolorscale = FALSE,
@@ -696,7 +698,7 @@ plotTernary.simMat <- function(
         fig <- plotly::plot_ly(
             data = df, type = "scatterternary", mode = "markers",
             a = I(df[[1]]), b = I(df[[2]]), c = I(df[[3]]),
-            hovertemplate = .plotly_formatCustomData(df),
+            hovertemplate = .plotly_formatCustomData(hoverDF),
             marker = list(
                 color = colorArg$colors,
                 size = dotSize

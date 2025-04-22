@@ -1,4 +1,4 @@
-## CytoSimplex 0.1.99
+## CytoSimplex 0.2.0
 
 - Added support for coloring dots by categorical or continuous variable, with options to use customized or built-in color palettes.
 - Changed interactive 3D support of quaternary simplex plot from *rgl* to *plotly*. Now the default is `interactive = TRUE` for `plotQuaternary()` and it returns a `plotly` object.
@@ -6,6 +6,7 @@
 - Fixed wilcoxon bug
 - Added `readH5ADObsNames()`, `readH5ADObsVar()`, `readH5ADUnsSpMat()`, `readVelocytoLoom()` for loading commonly seen necessary information from H5AD and LOOM files of RNA velocity analysis
 - Added example tutorial for HSPC analysis in the manuscript
+- Fixed error in `plotQuaternary()`
 
 ## CytoSimplex 0.1.1
 

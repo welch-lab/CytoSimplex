@@ -368,6 +368,7 @@ plotQuaternary.SingleCellExperiment <- function(
 #' @param ... Not used
 #' @method plotQuaternary simMat
 #' @return A "quatPlot" object, can be displayed by printing.
+#' @export
 plotQuaternary.simMat <- function(
         x,
         veloMat = NULL,

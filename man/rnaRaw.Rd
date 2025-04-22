@@ -5,7 +5,7 @@
 \alias{rnaRaw}
 \title{Mouse bone marrow scRNAseq example data}
 \format{
-\linkS4class{dgCMatrix} object
+\link[Matrix]{dgCMatrix-class} object
 }
 \source{
 https://www.nature.com/articles/s41467-023-38034-2
