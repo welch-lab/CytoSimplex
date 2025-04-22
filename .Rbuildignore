@@ -8,3 +8,5 @@
 ^docs$
 ^pkgdown$
 ^vignettes/rotating_tetra\.gif$
+\.h5ad$
+\.loom$

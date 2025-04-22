@@ -174,14 +174,16 @@ plotQuaternary.default <- function(
         return(plotQuaternary(x = simMat, veloMat = veloMat,
                colorArg = colorArg, ...))
     } else {
+        # If specified in `...`, use that. Otherwise, always assume the default
+        # to be `TRUE`. Note an instance of this parameter does not exist yet,
+        # thus created.
         interactive <- list(...)$interactive %||% TRUE
         if (isTRUE(interactive)) {
             cli::cli_alert_warning(
                 "Interactive view with {.pkg plotly} can show desired cluster(s) by clicking on the legend. Ignoring {.var byCluster}."
             )
             return(plotQuaternary(
-                x = simMat, veloMat = veloMat, colorArg = colorArg,
-                interactove = TRUE, ...
+                x = simMat, veloMat = veloMat, colorArg = colorArg, ...
             ))
         }
         if (identical(byCluster, "all")) {
