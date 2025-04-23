@@ -10,7 +10,7 @@ navbar:
         - text: HSPC analysis
           href: articles/hspc_example.html
         - text: General usage with BMSC subset
-          href: articles/CytoSimplex.html
+          href: articles/basics.html
     - text: API
       href: reference/index.html
     - text: Changelog
