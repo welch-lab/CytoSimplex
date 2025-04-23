@@ -1,12 +1,8 @@
 ---
-title: "Simplex Visualization of Cell Fate Similarity in Single-Cell Data"
+title: "Basic usage of CytoSimplex"
 author: "Yichen Wang, Jialin Liu"
 date: "`r format(Sys.time(), '%m/%d/%Y')`"
-output: rmarkdown::html_vignette
-vignette: >
-  %\VignetteIndexEntry{Simplex Visualization of Cell Fate Similarity in Single-Cell Data}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
+output: html_document
 ---
 
 ```{r setup, include=FALSE}
@@ -63,12 +59,10 @@ plotTernary(rnaRaw, clusterVar = rnaCluster, vertices = vt.tern, features = gene
 
 The same figure above can be shown in an interactive panel, powered by [plotly](https://plotly.com/r/). The interactive plot allows users to zoom in and out, and hover over the dots to see the cell names and the values of inferred similarity. To enable this feature, users only need to add `interactive = TRUE` in the function call. 
 
-```{R plotTernaryInteractive, fig.height = 4, fig.width = 5, eval = FALSE}
+```{R plotTernaryInteractive, fig.height = 4, fig.width = 5}
 plotTernary(rnaRaw, clusterVar = rnaCluster, vertices = vt.tern, features = gene.tern, 
             interactive = TRUE)
 ```
-
->For a rendered instance, please view our documentation website as the vignette is only allowed to demonstrate minimum content.
 
 ## Adding velocity information to ternary plot
 
@@ -84,11 +78,9 @@ We create a number of square grids in the 2D plain of the ternary simplex (or cu
 
 Interactive view with velocity information is also supported. The aggregated potential value can also be shown when hovering above the arrows.
 
->For a rendered instance of interactive visualization, please view our documentation website as the vignette is only allowed to demonstrate minimum content.
-
 ```{R ternVelo, fig.width = 5, fig.height = 4}
 plotTernary(rnaRaw, clusterVar = rnaCluster, vertices = vt.tern, 
-            features = gene.tern, veloGraph = rnaVelo)
+            features = gene.tern, veloGraph = rnaVelo, interactive = TRUE)
 ```
 
 ## Exploration with each cluster
@@ -125,10 +117,10 @@ For a quaternary simplex, we need one more cluster as a vertex. Here, we add the
 vt.quat <- c("OS", "RE", "CH", "ORT")
 gene.quat <- selectTopFeatures(rnaRaw, clusterVar = rnaCluster, vertices = vt.quat)
 plotQuaternary(rnaRaw, clusterVar = rnaCluster, vertices = vt.quat, 
-               features = gene.quat, veloGraph = rnaVelo, interactive = FALSE)
+               features = gene.quat, veloGraph = rnaVelo)
 ```
 
->The default of `plotQuaternary()` returns an interactive view. For a rendered instance of interactive visualization, please view our documentation website as the vignette is only allowed to demonstrate minimum content.
+If a static view is preferred, users can set `interactive = FALSE` in the function call, and adjust the view angle with `theta` and `phi` arguments.
 
 We have also implemented of GIF image generator that rotates the tetrahedron rounding the z-axis. Note that package `magick` is required for this feature. (<a href="https://cran.r-project.org/package=magick/vignettes/intro.html#Installing_magick" target="_blank">See here for how to install `magick` in detail</a>)
 
