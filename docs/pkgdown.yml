@@ -1,8 +1,7 @@
-pandoc: 3.1.11
-pkgdown: 2.0.9
+pandoc: '3.2'
+pkgdown: 2.1.1
 pkgdown_sha: ~
 articles:
   CytoSimplex: CytoSimplex.html
-  hspc_example: hspc_example.html
-last_built: 2024-09-18T14:50Z
-
+  articles/hspc_example: hspc_example.html
+last_built: 2025-04-22T17:08Z
